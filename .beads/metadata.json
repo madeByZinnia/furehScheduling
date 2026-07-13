@@ -1,0 +1,7 @@
+{
+  "database": "dolt",
+  "backend": "dolt",
+  "dolt_mode": "embedded",
+  "dolt_database": "fureh_schedules",
+  "project_id": "76c33cf2-57fb-4257-8d71-9522b8e133a9"
+}
