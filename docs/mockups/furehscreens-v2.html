@@ -1,0 +1,921 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Fur-Eh 2026 Crew — All Screens (v2)</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@500;700&family=DM+Sans:opsz,wght@9..40,400;9..40,500;9..40,700&family=Fira+Code:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --serif:'Cinzel',Georgia,serif;
+    --sans:'DM Sans',ui-sans-serif,sans-serif;
+    --mono:'Fira Code',ui-monospace,monospace;
+    --radius:14px;
+  }
+  html[data-theme="dark"]{
+    --bg:#14110c; --panel:#1e1a13; --surface:#26211a; --surface-2:#302a20;
+    --border:#433b2c; --border-hi:#6b5c40;
+    --text:#f5efe2; --text-dim:#c3b7a0;
+    --gold:#e0b352; --green:#5cc79b; --rose:#ee8a7d; --blue:#7fc0e8; --violet:#b3a6e0;
+    --ink:#14110c;
+    --plan-fill:#2b2519; --plan-room:#3d3524; --plan-line:#8a7549; --plan-text:#f5efe2;
+    --osm:#4a4232;
+  }
+  html[data-theme="light"]{
+    --bg:#faf6ec; --panel:#fffdf7; --surface:#f2ecdd; --surface-2:#e8e0cc;
+    --border:#cfc3a6; --border-hi:#9e8f6d;
+    --text:#191510; --text-dim:#514732;
+    --gold:#7a5a10; --green:#0f5f43; --rose:#9a2d20; --blue:#17506f; --violet:#4a3d7a;
+    --ink:#faf6ec;
+    --plan-fill:#f0e8d4; --plan-room:#ddd0b0; --plan-line:#6b5a35; --plan-text:#191510;
+    --osm:#cbbf9f;
+  }
+
+  *{box-sizing:border-box;min-width:0}
+  html,body{margin:0;padding:0}
+  body{
+    background:var(--bg); color:var(--text);
+    font-family:var(--sans); font-size:17px; line-height:1.6;
+    -webkit-font-smoothing:antialiased;
+    padding:40px 24px 100px;
+  }
+  .wrap{max-width:1640px;margin:0 auto}
+
+  .top{display:flex;align-items:flex-start;justify-content:space-between;gap:24px;flex-wrap:wrap}
+  .kicker{font-family:var(--mono);font-size:13px;letter-spacing:.16em;text-transform:uppercase;color:var(--green);margin:0 0 10px}
+  h1{font-family:var(--serif);font-size:clamp(32px,4.5vw,54px);line-height:1.05;margin:0 0 14px;font-weight:700;letter-spacing:.01em}
+  h1 em{font-style:normal;color:var(--gold)}
+  .sub{color:var(--text-dim);font-size:18px;max-width:74ch;margin:0 0 6px}
+  .sub b{color:var(--text);font-weight:500}
+  .themebtn{
+    font-family:var(--mono);font-size:14px;padding:12px 18px;border-radius:10px;cursor:pointer;
+    border:2px solid var(--border-hi);background:var(--surface);color:var(--text);flex:none;min-height:44px;
+  }
+  .themebtn:hover{border-color:var(--gold);color:var(--gold)}
+  .themebtn:focus-visible{outline:3px solid var(--gold);outline-offset:2px}
+
+  .meta-row{display:flex;flex-wrap:wrap;gap:10px;margin-top:22px}
+  .pill{font-family:var(--mono);font-size:13px;padding:7px 13px;border-radius:999px;border:1px solid var(--border);color:var(--text-dim);background:var(--surface)}
+  .pill b{color:var(--text);font-weight:500}
+  .pill.chg{border-color:var(--green);color:var(--green)}
+
+  hr.rule{border:0;border-top:2px solid var(--border);margin:48px 0 40px}
+  h2{font-family:var(--serif);font-size:28px;margin:0 0 8px;letter-spacing:.01em;display:flex;align-items:center;gap:14px;flex-wrap:wrap}
+  h2 .num{font-family:var(--mono);font-size:13px;color:var(--green);border:2px solid var(--green);border-radius:7px;padding:3px 9px;font-weight:500;flex:none;letter-spacing:0}
+  .lede{color:var(--text-dim);max-width:82ch;margin:0 0 30px;font-size:17px}
+  .lede b{color:var(--text);font-weight:500}
+
+  .phones{display:grid;grid-template-columns:repeat(auto-fit,minmax(360px,1fr));gap:38px;align-items:start}
+  .col{display:flex;flex-direction:column;gap:14px;min-width:0}
+  .cap{display:flex;flex-direction:column;gap:2px}
+  .cap h3{font-family:var(--serif);margin:0;font-size:21px;letter-spacing:.01em}
+  .cap span{font-size:15px;color:var(--text-dim)}
+  .cap span.chg{color:var(--green);font-weight:500}
+  .phone{
+    width:100%;max-width:392px;background:var(--panel);border:2px solid var(--border);
+    border-radius:32px;padding:10px;box-shadow:0 26px 54px -22px rgba(0,0,0,.55);
+  }
+  .screen{background:var(--bg);border-radius:23px;overflow:hidden;display:flex;flex-direction:column;height:800px;border:1px solid var(--border)}
+  .statusbar{display:flex;justify-content:space-between;padding:10px 20px 6px;font-family:var(--mono);font-size:13px;color:var(--text-dim);flex:none}
+  .tgbar{display:flex;align-items:center;gap:10px;padding:9px 14px;background:var(--surface-2);flex:none;border-bottom:1px solid var(--border)}
+  .tgbar .x{font-family:var(--mono);font-size:16px;color:var(--blue)}
+  .tgbar .t{flex:1;font-weight:500;font-size:15px}
+  .tgbar .t small{display:block;color:var(--text-dim);font-weight:400;font-size:12px;font-family:var(--mono);letter-spacing:.06em}
+  .tgbar .dots{color:var(--text-dim);font-size:17px}
+
+  .apphead{padding:12px 16px 14px;flex:none;border-bottom:2px solid var(--border)}
+  .apphead .title{display:flex;align-items:baseline;justify-content:space-between;gap:10px}
+  .apphead h4{font-family:var(--serif);margin:0;font-size:24px;letter-spacing:.01em}
+  .apphead .when{font-family:var(--mono);font-size:13px;color:var(--gold);font-weight:500}
+  .apphead .headbtn{font-family:var(--mono);font-size:13px;color:var(--blue);border:2px solid var(--border);border-radius:9px;padding:6px 10px;min-height:36px;display:flex;align-items:center;gap:5px}
+
+  .body{flex:1;overflow:hidden;padding:14px 16px;display:flex;flex-direction:column;gap:11px;position:relative}
+
+  .filters{display:flex;flex-wrap:wrap;gap:7px;flex:none}
+  .fchip{
+    display:inline-flex;align-items:center;gap:6px;min-height:44px;padding:6px 12px;border-radius:11px;
+    border:2px solid var(--border);background:var(--surface);color:var(--text);font-size:15px;font-weight:500;
+  }
+  .fchip.on{background:var(--gold);border-color:var(--gold);color:var(--ink)}
+  .fchip .av{width:26px;height:26px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:700;color:#12100a;flex:none}
+  .fchip .st{font-family:var(--mono);font-size:11px;color:var(--text-dim);letter-spacing:.04em}
+  .fchip.on .st{color:var(--ink);opacity:.8}
+  .fchip.freeish{border-color:var(--green)}
+
+  .search{display:flex;align-items:center;gap:9px;padding:11px 13px;border-radius:11px;background:var(--surface);border:2px solid var(--border);flex:none;font-size:15px;color:var(--text-dim);min-height:44px}
+  .daytabs{display:flex;gap:6px;flex:none;margin-top:12px}
+  .daytab{flex:1;text-align:center;font-family:var(--mono);font-size:14px;padding:10px 0;border-radius:9px;border:2px solid var(--border);color:var(--text-dim);background:var(--surface);min-height:44px;display:flex;align-items:center;justify-content:center}
+  .daytab.on{background:var(--surface-2);color:var(--text);border-color:var(--border-hi);font-weight:700}
+
+  .timesep{font-family:var(--mono);font-size:13px;color:var(--text-dim);display:flex;align-items:center;gap:9px;flex:none;margin-top:4px;font-weight:500}
+  .timesep::after{content:'';flex:1;height:1px;background:var(--border)}
+
+  .ev{display:flex;gap:11px;padding:12px;border-radius:12px;background:var(--surface);border:2px solid var(--border);flex:none}
+  .ev.starred{border-color:var(--gold)}
+  .ev.custom{border-color:var(--violet)}
+  .ev .time{font-family:var(--mono);font-size:13px;color:var(--text-dim);flex:none;width:50px;padding-top:2px;line-height:1.35}
+  .ev .time b{display:block;color:var(--text);font-weight:700;font-size:14px}
+  .ev .main{flex:1;min-width:0}
+  .ev .nm{font-size:16px;font-weight:500;line-height:1.35;margin-bottom:4px;overflow-wrap:break-word}
+  .ev .rm{font-size:14px;color:var(--text-dim)}
+  .ev .star{flex:none;width:44px;height:44px;display:flex;align-items:center;justify-content:center;font-size:22px;color:var(--text-dim);border-radius:9px;border:2px solid transparent}
+  .ev.starred .star{color:var(--gold);border-color:var(--gold)}
+  .going{display:flex;gap:5px;margin-top:7px;flex-wrap:wrap;align-items:center}
+  .g{display:inline-flex;align-items:center;gap:4px;font-size:13px;background:var(--surface-2);border:1px solid var(--border);border-radius:7px;padding:3px 7px 3px 3px}
+  .g .av{width:18px;height:18px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:700;color:#12100a}
+  .tag{font-family:var(--mono);font-size:11px;padding:2px 6px;border-radius:5px;border:1px solid;letter-spacing:.04em;font-weight:500}
+  .tag.unoff{color:var(--violet);border-color:var(--violet)}
+  .tag.amb{color:var(--text-dim);border-color:var(--border)}
+  .tag.moved{color:var(--rose);border-color:var(--rose)}
+
+  .fab{position:absolute;right:16px;bottom:14px;width:56px;height:56px;border-radius:50%;background:var(--gold);color:var(--ink);display:flex;align-items:center;justify-content:center;font-size:30px;font-weight:500;border:2px solid var(--border-hi);box-shadow:0 8px 20px -6px rgba(0,0,0,.5)}
+
+  .tabbar{display:flex;border-top:2px solid var(--border);background:var(--panel);flex:none;padding:8px 0 12px}
+  .tab{flex:1;display:flex;flex-direction:column;align-items:center;gap:3px;font-family:var(--mono);font-size:12px;color:var(--text-dim);min-height:44px;justify-content:center;letter-spacing:.03em}
+  .tab .ic{font-size:20px;line-height:1}
+  .tab.on{color:var(--gold);font-weight:700}
+
+  /* MAP */
+  .toggle{display:flex;gap:0;flex:none;border:2px solid var(--border-hi);border-radius:10px;overflow:hidden}
+  .toggle div{flex:1;text-align:center;padding:10px;font-size:15px;font-weight:500;min-height:44px;display:flex;align-items:center;justify-content:center}
+  .toggle div.on{background:var(--surface-2);color:var(--text);font-weight:700}
+  .toggle div:not(.on){color:var(--text-dim)}
+  .lvl{display:flex;gap:6px;flex:none;flex-wrap:wrap;align-items:center}
+  .lvl .lbl2{font-family:var(--mono);font-size:11px;color:var(--text-dim);width:100%;letter-spacing:.08em;text-transform:uppercase;margin-bottom:1px}
+  .lb{font-family:var(--mono);font-size:13px;padding:8px 11px;border-radius:9px;border:2px solid var(--border);color:var(--text-dim);background:var(--surface);min-height:40px;display:flex;align-items:center}
+  .lb.bldg{font-weight:700;color:var(--text)}
+  .lb.on{background:var(--gold);border-color:var(--gold);color:var(--ink);font-weight:700}
+  .lb.jump{border-style:dashed;color:var(--blue)}
+  .lb.sub{margin-left:2px}
+
+  .plan{flex:1;border-radius:12px;position:relative;overflow:hidden;background:var(--plan-fill);border:2px solid var(--plan-line)}
+  .osmbg{position:absolute;inset:0;z-index:0}
+  .osm-road{position:absolute;background:var(--osm)}
+  .osm-lot{position:absolute;background:var(--osm);opacity:.5;border-radius:3px}
+  .osm-label{position:absolute;font-family:var(--mono);font-size:11px;color:var(--text-dim)}
+  .osm-bldg{position:absolute;border:2px dashed var(--border-hi);border-radius:5px;background:var(--osm);opacity:.85;
+      display:flex;align-items:center;justify-content:center;text-align:center;z-index:1;padding:4px;
+      font-family:var(--mono);font-size:13px;font-weight:700;color:var(--text-dim);letter-spacing:.02em}
+  .osm-bldg small{display:block;font-weight:400;font-size:10px;margin-top:2px;opacity:.8}
+  .rm{position:absolute;border:2px solid var(--plan-line);border-radius:4px;background:var(--plan-room);
+      display:flex;align-items:center;justify-content:center;text-align:center;z-index:1;
+      font-size:12px;font-weight:700;color:var(--plan-text);line-height:1.2;padding:3px}
+  .rm.hot{background:var(--gold);color:var(--ink);border-color:var(--ink)}
+  .rm.mine{outline:3px solid var(--green);outline-offset:-3px}
+  .rm.glacier{background:var(--plan-room);border-color:var(--green)}
+  .fac{position:absolute;font-size:14px;color:var(--plan-text);opacity:.9;z-index:2}
+  .pin{position:absolute;width:26px;height:26px;border-radius:50%;display:flex;align-items:center;justify-content:center;
+       font-size:12px;font-weight:700;color:#12100a;border:3px solid var(--plan-text);z-index:4}
+  .ring{position:absolute;width:26px;height:26px;border-radius:50%;border:4px dashed var(--blue);background:transparent;z-index:4}
+  .acc{position:absolute;border-radius:50%;background:rgba(127,192,232,.20);border:3px solid var(--blue);transform:translate(-50%,-50%);z-index:3}
+  .legend{display:flex;flex-wrap:wrap;gap:7px;flex:none;align-items:center}
+  .legend span{display:inline-flex;align-items:center;gap:6px;font-size:13px;color:var(--text-dim);background:var(--surface);border:1px solid var(--border);border-radius:7px;padding:5px 9px}
+  .attrib{font-family:var(--mono);font-size:11px;color:var(--text-dim);flex:none}
+  .sw{width:12px;height:12px;border-radius:3px;flex:none}
+  .sw.circ{border-radius:50%}
+  .sw.hollow{border-radius:50%;background:transparent;border:3px dashed var(--blue)}
+
+  /* LIST view = text view of the map */
+  .lroom{border:2px solid var(--border);border-radius:12px;background:var(--surface);flex:none;overflow:hidden}
+  .lroom .h{font-family:var(--serif);font-size:17px;padding:9px 12px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;gap:8px}
+  .lroom .h .badge{font-family:var(--mono);font-size:11px;font-weight:500;padding:2px 7px;border-radius:6px;border:1px solid;letter-spacing:.03em}
+  .badge.crew{color:var(--blue);border-color:var(--blue)}
+  .badge.now{color:var(--gold);border-color:var(--gold)}
+  .badge.floor{color:var(--text-dim);border-color:var(--border)}
+  .lroom .b{padding:9px 12px;display:flex;flex-direction:column;gap:8px}
+  .lroom .panel{font-size:15px}
+  .lroom .panel b{font-weight:600}
+  .lroom .panel.none{color:var(--text-dim);font-style:italic}
+  .lroom .crew{display:flex;align-items:center;gap:8px;flex-wrap:wrap;font-size:13px}
+  .lroom .crew .g{font-size:13px}
+  .lroom .sig{font-family:var(--mono);font-size:11px;color:var(--text-dim);letter-spacing:.03em}
+
+  /* rows / buttons */
+  .row{display:flex;align-items:center;gap:11px;padding:12px;border-radius:12px;background:var(--surface);border:2px solid var(--border);flex:none}
+  .row .av{width:34px;height:34px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:15px;font-weight:700;color:#12100a;flex:none}
+  .row .main{flex:1;min-width:0}
+  .row .nm{font-size:16px;font-weight:500}
+  .row .sd{font-size:14px;color:var(--text-dim)}
+  .row .rt{font-family:var(--mono);font-size:13px;color:var(--text-dim);flex:none;text-align:right}
+
+  .btn{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;
+       padding:14px;border-radius:11px;font-size:16px;font-weight:500;flex:none;min-height:52px;
+       border:2px solid var(--green);background:transparent;color:var(--green);text-align:center}
+  .btn small{font-weight:400;font-size:13px;opacity:.85}
+  .btn.solid{background:var(--green);color:var(--ink);border-color:var(--green)}
+  .btn.gold{border-color:var(--gold);color:var(--gold)}
+  .btn.ghost{border-color:var(--border-hi);color:var(--text)}
+  .btn.danger{border-color:var(--rose);color:var(--rose)}
+  .btn.sm{min-height:44px;padding:10px;font-size:15px}
+
+  .note{font-size:14px;color:var(--text-dim);line-height:1.5;flex:none}
+  .note b{color:var(--text);font-weight:500}
+  .sec{font-family:var(--mono);font-size:12px;letter-spacing:.12em;text-transform:uppercase;color:var(--text-dim);display:flex;align-items:center;gap:9px;flex:none;margin-top:6px;font-weight:500}
+  .sec::after{content:'';flex:1;height:1px;background:var(--border)}
+  .field{display:flex;flex-direction:column;gap:6px;flex:none}
+  .lbl{font-family:var(--mono);font-size:12px;letter-spacing:.08em;text-transform:uppercase;color:var(--text-dim);font-weight:500}
+  .lbl .opt{color:var(--text-dim);opacity:.7;text-transform:none;letter-spacing:0}
+  .inp{padding:13px;border-radius:10px;background:var(--surface);border:2px solid var(--border);font-size:16px;color:var(--text);min-height:48px;display:flex;align-items:center}
+  .inp.dim{color:var(--text-dim)}
+  .check{display:flex;align-items:center;gap:11px;padding:13px;border-radius:11px;border:2px solid var(--border);background:var(--surface);flex:none;font-size:15px;min-height:52px}
+  .box{width:24px;height:24px;border:3px solid var(--text-dim);border-radius:5px;flex:none}
+
+  /* discrete text-size slider */
+  .slider{display:flex;flex-direction:column;gap:9px;flex:none;padding:4px 2px}
+  .slider .track{position:relative;height:8px;background:var(--surface-2);border-radius:4px;border:1px solid var(--border);margin:12px 8px 0}
+  .slider .fill{position:absolute;left:0;top:-1px;bottom:-1px;width:62%;background:var(--gold);border-radius:4px;opacity:.55}
+  .slider .knob{position:absolute;left:62%;top:50%;transform:translate(-50%,-50%);width:30px;height:30px;border-radius:50%;background:var(--gold);border:3px solid var(--border-hi);box-shadow:0 3px 8px -2px rgba(0,0,0,.5)}
+  .slider .ticks{display:flex;justify-content:space-between;font-family:var(--mono);font-size:13px;color:var(--text-dim);padding:0 2px}
+  .slider .ticks span{width:20%;text-align:center}
+  .slider .ticks span.on{color:var(--gold);font-weight:700}
+  .seg{display:flex;gap:0;flex:none;border:2px solid var(--border-hi);border-radius:10px;overflow:hidden}
+  .seg div{flex:1;text-align:center;padding:11px;font-size:15px;font-weight:500;min-height:48px;display:flex;align-items:center;justify-content:center;gap:6px}
+  .seg div.on{background:var(--surface-2);color:var(--text);font-weight:700}
+  .seg div:not(.on){color:var(--text-dim)}
+
+  .consent{flex:1;display:flex;flex-direction:column;justify-content:center;gap:16px;padding:8px 4px}
+  .crest{font-family:var(--serif);font-size:44px;text-align:center;color:var(--gold);line-height:1.1}
+  .consent h5{font-family:var(--serif);font-size:23px;margin:0;text-align:center;font-weight:500}
+  .consent p{margin:0;font-size:16px;color:var(--text-dim);line-height:1.55;text-align:center}
+  .consent p b{color:var(--text);font-weight:500}
+  .ghostbox{border:2px solid var(--border);border-radius:12px;background:var(--surface);padding:12px 14px;text-align:left}
+  .ghostbox .gh{font-family:var(--mono);font-size:12px;letter-spacing:.08em;text-transform:uppercase;color:var(--text-dim);margin-bottom:8px;display:flex;align-items:center;gap:7px}
+  .ghostbox ul{margin:0;padding-left:20px;font-size:14px;color:var(--text-dim);line-height:1.5}
+  .ghostbox li{margin-bottom:5px}
+  .ghostbox li b{color:var(--text);font-weight:500}
+
+  /* telegram chat */
+  .chat{background:var(--surface);flex:1;padding:14px 12px;display:flex;flex-direction:column;gap:11px;overflow:hidden}
+  .bot{background:var(--panel);border-radius:13px;padding:13px;font-size:15px;line-height:1.55;border-left:5px solid var(--gold)}
+  .bot .hd{font-family:var(--serif);font-weight:700;color:var(--gold);font-size:16px;margin-bottom:8px;display:flex;justify-content:space-between;align-items:center;gap:8px}
+  .bot .hd .pn{font-family:var(--mono);font-size:11px;color:var(--text-dim);font-weight:400;letter-spacing:.05em}
+  .bot .l{display:flex;gap:9px;margin-bottom:7px}
+  .bot .l .t{font-family:var(--mono);color:var(--text-dim);flex:none;font-size:13px;width:44px;font-weight:500}
+  .bot .l .n{flex:1;min-width:0;font-size:15px}
+  .bot .l .n i{font-style:normal;color:var(--text-dim);font-size:13px;display:block;margin-top:1px}
+  .bot hr{border:0;border-top:1px solid var(--border);margin:10px 0}
+  .bot .amb{font-size:13px;color:var(--text-dim);font-family:var(--mono);line-height:1.5}
+  .bot .amb b{color:var(--text);font-weight:600}
+  .bot .ed{font-family:var(--mono);font-size:11px;color:var(--text-dim);margin-top:9px}
+  .tgb{border:2px solid var(--gold);border-radius:9px;padding:11px;text-align:center;font-size:15px;color:var(--gold);font-weight:500;margin-top:9px}
+  .msg{background:var(--panel);border-radius:13px;padding:11px 13px;font-size:15px;max-width:92%;border:1px solid var(--border)}
+  .msg .who{display:block;font-size:14px;font-weight:700;color:var(--blue);margin-bottom:2px}
+  .msg.me{align-self:flex-end;background:var(--surface-2)}
+
+  .calls{display:grid;grid-template-columns:repeat(auto-fit,minmax(320px,1fr));gap:18px;margin-top:34px}
+  .call{border:2px solid var(--border);border-radius:var(--radius);padding:18px 20px;background:var(--panel);border-left:5px solid var(--green)}
+  .call.w{border-left-color:var(--gold)}
+  .call.b{border-left-color:var(--rose)}
+  .call h4{font-family:var(--serif);margin:0 0 9px;font-size:18px;font-weight:500}
+  .call p{margin:0;font-size:16px;color:var(--text-dim);line-height:1.6}
+  .call p + p{margin-top:10px}
+  .call strong{color:var(--text);font-weight:500}
+  .call code{font-family:var(--mono);font-size:14px;background:var(--surface);padding:2px 6px;border-radius:5px;color:var(--gold)}
+
+  @media (prefers-reduced-motion:no-preference){
+    .col{animation:r .45s ease both}
+    .col:nth-child(2){animation-delay:.05s}
+    .col:nth-child(3){animation-delay:.1s}
+    @keyframes r{from{opacity:0;transform:translateY(12px)}to{opacity:1;transform:none}}
+  }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <div class="top">
+    <div>
+      <p class="kicker">Revised design · v2 · feedback applied</p>
+      <h1>Fur-Eh 2026 <em>Crew</em></h1>
+      <p class="sub">Second pass. Ghost mode is now <b>explained</b>, Display splits into <b>text size + theme</b>, and the Map uses <b>one shared building/floor control</b> — no SITE pill, empty selection <b>is</b> the site, and the same control filters both Map and List. Delta 2nd matches the <b>corrected Quick Reference Guide</b> — Glacier is real; Banff/Lake Louise/Jasper never existed.</p>
+      <p class="sub"><b>Lord of the Wings</b> theming stays in the chrome — never behind content.</p>
+    </div>
+    <button class="themebtn" onclick="var h=document.documentElement;h.dataset.theme=h.dataset.theme==='dark'?'light':'dark';this.textContent=h.dataset.theme==='dark'?'☾ Dark — switch to Light':'☀ Light — switch to Dark';">☾ Dark — switch to Light</button>
+  </div>
+
+  <div class="meta-row">
+    <span class="pill"><b>4</b> tabs</span>
+    <span class="pill"><b>21/21</b> rooms mapped</span>
+    <span class="pill chg">Glacier resolved</span>
+    <span class="pill chg">Shared building/floor filter</span>
+    <span class="pill chg">OSM outdoor basemap</span>
+    <span class="pill">Sat 1:05 PM</span>
+  </div>
+
+  <hr class="rule">
+
+  <h2><span class="num">01</span> First run · Schedule</h2>
+  <p class="lede">No onboarding — Telegram knows who you are. One disclosure, because joining makes your plans visible. <b>Ghost mode is now spelled out</b> right where you decide.</p>
+
+  <div class="phones">
+
+    <!-- CONSENT -->
+    <div class="col">
+      <div class="cap"><h3>First open</h3><span class="chg">Ghost mode explained, not just named.</span></div>
+      <div class="phone"><div class="screen">
+        <div class="statusbar"><span>1:05</span><span>▮▮▮ 68%</span></div>
+        <div class="tgbar"><span class="x">✕</span><span class="t">Fur-Eh Crew<small>MINI APP</small></span><span class="dots">⋮</span></div>
+        <div class="body">
+          <div class="consent">
+            <div class="crest">⚔</div>
+            <h5>You've joined<br>Snoot Crew</h5>
+            <p><b>Your starred events are visible to this group.</b> So is your position on the map, if you share it.</p>
+            <div class="ghostbox">
+              <div class="gh"><span>👻</span> What Ghost mode does</div>
+              <ul>
+                <li>Your crew sees <b>"no plans listed"</b> instead of your starred panels.</li>
+                <li>You <b>don't appear on the map</b> — no pin from stars or GPS.</li>
+                <li><b>Stars, calendar, and the schedule still work</b> for you — it only changes what others see.</li>
+              </ul>
+            </div>
+            <div class="btn solid">Continue</div>
+            <div class="btn ghost">Ghost mode — join quietly</div>
+          </div>
+        </div>
+      </div></div>
+    </div>
+
+    <!-- SCHEDULE -->
+    <div class="col">
+      <div class="cap"><h3>Schedule</h3><span class="chg">Gold "SAT · 67" label removed.</span></div>
+      <div class="phone"><div class="screen">
+        <div class="statusbar"><span>1:05</span><span>▮▮▮ 68%</span></div>
+        <div class="tgbar"><span class="x">✕</span><span class="t">Fur-Eh Crew<small>MINI APP</small></span><span class="dots">⋮</span></div>
+        <div class="apphead">
+          <div class="title"><h4>Schedule</h4></div>
+          <div class="daytabs">
+            <div class="daytab">THU</div><div class="daytab">FRI</div>
+            <div class="daytab on">SAT</div><div class="daytab">SUN</div>
+          </div>
+        </div>
+        <div class="body">
+          <div class="search"><span>🔍</span><span>Search title, track, room…</span></div>
+          <div class="filters">
+            <span class="fchip on">All</span>
+            <span class="fchip"><i class="av" style="background:#e0b352">Z</i>You<i class="st">2 SPOTS</i></span>
+            <span class="fchip"><i class="av" style="background:#7fc0e8">V</i>Val</span>
+            <span class="fchip freeish"><i class="av" style="background:#5cc79b">M</i>Moss<i class="st">NO PLANS</i></span>
+            <span class="fchip"><i class="av" style="background:#ee8a7d">P</i>Pip</span>
+          </div>
+
+          <div class="timesep">1:00 PM · now</div>
+          <div class="ev starred">
+            <div class="time"><b>1:00</b>2:30</div>
+            <div class="main">
+              <div class="nm">Fursuit Maid Café</div>
+              <div class="rm">Wyndham · Imperial</div>
+              <div class="going">
+                <span class="g"><i class="av" style="background:#ee8a7d">P</i>Pip</span>
+                <span class="g"><i class="av" style="background:#e0b352">Z</i>You?</span>
+              </div>
+            </div>
+            <div class="star">★</div>
+          </div>
+          <div class="ev">
+            <div class="time"><b>1:00</b>2:00</div>
+            <div class="main">
+              <div class="nm">Keep Talking and Nobody Explodes</div>
+              <div class="rm">Wyndham · Terrace 5</div>
+            </div>
+            <div class="star">☆</div>
+          </div>
+
+          <div class="timesep">1:30 PM</div>
+          <div class="ev starred">
+            <div class="time"><b>1:30</b>2:30</div>
+            <div class="main">
+              <div class="nm">Lord of the Wings Photo Shoot</div>
+              <div class="rm">Delta · Edmonton Room</div>
+              <div class="going"><span class="g"><i class="av" style="background:#7fc0e8">V</i>Val</span></div>
+            </div>
+            <div class="star">★</div>
+          </div>
+
+          <div class="fab">＋</div>
+        </div>
+        <div class="tabbar">
+          <div class="tab on"><span class="ic">📜</span>Schedule</div>
+          <div class="tab"><span class="ic">🗺️</span>Map</div>
+          <div class="tab"><span class="ic">🐾</span>Crew</div>
+          <div class="tab"><span class="ic">👤</span>Me</div>
+        </div>
+      </div></div>
+    </div>
+
+    <!-- ADD EVENT -->
+    <div class="col">
+      <div class="cap"><h3>＋ Add an event</h3><span class="chg">Free text first · ✕ to back out.</span></div>
+      <div class="phone"><div class="screen">
+        <div class="statusbar"><span>1:05</span><span>▮▮▮ 68%</span></div>
+        <div class="tgbar"><span class="x">✕</span><span class="t">Fur-Eh Crew<small>MINI APP</small></span><span class="dots">⋮</span></div>
+        <div class="apphead"><div class="title"><h4>Add an event</h4><span class="headbtn">✕ Cancel</span></div></div>
+        <div class="body">
+          <div class="field"><span class="lbl">What</span><div class="inp">Room party — Rm 1412</div></div>
+          <div class="field"><span class="lbl">When</span>
+            <div class="filters">
+              <span class="fchip">THU</span><span class="fchip">FRI</span>
+              <span class="fchip on">SAT</span><span class="fchip">SUN</span>
+            </div>
+            <div class="inp">10:00 PM — late</div>
+          </div>
+          <div class="field"><span class="lbl">Where</span>
+            <div class="inp">Rm 1412 · Wyndham 14th floor</div>
+            <span class="lbl"><span class="opt">optional — pin it on the map</span></span>
+            <div class="btn gold sm">📍 Tap a spot on the map<small>guest rooms aren't drawn — pin is approximate</small></div>
+          </div>
+          <div class="note">The room number in the title does the real navigating. A map pin is a nice-to-have, not required.</div>
+          <div class="btn solid">Add to crew schedule</div>
+        </div>
+        <div class="tabbar">
+          <div class="tab on"><span class="ic">📜</span>Schedule</div>
+          <div class="tab"><span class="ic">🗺️</span>Map</div>
+          <div class="tab"><span class="ic">🐾</span>Crew</div>
+          <div class="tab"><span class="ic">👤</span>Me</div>
+        </div>
+      </div></div>
+    </div>
+
+  </div>
+
+  <hr class="rule">
+
+  <h2><span class="num">02</span> Map — one shared building/floor control</h2>
+  <p class="lede">No SITE pill: an <b>empty selection is the site</b>. Selecting a hotel reveals its floors (Main auto-selects); selecting a floor shows that floor. <b>The same control filters both Map and List.</b> Building-only zooms to the hotel's OSM outline (map) or lists all its rooms (list); floor-selected shows the drawn floorplan (map) or just that floor's rooms (list). OSM always renders outside the buildings — no runtime tiles.</p>
+
+  <div class="phones">
+
+    <!-- SITE default -->
+    <div class="col">
+      <div class="cap"><h3>Site · default load</h3><span class="chg">Nothing selected = the whole site.</span></div>
+      <div class="phone"><div class="screen">
+        <div class="statusbar"><span>1:05</span><span>▮▮▮ 68%</span></div>
+        <div class="tgbar"><span class="x">✕</span><span class="t">Fur-Eh Crew<small>MINI APP</small></span><span class="dots">⋮</span></div>
+        <div class="apphead"><div class="title"><h4>Map</h4></div></div>
+        <div class="body">
+          <div class="toggle"><div class="on">🗺 Map</div><div>☰ List</div></div>
+          <div class="lvl"><span class="lbl2">Where</span><span class="lb bldg">Wyndham</span><span class="lb bldg">Delta</span></div>
+          <div class="plan">
+            <div class="osmbg">
+              <div class="osm-road" style="left:0;right:0;top:38%;height:12px"></div>
+              <div class="osm-road" style="left:70%;top:0;bottom:0;width:10px"></div>
+              <div class="osm-lot" style="left:8%;top:68%;width:44%;height:10%"></div>
+              <div class="osm-label" style="left:2%;top:32%">Gateway Blvd</div>
+              <div class="osm-label" style="left:71%;top:4%;writing-mode:vertical-rl">103 St</div>
+            </div>
+            <div class="osm-bldg" style="left:8%;top:8%;width:52%;height:24%">Wyndham</div>
+            <div class="osm-bldg" style="left:8%;top:46%;width:52%;height:19%">Delta</div>
+            <div class="osm-bldg" style="left:8%;top:80%;width:34%;height:13%;opacity:.4">Holiday Inn<small>no events</small></div>
+            <div class="fac" style="right:6%;top:6%;font-family:var(--mono);font-size:12px">N ↑</div>
+            <div class="acc" style="left:30%;top:88%;width:96px;height:96px"></div>
+            <div class="ring" style="left:27%;top:84%"></div>
+          </div>
+          <div class="legend"><span><i class="sw hollow"></i>Juno — off-site · 4m ago</span></div>
+          <div class="attrib">Map data © OpenStreetMap contributors (ODbL)</div>
+        </div>
+        <div class="tabbar">
+          <div class="tab"><span class="ic">📜</span>Schedule</div>
+          <div class="tab on"><span class="ic">🗺️</span>Map</div>
+          <div class="tab"><span class="ic">🐾</span>Crew</div>
+          <div class="tab"><span class="ic">👤</span>Me</div>
+        </div>
+      </div></div>
+    </div>
+
+    <!-- DELTA building only (map = OSM zoom) -->
+    <div class="col">
+      <div class="cap"><h3>Map · Delta (building)</h3><span class="chg">Building, no floor → OSM zoom.</span></div>
+      <div class="phone"><div class="screen">
+        <div class="statusbar"><span>1:05</span><span>▮▮▮ 68%</span></div>
+        <div class="tgbar"><span class="x">✕</span><span class="t">Fur-Eh Crew<small>MINI APP</small></span><span class="dots">⋮</span></div>
+        <div class="apphead"><div class="title"><h4>Delta</h4></div></div>
+        <div class="body">
+          <div class="toggle"><div class="on">🗺 Map</div><div>☰ List</div></div>
+          <div class="lvl">
+            <span class="lbl2">Building · floor</span>
+            <span class="lb bldg on">Delta</span>
+            <span class="lb sub">Main</span><span class="lb sub">2nd Floor</span>
+            <span class="lb jump">→ Wyndham</span>
+          </div>
+          <div class="plan">
+            <div class="osmbg">
+              <div class="osm-road" style="left:0;right:0;bottom:6%;height:12px"></div>
+              <div class="osm-lot" style="left:4%;top:74%;width:40%;height:10%"></div>
+              <div class="osm-label" style="left:4%;top:90%">Gateway Blvd</div>
+            </div>
+            <div class="osm-bldg" style="left:12%;top:14%;width:70%;height:56%">Delta<small>tap Main or 2nd Floor to go inside</small></div>
+            <div class="fac" style="right:6%;top:6%;font-family:var(--mono);font-size:12px">N ↑</div>
+          </div>
+          <div class="note">A hotel selected but <b>no floor</b>: we zoom to its footprint and show only OSM — no rooms drawn until you pick a floor.</div>
+          <div class="attrib">Map data © OpenStreetMap contributors (ODbL)</div>
+        </div>
+        <div class="tabbar">
+          <div class="tab"><span class="ic">📜</span>Schedule</div>
+          <div class="tab on"><span class="ic">🗺️</span>Map</div>
+          <div class="tab"><span class="ic">🐾</span>Crew</div>
+          <div class="tab"><span class="ic">👤</span>Me</div>
+        </div>
+      </div></div>
+    </div>
+
+    <!-- DELTA 2nd (map = floorplan) -->
+    <div class="col">
+      <div class="cap"><h3>Map · Delta 2nd</h3><span class="chg">Floor selected → the drawn plan.</span></div>
+      <div class="phone"><div class="screen">
+        <div class="statusbar"><span>1:05</span><span>▮▮▮ 68%</span></div>
+        <div class="tgbar"><span class="x">✕</span><span class="t">Fur-Eh Crew<small>MINI APP</small></span><span class="dots">⋮</span></div>
+        <div class="apphead"><div class="title"><h4>Delta · 2nd</h4></div></div>
+        <div class="body">
+          <div class="toggle"><div class="on">🗺 Map</div><div>☰ List</div></div>
+          <div class="lvl">
+            <span class="lbl2">Building · floor</span>
+            <span class="lb bldg on">Delta</span>
+            <span class="lb sub">Main</span><span class="lb sub on">2nd Floor</span>
+            <span class="lb jump">→ Wyndham</span>
+          </div>
+          <div class="plan">
+            <div class="osmbg"><div class="osm-road" style="left:0;right:0;bottom:-4px;height:10px"></div></div>
+            <div class="rm" style="left:4%;top:6%;width:20%;height:16%">Fort<br>McMurray</div>
+            <div class="rm hot" style="left:26%;top:6%;width:19%;height:16%">Red Deer</div>
+            <div class="rm" style="left:47%;top:6%;width:19%;height:16%">Medicine<br>Hat</div>
+            <div class="rm mine" style="left:76%;top:5%;width:20%;height:26%">Edmonton</div>
+            <div class="rm" style="left:4%;top:38%;width:20%;height:18%">Canmore<br>Headless</div>
+            <div class="rm glacier" style="left:26%;top:38%;width:34%;height:18%">Glacier</div>
+            <div class="rm" style="left:76%;top:40%;width:20%;height:20%">Calgary</div>
+            <div class="rm" style="left:52%;top:64%;width:20%;height:14%">Lethbridge</div>
+            <div class="rm" style="left:76%;top:80%;width:20%;height:14%">Grande<br>Prairie</div>
+            <div class="fac" style="left:6%;top:64%">🚻</div>
+            <div class="fac" style="left:16%;top:64%">🛗</div>
+            <div class="fac" style="left:26%;top:64%">🪜</div>
+            <div class="acc" style="left:86%;top:16%;width:82px;height:82px"></div>
+            <div class="pin" style="left:83%;top:11%;background:#7fc0e8">V</div>
+            <div class="pin" style="left:31%;top:11%;background:#e0b352">Z</div>
+            <div class="pin" style="left:39%;top:11%;background:#ee8a7d">P</div>
+          </div>
+          <div class="legend">
+            <span><i class="sw" style="background:var(--gold)"></i>on now</span>
+            <span><i class="sw circ" style="background:var(--blue)"></i>Val · GPS+star</span>
+          </div>
+        </div>
+        <div class="tabbar">
+          <div class="tab"><span class="ic">📜</span>Schedule</div>
+          <div class="tab on"><span class="ic">🗺️</span>Map</div>
+          <div class="tab"><span class="ic">🐾</span>Crew</div>
+          <div class="tab"><span class="ic">👤</span>Me</div>
+        </div>
+      </div></div>
+    </div>
+
+    <!-- DELTA 2nd (list) -->
+    <div class="col">
+      <div class="cap"><h3>List · Delta 2nd</h3><span class="chg">Same filter → this floor's rooms, A→Z.</span></div>
+      <div class="phone"><div class="screen">
+        <div class="statusbar"><span>1:05</span><span>▮▮▮ 68%</span></div>
+        <div class="tgbar"><span class="x">✕</span><span class="t">Fur-Eh Crew<small>MINI APP</small></span><span class="dots">⋮</span></div>
+        <div class="apphead"><div class="title"><h4>Delta · 2nd</h4></div></div>
+        <div class="body">
+          <div class="toggle"><div>🗺 Map</div><div class="on">☰ List</div></div>
+          <div class="lvl">
+            <span class="lbl2">Building · floor</span>
+            <span class="lb bldg on">Delta</span>
+            <span class="lb sub">Main</span><span class="lb sub on">2nd Floor</span>
+            <span class="lb jump">→ Wyndham</span>
+          </div>
+          <div class="lroom">
+            <div class="h">Calgary Room</div>
+            <div class="b"><div class="panel none">No panel now</div></div>
+          </div>
+          <div class="lroom">
+            <div class="h">Canmore Room <span class="badge">Headless Lounge</span></div>
+            <div class="b"><div class="panel"><span class="tag amb">AMBIENT</span> <b>closes 2:00 AM</b></div></div>
+          </div>
+          <div class="lroom">
+            <div class="h">Edmonton Room <span class="badge crew">1 crew</span></div>
+            <div class="b">
+              <div class="panel"><b>Lord of the Wings Photo Shoot</b> · 1:30 – 2:30</div>
+              <div class="crew"><span class="g"><i class="av" style="background:#7fc0e8">V</i>Val</span><span class="sig">GPS + star agree · 2m ago</span></div>
+            </div>
+          </div>
+          <div class="lroom">
+            <div class="h">Fort McMurray Room</div>
+            <div class="b"><div class="panel none">No panel now</div></div>
+          </div>
+          <div class="lroom">
+            <div class="h">Glacier Room <span class="badge now">on now</span></div>
+            <div class="b"><div class="panel"><b>Fursuit Games</b> · 1:00 – 2:00</div></div>
+          </div>
+        </div>
+        <div class="tabbar">
+          <div class="tab"><span class="ic">📜</span>Schedule</div>
+          <div class="tab on"><span class="ic">🗺️</span>Map</div>
+          <div class="tab"><span class="ic">🐾</span>Crew</div>
+          <div class="tab"><span class="ic">👤</span>Me</div>
+        </div>
+      </div></div>
+    </div>
+
+    <!-- DELTA building (list) -->
+    <div class="col">
+      <div class="cap"><h3>List · Delta (building)</h3><span class="chg">No floor → every Delta room, A→Z.</span></div>
+      <div class="phone"><div class="screen">
+        <div class="statusbar"><span>1:05</span><span>▮▮▮ 68%</span></div>
+        <div class="tgbar"><span class="x">✕</span><span class="t">Fur-Eh Crew<small>MINI APP</small></span><span class="dots">⋮</span></div>
+        <div class="apphead"><div class="title"><h4>Delta · all rooms</h4></div></div>
+        <div class="body">
+          <div class="toggle"><div>🗺 Map</div><div class="on">☰ List</div></div>
+          <div class="lvl">
+            <span class="lbl2">Building · floor</span>
+            <span class="lb bldg on">Delta</span>
+            <span class="lb sub">Main</span><span class="lb sub">2nd Floor</span>
+            <span class="lb jump">→ Wyndham</span>
+          </div>
+          <div class="lroom">
+            <div class="h">Calgary Room <span class="badge floor">2ND</span></div>
+            <div class="b"><div class="panel none">No panel now</div></div>
+          </div>
+          <div class="lroom">
+            <div class="h">Canmore Room <span class="badge floor">2ND</span></div>
+            <div class="b"><div class="panel"><span class="tag amb">AMBIENT</span> Headless Lounge · <b>closes 2:00 AM</b></div></div>
+          </div>
+          <div class="lroom">
+            <div class="h">Crystal Gallery <span class="badge floor">MAIN</span></div>
+            <div class="b"><div class="panel"><span class="tag amb">AMBIENT</span> 18+ Dealer's Den · <b>closes 6:00 PM</b></div></div>
+          </div>
+          <div class="lroom">
+            <div class="h">Edmonton Room <span class="badge floor">2ND</span> <span class="badge crew">1 crew</span></div>
+            <div class="b"><div class="panel"><b>Lord of the Wings Photo Shoot</b> · 1:30 – 2:30</div></div>
+          </div>
+          <div class="lroom">
+            <div class="h">Glacier Room <span class="badge floor">2ND</span> <span class="badge now">on now</span></div>
+            <div class="b"><div class="panel"><b>Fursuit Games</b> · 1:00 – 2:00</div></div>
+          </div>
+          <div class="note">On the map, this same <b>[Delta]</b> state zooms to the hotel's OSM outline (see phone 2).</div>
+        </div>
+        <div class="tabbar">
+          <div class="tab"><span class="ic">📜</span>Schedule</div>
+          <div class="tab on"><span class="ic">🗺️</span>Map</div>
+          <div class="tab"><span class="ic">🐾</span>Crew</div>
+          <div class="tab"><span class="ic">👤</span>Me</div>
+        </div>
+      </div></div>
+    </div>
+
+  </div>
+
+  <hr class="rule">
+
+  <h2><span class="num">03</span> Crew · Me · the Bot</h2>
+  <p class="lede">The bot reaches people who never open the app — plain text in Telegram, so it inherits Telegram's accessibility. Ambient venues now show their <b>next open/close time</b>, not "open all day".</p>
+
+  <div class="phones">
+
+    <!-- CREW -->
+    <div class="col">
+      <div class="cap"><h3>Crew</h3><span class="chg">"Your Events" · Edit on the card.</span></div>
+      <div class="phone"><div class="screen">
+        <div class="statusbar"><span>1:05</span><span>▮▮▮ 68%</span></div>
+        <div class="tgbar"><span class="x">✕</span><span class="t">Fur-Eh Crew<small>MINI APP</small></span><span class="dots">⋮</span></div>
+        <div class="apphead"><div class="title"><h4>Snoot Crew</h4><span class="when">5 MEMBERS</span></div></div>
+        <div class="body">
+          <div class="sec">Your Events</div>
+          <div class="ev custom">
+            <div class="time"><b>10:00</b>SAT</div>
+            <div class="main">
+              <div class="nm">Room party — Rm 1412</div>
+              <div class="rm"><span class="tag unoff">UNOFFICIAL</span> by You</div>
+              <div class="going">
+                <span class="g"><i class="av" style="background:#7fc0e8">V</i>Val</span>
+                <span class="g"><i class="av" style="background:#5cc79b">M</i>Moss</span>
+              </div>
+            </div>
+            <div class="star">★</div>
+          </div>
+          <div class="btn ghost sm">✎ Edit event<small>opens the create screen, pre-filled</small></div>
+
+          <div class="sec">Members</div>
+          <div class="row">
+            <span class="av" style="background:#5cc79b">M</span>
+            <div class="main"><div class="nm">Moss</div><div class="sd">No plans listed</div></div>
+            <span class="rt">12<br>stars</span>
+          </div>
+          <div class="row">
+            <span class="av" style="background:#b3a6e0">J</span>
+            <div class="main"><div class="nm">Juno</div><div class="sd">👻 Ghost mode</div></div>
+            <span class="rt">—</span>
+          </div>
+
+          <div class="btn gold">🔗 Invite link<small>for friends not on Telegram</small></div>
+        </div>
+        <div class="tabbar">
+          <div class="tab"><span class="ic">📜</span>Schedule</div>
+          <div class="tab"><span class="ic">🗺️</span>Map</div>
+          <div class="tab on"><span class="ic">🐾</span>Crew</div>
+          <div class="tab"><span class="ic">👤</span>Me</div>
+        </div>
+      </div></div>
+    </div>
+
+    <!-- EDIT EVENT (cancel at bottom) -->
+    <div class="col">
+      <div class="cap"><h3>Edit event</h3><span class="chg">Cancel lives at the bottom, with a check.</span></div>
+      <div class="phone"><div class="screen">
+        <div class="statusbar"><span>1:05</span><span>▮▮▮ 68%</span></div>
+        <div class="tgbar"><span class="x">✕</span><span class="t">Fur-Eh Crew<small>MINI APP</small></span><span class="dots">⋮</span></div>
+        <div class="apphead"><div class="title"><h4>Edit event</h4><span class="headbtn">✕ Cancel</span></div></div>
+        <div class="body">
+          <div class="field"><span class="lbl">What</span><div class="inp">Room party — Rm 1412</div></div>
+          <div class="field"><span class="lbl">When</span>
+            <div class="filters">
+              <span class="fchip">THU</span><span class="fchip">FRI</span>
+              <span class="fchip on">SAT</span><span class="fchip">SUN</span>
+            </div>
+            <div class="inp">10:00 PM — late</div>
+          </div>
+          <div class="field"><span class="lbl">Where</span><div class="inp">Rm 1412 · Wyndham 14th floor</div></div>
+          <div class="btn solid">Save changes</div>
+
+          <div class="sec">Cancel this event</div>
+          <div class="note">Cancelling shows <b>[CANCELLED]</b> to everyone who starred it — it doesn't silently vanish.</div>
+          <div class="check"><span class="box"></span><span>Yes, I'm sure — cancel it</span></div>
+          <div class="btn danger">Cancel event</div>
+        </div>
+        <div class="tabbar">
+          <div class="tab"><span class="ic">📜</span>Schedule</div>
+          <div class="tab"><span class="ic">🗺️</span>Map</div>
+          <div class="tab on"><span class="ic">🐾</span>Crew</div>
+          <div class="tab"><span class="ic">👤</span>Me</div>
+        </div>
+      </div></div>
+    </div>
+
+    <!-- ME -->
+    <div class="col">
+      <div class="cap"><h3>Me</h3><span class="chg">Text size + Theme, split apart.</span></div>
+      <div class="phone"><div class="screen">
+        <div class="statusbar"><span>1:05</span><span>▮▮▮ 68%</span></div>
+        <div class="tgbar"><span class="x">✕</span><span class="t">Fur-Eh Crew<small>MINI APP</small></span><span class="dots">⋮</span></div>
+        <div class="apphead"><div class="title"><h4>Me</h4><span class="when">ZINNIA</span></div></div>
+        <div class="body">
+          <div class="sec">Text size</div>
+          <div class="slider">
+            <div class="track"><span class="fill"></span><span class="knob"></span></div>
+            <div class="ticks"><span>S</span><span>M</span><span class="on">L</span><span>XL</span><span>XXL</span></div>
+          </div>
+          <div class="note">Default is <b>M</b> — slide up as far as you need. Telegram doesn't reliably pass your phone's text setting through, so this control is the guarantee.</div>
+
+          <div class="sec">Theme</div>
+          <div class="seg"><div class="on">☾ Dark</div><div>☀ Light</div></div>
+
+          <div class="sec">Calendar</div>
+          <div class="btn gold sm">⬇ Download .ics<small>34 events · any calendar app</small></div>
+          <div class="check"><span class="box"></span><span>Remind me 10 min before</span></div>
+
+          <div class="sec">Privacy</div>
+          <div class="row">
+            <span class="av" style="background:var(--surface-2);color:var(--text)">👻</span>
+            <div class="main"><div class="nm">Ghost mode</div><div class="sd">Crew sees "no plans listed"</div></div>
+            <span class="rt">OFF</span>
+          </div>
+          <div class="btn danger sm">Leave crew &amp; delete my data</div>
+        </div>
+        <div class="tabbar">
+          <div class="tab"><span class="ic">📜</span>Schedule</div>
+          <div class="tab"><span class="ic">🗺️</span>Map</div>
+          <div class="tab"><span class="ic">🐾</span>Crew</div>
+          <div class="tab on"><span class="ic">👤</span>Me</div>
+        </div>
+      </div></div>
+    </div>
+
+  </div>
+
+  <div class="phones" style="margin-top:38px">
+    <!-- BOT -->
+    <div class="col">
+      <div class="cap"><h3>The bot, in your group chat</h3><span class="chg">Ambient venues show next open/close.</span></div>
+      <div class="phone"><div class="screen">
+        <div class="statusbar"><span>1:05</span><span>▮▮▮ 68%</span></div>
+        <div class="tgbar"><span class="x">‹</span><span class="t">🐾 Snoot Crew<small>5 MEMBERS</small></span><span class="dots">⋮</span></div>
+        <div class="chat">
+          <div class="bot">
+            <div class="hd"><span>Happening Now</span><span class="pn">📌 PINNED</span></div>
+            <div class="l"><span class="t">1:00</span><span class="n">Fursuit Maid Café<i>Wyndham · Imperial — Pip, Zinnia?</i></span></div>
+            <div class="l"><span class="t">1:00</span><span class="n">Fursuit Games<i>Delta · Glacier Room</i></span></div>
+            <hr>
+            <div class="hd" style="color:var(--green);font-size:15px"><span>Next up</span></div>
+            <div class="l"><span class="t">1:30</span><span class="n">Lord of the Wings Photo Shoot<i>Delta · Edmonton — Val</i></span></div>
+            <div class="l"><span class="t">10:00</span><span class="n">Room party — Rm 1412<i>unofficial — Val, Moss</i></span></div>
+            <hr>
+            <div class="amb">Dealer's Den: <b>closes 6:00 PM</b> · Art Show: <b>closes 5:00 PM</b> · Registration: <b>closes 10:00 PM</b></div>
+            <div class="amb" style="margin-top:6px">No plans listed: Moss, Juno</div>
+            <div class="tgb">🗺 Open the map ›</div>
+            <div class="ed">edited 1:05 PM · updates every 5 min</div>
+          </div>
+          <div class="msg">
+            <span class="who">Valerie</span>
+            anyone actually at the maid café or are we all just "maybe"
+          </div>
+          <div class="msg me">i'm there! grabbing seats</div>
+        </div>
+      </div></div>
+    </div>
+
+    <!-- SCHEDULE — GoH moved event -->
+    <div class="col">
+      <div class="cap"><h3>Schedule · Guest of Honour Dinner</h3><span class="chg">Moved-venue alert now on the event.</span></div>
+      <div class="phone"><div class="screen">
+        <div class="statusbar"><span>1:05</span><span>▮▮▮ 68%</span></div>
+        <div class="tgbar"><span class="x">✕</span><span class="t">Fur-Eh Crew<small>MINI APP</small></span><span class="dots">⋮</span></div>
+        <div class="apphead"><div class="title"><h4>Schedule</h4></div>
+          <div class="daytabs"><div class="daytab">THU</div><div class="daytab">FRI</div><div class="daytab on">SAT</div><div class="daytab">SUN</div></div>
+        </div>
+        <div class="body">
+          <div class="timesep">5:00 PM</div>
+          <div class="ev starred">
+            <div class="time"><b>5:00</b>7:00</div>
+            <div class="main">
+              <div class="nm">Guest of Honour Dinner</div>
+              <div class="rm"><span class="tag moved">MOVED</span> Delta Edmonton Downtown — main ballroom</div>
+              <div class="note" style="margin-top:8px">Relocated from Top of the Inn (water damage). <b>Ticket still valid, menu unchanged</b>, free transport for ticket holders.</div>
+              <div class="btn gold sm" style="margin-top:9px">📍 Open in Maps<small>across town · not on the con map</small></div>
+            </div>
+            <div class="star">★</div>
+          </div>
+          <div class="note">The moved-venue notice lives here, on the event — not as a banner on the Crew page.</div>
+        </div>
+        <div class="tabbar">
+          <div class="tab on"><span class="ic">📜</span>Schedule</div>
+          <div class="tab"><span class="ic">🗺️</span>Map</div>
+          <div class="tab"><span class="ic">🐾</span>Crew</div>
+          <div class="tab"><span class="ic">👤</span>Me</div>
+        </div>
+      </div></div>
+    </div>
+
+    <div class="col">
+      <div class="cap"><h3>What changed in v2</h3><span>Feedback → design, at a glance.</span></div>
+      <div class="phone"><div class="screen">
+        <div class="statusbar"><span>1:05</span><span>▮▮▮ 68%</span></div>
+        <div class="tgbar"><span class="x">✕</span><span class="t">Changelog<small>V1 → V2</small></span><span class="dots">⋮</span></div>
+        <div class="body" style="overflow:auto">
+          <div class="note"><b>Map filter reworked:</b> no SITE pill; empty = site; one control drives both Map and List (building-only vs floor-selected).</div>
+          <div class="note"><b>Ghost mode</b> gets 3 plain bullets on the consent screen.</div>
+          <div class="note"><b>Me › Display</b> split into Text size (discrete slider, default M) + Theme.</div>
+          <div class="note"><b>Add event</b> free-text location first; ✕ to back out of a misclick.</div>
+          <div class="note"><b>Delta 2nd</b> rooms corrected from the real QRG — <b>Glacier</b> real; Banff/Lake Louise/Jasper gone.</div>
+          <div class="note"><b>List view</b> is a text view of the map — rooms A→Z, panel + crew + signal.</div>
+          <div class="note"><b>Bot digest</b> ambient venues show "closes 6:00 PM" not "open all day".</div>
+          <div class="note"><b>Crew</b>: "Your Events", Edit on the card, Cancel on the edit screen (with confirm). GoH alert moved to its event.</div>
+          <div class="note"><b>Site map</b> baked OSM basemap + "© OpenStreetMap contributors".</div>
+        </div>
+        <div class="tabbar">
+          <div class="tab"><span class="ic">📜</span>Schedule</div>
+          <div class="tab"><span class="ic">🗺️</span>Map</div>
+          <div class="tab"><span class="ic">🐾</span>Crew</div>
+          <div class="tab"><span class="ic">👤</span>Me</div>
+        </div>
+      </div></div>
+    </div>
+  </div>
+
+  <hr class="rule">
+
+  <h2><span class="num">04</span> Notes on the revisions</h2>
+  <p class="lede">Why these changes, in one place.</p>
+
+  <div class="calls">
+    <div class="call">
+      <h4>One control, no SITE pill</h4>
+      <p>The map's building/floor selector <strong>is</strong> the site control — an empty selection means "the whole site". It drives <strong>both Map and List</strong>: building-only shows the OSM outline / all that hotel's rooms; a floor shows the drawn plan / just that floor's rooms. One mental model, two views.</p>
+    </div>
+    <div class="call w">
+      <h4>Text size is a guarantee, not a suggestion</h4>
+      <p>Telegram's webview <strong>does not reliably forward the OS text setting</strong> (iOS WKWebView ignores Dynamic Type; the WebApp API exposes no font field). So the in-app control stays — now a <code>discrete slider</code> with a <strong>lower default (M)</strong>, split from the theme toggle.</p>
+    </div>
+    <div class="call b">
+      <h4>List view is the map in words</h4>
+      <p>Not the old Now tab. <strong>A header per room, A→Z</strong>, each with its current panel and any crew present — with the signal named (<code>GPS + star</code>, <code>star only</code>) and how stale it is. At high magnification this is often faster than panning the canvas.</p>
+    </div>
+    <div class="call">
+      <h4>Glacier was a bad map, not a bad parse</h4>
+      <p>The first PDF was wrong. The corrected QRG places <strong>Glacier on Delta 2nd</strong> between Canmore and Lethbridge, and <strong>Banff / Lake Louise / Jasper simply don't exist</strong>. All 21 scheduled rooms now resolve — the room gap is closed.</p>
+    </div>
+    <div class="call w">
+      <h4>OSM outdoors, baked not fetched</h4>
+      <p>Now that the map is our own vector, we bake OSM streets/parking/paths into the SVG <strong>at build time</strong> — zero runtime tile requests, one shared metric transform so GPS still lands exactly. The only cost is a visible <code>© OpenStreetMap contributors</code> credit.</p>
+    </div>
+    <div class="call b">
+      <h4>Cancel belongs to the event, not a stray card</h4>
+      <p>The standalone "cancel" card is gone. <strong>Edit</strong> reopens the create screen pre-filled; <strong>Cancel event</strong> sits at its bottom behind a "you sure" check, and shows <code>[CANCELLED]</code> to anyone who starred it.</p>
+    </div>
+
+    <div class="call">
+      <h4>Underground floors, anchored by their stairwells</h4>
+      <p>Wyndham's <strong>Parking 1 &amp; 2 are underground</strong> (confirmed with the hotel) — no OSM footprint of their own. But the <strong>elevator opposite the Front Desk</strong> and the <strong>bottom-right stairs</strong> appear on every level, so we align P1/P2 to the Main Floor by those shared icons as <code>control points</code>, then align the Main Floor to the street map. <strong>One coordinate system, three stacked floors</strong> — and it generalizes: Delta 2nd aligns to Delta Main the same way, so only one floor per building ever needs an OSM anchor.</p>
+    </div>
+  </div>
+
+</div>
+</body>
+</html>
