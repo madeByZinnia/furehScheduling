@@ -1,0 +1,35 @@
+{
+  "name": "fureh-schedules",
+  "private": true,
+  "version": "0.0.0",
+  "type": "module",
+  "description": "Fur-Eh 2026 crew schedule — Telegram Mini App + web (Cloudflare Worker)",
+  "scripts": {
+    "dev": "vite",
+    "build": "tsc --noEmit && vite build",
+    "preview": "vite preview",
+    "typecheck": "tsc --noEmit",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "coverage": "vitest run --coverage",
+    "test:workers": "vitest run --config vitest.workers.config.ts",
+    "schedule": "tsx scripts/fetch-schedule.ts"
+  },
+  "dependencies": {
+    "preact": "^10.25.4"
+  },
+  "devDependencies": {
+    "@cloudflare/vitest-pool-workers": "^0.8.19",
+    "@cloudflare/workers-types": "^4.20250109.0",
+    "@types/node": "^22.10.7",
+    "@preact/preset-vite": "^2.10.1",
+    "@vitest/coverage-v8": "^3.0.5",
+    "fast-check": "^3.23.2",
+    "happy-dom": "^16.7.2",
+    "tsx": "^4.19.2",
+    "typescript": "^5.7.3",
+    "vite": "^6.0.11",
+    "vitest": "^3.0.5",
+    "wrangler": "^3.107.0"
+  }
+}

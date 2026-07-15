@@ -1,0 +1,13 @@
+{
+  // Minimal Worker config — placeholder until the M2 backend lands. Present now
+  // so the @cloudflare/vitest-pool-workers harness has a real workerd target.
+  "$schema": "node_modules/wrangler/config-schema.json",
+  "name": "fureh-schedules",
+  "main": "src/worker/index.ts",
+  "compatibility_date": "2025-01-01",
+  "compatibility_flags": ["nodejs_compat"],
+  "assets": {
+    "directory": "./dist/",
+    "not_found_handling": "single-page-application"
+  }
+}
