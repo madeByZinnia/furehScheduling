@@ -17,6 +17,11 @@ architecture — it refines the UI and closes gaps in the crew-creation, map, an
 - Crew creation: **guided group-add now, standalone-crew creation deferred** as a possible follow-up.
 - Map List view ordering: **alphabetical**, with crew/on-now shown as badges inside each row.
 - OSM outdoor basemap: **folded into M4** (the map ships with real outdoor context).
+- Stack: **switched to TypeScript** (from the master plan's plain-JS default). Vite + Preact + TS
+  (strict), `@cloudflare/workers-types` for the Worker/DO; **brand occurrence-ids vs item-codes** and
+  model marker-fusion + DO storage records as **discriminated unions**, so the compiler — not just
+  runtime asserts — guards the occurrence bug (208 slots / 178 codes) and the fusion logic. Cheapest
+  to change now, before any code exists. Scripts run in TS via `tsx`.
 
 ---
 
@@ -67,7 +72,7 @@ crewId arriving inside signed `initData`. That is the entire bridge; nothing ren
 
 The earlier rejection was specific to a *stylized raster* basemap. Since we now draw our own vector,
 OSM geometry is just more baked paths:
-- Build step `scripts/build-basemap.mjs`: **Overpass API** (bbox ~250 m around both hotels) → OSM
+- Build step `scripts/build-basemap.ts`: **Overpass API** (bbox ~250 m around both hotels) → OSM
   ways/relations for `highway=*` (incl. Gateway Blvd, footways/paths), `amenity=parking`,
   `building=*` nearby, `railway=light_rail`/LRT platforms → **`osmtogeojson`** → project → SVG paths
   → **commit the generated SVG**. Runtime loads a static asset; **no Overpass/tile/CDN calls at
@@ -280,7 +285,7 @@ of plan mode.
 Reconcile the existing 17-issue backlog with this round (do at build start, not in plan mode):
 - **Amend M4 (`aau`)** to include: adaptive building/floor selector placement (below Map/List
   toggle, Map-tab only), List view as alphabetical text-map, and the **OSM outdoor basemap** (folded
-  in) with a new `scripts/build-basemap.mjs` sub-task.
+  in) with a new `scripts/build-basemap.ts` sub-task.
 - **Amend M7 / a11y (`x8s`)**: split Display into Text size (discrete slider, lower default) + Theme;
   add the cognitive-accessibility checklist; ODbL attribution surface.
 - **Amend M5 (`bgx`)**: custom-event free-text-first Where + cancel/back; Crew "Your Events" +

@@ -39,9 +39,9 @@ Do them in this sequence. `bd show <id>` for full detail; `bd update <id> --clai
 
 | # | Issue | Why this order |
 |---|---|---|
-| 1 | `fureh-schedules-zhy.2` — Scaffold (Vite + Preact, plain CSS, **no TS**, no date lib) | Nothing runs without it |
+| 1 | `fureh-schedules-zhy.2` — Scaffold (Vite + Preact, **TypeScript** strict, plain CSS, no date lib) | Nothing runs without it |
 | 2 | `fureh-schedules-zhy.1` — **Time-travel `?now=...` override — build FIRST** | 5 lines; the con hasn't happened, so every time-based view needs this to be testable |
-| 3 | `fureh-schedules-zhy.3` — `fetch-schedule.mjs`: pretalx join + **occurrence expansion** + assertions → `src/data/schedule.json` | Everything downstream depends on this data shape |
+| 3 | `fureh-schedules-zhy.3` — `fetch-schedule.ts` (run via `tsx`): pretalx join + **occurrence expansion** + assertions → `src/data/schedule.json` | Everything downstream depends on this data shape |
 | 4 | `fureh-schedules-4cz.4` — **a11y baseline** (`src/app/a11y.css`), imported first | Must be in from the first UI commit, not retrofitted |
 | 5 | `fureh-schedules-4cz.5` — Schedule tab: day tabs, time grouping, search | The thing that beats the official site |
 | 6 | `fureh-schedules-4cz.6` — Local stars, **per-occurrence**, localStorage | Pre-backend star store |
@@ -53,10 +53,15 @@ Do them in this sequence. `bd show <id>` for full detail; `bd update <id> --clai
 
 ## Gotchas that will bite you (from the plans)
 
+- **Stack is TypeScript (strict).** Vite + Preact + TS, plain CSS, `@cloudflare/workers-types` for
+  the later Worker/DO. **Brand `OccurrenceId` vs `ItemCode`** and model the marker-fusion states + DO
+  storage records as **discriminated unions** — the compiler, not just runtime asserts, guards the
+  invariants below. Scripts run in TS via `tsx`. (No date library — `Intl.DateTimeFormat` suffices.)
 - **Occurrence expansion is the silent bug.** A pretalx `code` is a *submission*, not a slot: **208
   slots collapse to 178 unique codes**. Key occurrence ids on **`code` + start timestamp**, never on
-  an index (a cancelled slot renumbers everything after it). Stars, `.ics`, and the map all break
-  without this. Assertions: 208 slots / 178 codes / 4 days; `Registration` → **5** occurrences;
+  an index (a cancelled slot renumbers everything after it). In TS, make `OccurrenceId` a **branded
+  type** so passing an item code where an occurrence id is expected is a *compile* error. Stars,
+  `.ics`, and the map all break without this. Assertions: 208 slots / 178 codes / 4 days; `Registration` → **5** occurrences;
   `CZKVLN` → **4**; ids **stable across two runs** even if a slot is removed.
 - **No speaker data.** `persons: []` / `speakers: []` across the feed. Search covers **title,
   abstract, track, room** only. Don't promise speaker search.

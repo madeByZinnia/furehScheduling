@@ -208,7 +208,7 @@ For ~50 crews over 4 days: ~57,600 alarm invocations plus app traffic ≈ 160k D
 
 **Why DO Alarms and not a Cron Trigger:** Cron Triggers cap at **250 per account**, and a single cron would have to *enumerate every crew* — but we dropped KV, so there's no registry to enumerate. Per-crew alarms need no registry, scale past the cron ceiling, and come with free retries.
 
-**Client:** Vite + Preact, plain CSS, no TypeScript, no date library (`Intl.DateTimeFormat` suffices — no DST transition during the con).
+**Client:** Vite + Preact, **TypeScript** (strict), plain CSS, no date library (`Intl.DateTimeFormat` suffices — no DST transition during the con). Worker/DO typed with `@cloudflare/workers-types`. **Brand occurrence-ids vs item-codes** and model the marker-fusion states and DO storage records as **discriminated unions**, so the compiler — not just runtime asserts — guards the occurrence bug and the fusion logic. (This reverses the earlier plain-JS default; the risky parts here are all shape-and-invariant heavy, and greenfield is the cheapest moment to switch.)
 
 **Prerequisites (~10 min, yours):** Cloudflare account → `wrangler login`. **@BotFather → `/newbot`** (instant, free, no review) → `/newapp` → `wrangler secret put BOT_TOKEN`.
 
@@ -313,7 +313,7 @@ No ICS endpoint — the `.ics` is generated in the browser. The server never see
 
 ## Schedule data: baked **and** live
 
-`scripts/fetch-schedule.mjs` fetches both pretalx endpoints, joins on `code`, **expands occurrences**, writes a committed `src/data/schedule.json`.
+`scripts/fetch-schedule.ts` fetches both pretalx endpoints, joins on `code`, **expands occurrences**, writes a committed `src/data/schedule.json`.
 
 **The occurrence bug — the one that would have shipped silently.** A pretalx `code` is a *submission*, not a time slot: 208 slots collapse to **178 unique codes**. Pretalx's own ICS reveals this with UID suffixes (`-0`, `-1`, `-2`). Assertions: 208 slots, 178 codes, 4 days, `Registration` → **5 occurrences**, `CZKVLN` → **4**.
 
@@ -401,7 +401,7 @@ Apple could have had a live `webcal://` subscription; **Google cannot subscribe 
 
 **Resolution:** an **opt-in checkbox on the download — "remind me 10 minutes before"** — which adds a `VALARM` to each event. **Default off**, because 34 unsolicited alerts is genuinely awful, but available to anyone who wants the con to actually tap them on the shoulder. And the justification above is reworded to what a no-alarm `.ics` truthfully delivers: visibility, not alerts.
 
-**Correctness (`src/app/ics.js`, client-only):**
+**Correctness (`src/app/ics.ts`, client-only):**
 - **Per-occurrence UIDs keyed on `code` + start time** — not an index. Without this, four days of Headless Lounge collapse into one event.
 - **Fold at 75 *octets*, never splitting a UTF-8 sequence** (custom events contain emoji). **Escape `\ ; ,` and newlines.** Unfolded or unescaped lines make Apple Calendar silently import *nothing*, with no error. **Write and test these two functions first.**
 - **UTC `Z` times.** No `VTIMEZONE`; omit `X-WR-TIMEZONE`.
@@ -460,12 +460,12 @@ Sequenced by **what must work when**. Hours are omitted deliberately: with AI wr
 ## Critical files
 
 - `wrangler.jsonc` — **the one thing that must be right:** with Workers Assets, `not_found_handling: "single-page-application"` returns `index.html` for every unmatched path and will swallow the API routes. `run_worker_first: ["/api/*"]` is the fix. Also holds the DO binding and the `new_sqlite_classes` migration. (**No cron trigger** — earlier drafts said so; alarms replaced it.)
-- `scripts/fetch-schedule.mjs` — pretalx join + occurrence expansion. Everything depends on this shape.
+- `scripts/fetch-schedule.ts` — pretalx join + occurrence expansion. Everything depends on this shape.
 - `src/data/rooms.json` — **the vector floor plans**: room and facility polygons in **real-world metres**, labels, floor, building. Hand-authored using the OSM footprint for geometry and the QRG for topology. Also holds the **off-map allow-list** (`Delta - Downtown`, `Delta - Parking Garage`) and any **location-unknown** rooms (currently `Delta - Glacier Room`).
 - `src/data/buildings.json` — OSM footprints (Wyndham way `321836536`, Delta way `321840654`) and the metres↔pixels origin. This is what makes GPS positions exact rather than fitted.
-- `src/worker/crew-do.js` — the Durable Object. All crew state.
-- `src/worker/telegram.js` — `initData` HMAC validation, webhook, `my_chat_member` pin-upgrade, live-location ingest, digest.
-- `src/app/ics.js` — per-occurrence UIDs, octet folding, escaping. Client-only.
+- `src/worker/crew-do.ts` — the Durable Object. All crew state.
+- `src/worker/telegram.ts` — `initData` HMAC validation, webhook, `my_chat_member` pin-upgrade, live-location ingest, digest.
+- `src/app/ics.ts` — per-occurrence UIDs, octet folding, escaping. Client-only.
 - `src/app/a11y.css` — text-size scale, contrast tokens, focus rings. Imported first, never overridden.
 
 ## Verification
