@@ -468,6 +468,36 @@ Sequenced by **what must work when**. Hours are omitted deliberately: with AI wr
 - `src/app/ics.ts` — per-occurrence UIDs, octet folding, escaping. Client-only.
 - `src/app/a11y.css` — text-size scale, contrast tokens, focus rings. Imported first, never overridden.
 
+## Linting & formatting — correctness rules that block, style/size that don't
+
+**Philosophy:** the linter's job here is **bug prevention, not perfection** — we're on a short clock.
+So: **type-aware correctness rules are errors (block CI); size/complexity rules are warnings (inform,
+never gate); Prettier owns formatting** so ESLint never argues about whitespace. The single biggest
+clean-code lever is `tsconfig` strictness (`strict`, `noUncheckedIndexedAccess`,
+`noFallthroughCasesInSwitch`), with the linter layered on top.
+
+**ESLint flat config** = `typescript-eslint`'s **`recommendedTypeChecked`** preset + these:
+
+- **Errors (block CI) — highest bug-prevention leverage:**
+  - `@typescript-eslint/no-floating-promises` — the top pick. Un-awaited DO writes / `fetch` /
+    `ctx.waitUntil` become errors.
+  - `@typescript-eslint/no-misused-promises` — async fn passed as a `void` handler / awaited-in-`if`.
+  - `@typescript-eslint/switch-exhaustiveness-check` — enforces every discriminated-union case
+    (marker fusion, `pinMode`) — a new variant you forget to handle is an error.
+  - `@typescript-eslint/no-unnecessary-condition` — wrong null/undefined guards, dead branches.
+  - `eqeqeq` (`smart`); `no-fallthrough`.
+- **Warnings (inform, don't gate):** `no-unsafe-*` and `no-explicit-any` at boundaries (JSON.parse,
+  feed parsing — tighten with validators over time); `no-unused-vars` (`argsIgnorePattern: '^_'`);
+  and the size/complexity smells — `complexity` ≤15, `max-depth` ≤4, `max-params` ≤5,
+  `max-lines-per-function` ≤80 (skip blanks/comments). These nudge decomposition; they're the
+  *weakest* bug-preventers, so they never block.
+
+**Prettier** for formatting + `eslint-config-prettier` last in the chain to disable any stylistic
+overlap. Scripts: `lint: eslint .`, `format: prettier --write .`. CI runs `npm run lint` (fails on
+errors only — ESLint doesn't fail on warnings unless `--max-warnings` is set).
+
+---
+
 ## Testing — layered, property-based where invariants are dense
 
 **Frameworks (chosen; swappable):** **Vitest** (unit/integration, native to Vite + TS), **fast-check**

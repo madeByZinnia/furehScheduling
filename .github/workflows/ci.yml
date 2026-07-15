@@ -46,6 +46,12 @@ jobs:
         if: steps.scaffold.outputs.exists == 'true'
         run: npm run typecheck --if-present
 
+      # Lint fails CI only on ESLint *errors*; warnings (size/complexity smells)
+      # are informational and do not gate.
+      - name: Lint
+        if: steps.scaffold.outputs.exists == 'true'
+        run: npm run lint --if-present
+
       - name: Test
         if: steps.scaffold.outputs.exists == 'true'
         run: npm test --if-present
