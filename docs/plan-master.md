@@ -468,6 +468,45 @@ Sequenced by **what must work when**. Hours are omitted deliberately: with AI wr
 - `src/app/ics.ts` — per-occurrence UIDs, octet folding, escaping. Client-only.
 - `src/app/a11y.css` — text-size scale, contrast tokens, focus rings. Imported first, never overridden.
 
+## Testing — layered, property-based where invariants are dense
+
+**Frameworks (chosen; swappable):** **Vitest** (unit/integration, native to Vite + TS), **fast-check**
+(property-based, runs inside Vitest), **`@cloudflare/vitest-pool-workers`** (runs Worker/DO tests in
+the real `workerd` runtime with actual DO storage + alarms — not mocked). Optional later: **Playwright
++ `@axe-core/playwright`** for the accessibility acceptance criteria.
+
+**Why property-based here:** this app is a mesh of invariant-heavy transforms where example tests miss
+the adversarial input. Encode the invariant; let fast-check hunt the counterexample. Highest-value
+properties (write as `fc.property`):
+
+- **`.ics` folding/escaping (`ics.ts`) — the RFC trap.**
+  - `unfold(fold(s)) === s` for arbitrary `s` (emoji, CJK, 5000-char abstracts).
+  - every folded line ≤ **75 octets** and **no multibyte UTF-8 sequence is split** across a fold.
+  - `unescape(escape(s)) === s` for arbitrary `s` containing `\ ; , \n`.
+  - over an arbitrary set of starred occurrences, **all UIDs unique**; a 4-slot item yields **4**
+    distinct events, never 1.
+- **Occurrence-id stability (`fetch-schedule.ts`).** Generate an arbitrary schedule; remove/reorder an
+  arbitrary subset of slots; **every surviving occurrence keeps its id** (keyed on `code`+start, never
+  index). Expanded occurrence count == sum over items.
+- **`initData` validation (`telegram.ts`).** For a validly-signed blob, **any** single field/byte
+  mutation ⇒ rejected; unmutated ⇒ accepted. (HMAC order: `secret = HMAC(bot_token, "WebAppData")`.)
+- **Marker fusion (map).** Over arbitrary signal combos (GPS ±/accuracy, stars on N floors, overlaps,
+  staleness, ghost-mode), render state matches the truth table: GPS+star→solid pin on the star's
+  floor; GPS-only→hollow ring on every floor of that building; two stars→both rooms with `?`;
+  stale→absent; **ghost-mode ⇒ no marker, ever**; and **opacity never carries state**.
+- **Expiry (DO alarm, workers-pool).** For arbitrary tick timings, a `loc` older than the threshold is
+  purged and **treated absent on read even if a tick was missed**; the 60-day self-delete fires and
+  stops re-arming.
+- **Stars & time.** Starring an item selects exactly its occurrences; prune is idempotent; unstar
+  removes only the target; day-grouping is **America/Edmonton for any device timezone.**
+
+**Example-based + integration** cover the concrete facts (208/178/4, Registration→5, CZKVLN→4, the
+ambient/panel split) and **digest idempotency** (a retried at-least-once alarm must never double-post).
+**DO/bot tests run in the workers pool** so alarms, SQL storage, and idempotency are exercised for
+real — per the "test the real thing, not a mock" rule.
+
+---
+
 ## Verification
 
 > 🚩 **Build the `?now=2026-07-18T13:05:00-06:00` time-travel override FIRST.** It was in early drafts and got lost. **The con hasn't happened**, so without it there is no way to test the bot's digest, the map's "on now" highlighting, or the ambient/panel split — which are three of the four things most likely to be quietly broken on day one. Five lines of code; not optional.

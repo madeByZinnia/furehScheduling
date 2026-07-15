@@ -51,6 +51,20 @@ Do them in this sequence. `bd show <id>` for full detail; `bd update <id> --clai
 | 10 | `fureh-schedules-4cz.2` — Text-size **discrete slider** + split Display (Text size / Theme), lower default | a11y revision (see below) |
 | 11 | `fureh-schedules-4cz.3` — Remove the meaningless gold header label | Polish |
 
+## Testing (set up in the scaffold, then write alongside each piece)
+
+Stand up the harness in step 1: **Vitest + fast-check + `@cloudflare/vitest-pool-workers`**
+(the last one matters later for DO/alarm tests in the real `workerd` runtime). This app is
+invariant-dense, so **property-based tests carry real weight** — see the master plan's **Testing**
+section for the full list. Two land inside this first slice:
+
+- **`fetch-schedule.ts`** (`fureh-schedules-zhy.3.1`): property test that occurrence ids are **stable
+  under arbitrary slot removal/reordering**, plus the example asserts (208/178/4, Registration→5,
+  CZKVLN→4).
+- **`ics.ts`** (`fureh-schedules-4cz.1.1`): property tests for `unfold(fold(s))===s`, the **75-octet
+  bound with no split UTF-8 sequence**, escape round-trips, and UID uniqueness — write these *before*
+  the export UI, they're the RFC trap that silently breaks Apple Calendar.
+
 ## Gotchas that will bite you (from the plans)
 
 - **Stack is TypeScript (strict).** Vite + Preact + TS, plain CSS, `@cloudflare/workers-types` for

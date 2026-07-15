@@ -22,6 +22,10 @@ architecture — it refines the UI and closes gaps in the crew-creation, map, an
   model marker-fusion + DO storage records as **discriminated unions**, so the compiler — not just
   runtime asserts — guards the occurrence bug (208 slots / 178 codes) and the fusion logic. Cheapest
   to change now, before any code exists. Scripts run in TS via `tsx`.
+- Testing: **robust suite including property-based tests** (Vitest + fast-check +
+  `@cloudflare/vitest-pool-workers`), given how many interconnected invariants this app carries. The
+  high-value properties (`.ics` UTF-8 fold, occurrence-id stability, `initData` tamper-rejection,
+  marker-fusion truth table, DO expiry) are enumerated in the master plan's **Testing** section.
 
 ---
 
