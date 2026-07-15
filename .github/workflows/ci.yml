@@ -1,0 +1,55 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+# Cancel superseded runs on the same ref
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  build-test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      # The repo starts as plans only. Until the M0 scaffold lands (package.json),
+      # skip the build/test steps so CI is green rather than red-for-no-reason.
+      - name: Detect scaffold
+        id: scaffold
+        run: |
+          if [ -f package.json ]; then
+            echo "exists=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "exists=false" >> "$GITHUB_OUTPUT"
+            echo "::notice::No package.json yet — M0 scaffold not built. Skipping build/test."
+          fi
+
+      - uses: actions/setup-node@v4
+        if: steps.scaffold.outputs.exists == 'true'
+        with:
+          node-version: 22
+          cache: npm
+
+      - name: Install
+        if: steps.scaffold.outputs.exists == 'true'
+        run: |
+          if [ -f package-lock.json ]; then npm ci; else npm install; fi
+
+      # --if-present keeps early scaffolding green before every script exists;
+      # tighten to required scripts once M0/M1 are in.
+      - name: Typecheck
+        if: steps.scaffold.outputs.exists == 'true'
+        run: npm run typecheck --if-present
+
+      - name: Test
+        if: steps.scaffold.outputs.exists == 'true'
+        run: npm test --if-present
+
+      - name: Build
+        if: steps.scaffold.outputs.exists == 'true'
+        run: npm run build --if-present
