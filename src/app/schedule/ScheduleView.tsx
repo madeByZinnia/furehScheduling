@@ -87,17 +87,49 @@ function NowSeparator({ nowDate }: { nowDate: Date }) {
 
 function EventRow({ occ }: { occ: Occurrence }) {
   const starred = useIsStarred(occ.id);
-  const roomTrack = [occ.room, occ.track].filter(Boolean);
+  const [open, setOpen] = useState(false);
+  const hasDesc = occ.abstract.trim().length > 0;
+  const hasMeta = Boolean(occ.room) || Boolean(occ.track);
+  const panelId = `desc-${occ.id}`;
+
+  // Phrasing-only content so it can live inside the <button> disclosure.
+  const meta = hasMeta ? (
+    <span class="meta">
+      {occ.room}
+      {occ.room && occ.track ? ' · ' : ''}
+      {occ.track ? <span class="track">{occ.track}</span> : null}
+    </span>
+  ) : null;
+
   return (
-    <div class="event-row">
+    <div class={`event-row${open ? ' is-open' : ''}`}>
       <div class="body">
-        <p class="title">{occ.title}</p>
-        {roomTrack.length > 0 && (
-          <p class="meta">
-            {occ.room}
-            {occ.room && occ.track && ' · '}
-            {occ.track && <span class="track">{occ.track}</span>}
-          </p>
+        {hasDesc ? (
+          <button
+            type="button"
+            class="disclosure"
+            aria-expanded={open}
+            aria-controls={panelId}
+            onClick={() => setOpen((o) => !o)}
+          >
+            <span class="disc-main">
+              <span class="title">{occ.title}</span>
+              {meta}
+            </span>
+            <span class="chevron" aria-hidden="true">
+              {open ? '▾' : '▸'}
+            </span>
+          </button>
+        ) : (
+          <div class="disc-main static">
+            <span class="title">{occ.title}</span>
+            {meta}
+          </div>
+        )}
+        {open && hasDesc && (
+          <div id={panelId} class="desc">
+            {occ.abstract}
+          </div>
         )}
       </div>
       <button

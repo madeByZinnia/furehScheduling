@@ -95,15 +95,51 @@
 }
 .event-row .title {
   font-weight: 600;
-  margin: 0;
 }
 .event-row .meta {
+  display: block;
   font-size: 0.8125rem;
   color: var(--text-dim);
-  margin: 0.15rem 0 0;
+  margin-top: 0.15rem;
 }
 .event-row .track {
   color: var(--green);
+}
+
+/* Disclosure: the title/meta area doubles as an expand toggle when there's a
+   description. Full-width, left-aligned, transparent — reads like tapping the
+   card, but is a real <button> with aria-expanded for keyboard + screen reader. */
+.event-row .disclosure {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 0.5rem;
+  width: 100%;
+  padding: 0;
+  text-align: left;
+  color: inherit;
+  background: transparent;
+  border: none;
+}
+.event-row .disc-main {
+  min-width: 0;
+}
+.event-row .chevron {
+  flex: none;
+  color: var(--text-dim);
+  font-size: 0.9rem;
+  line-height: 1.6;
+}
+.event-row .desc {
+  margin-top: 0.6rem;
+  padding-top: 0.6rem;
+  border-top: 1px solid var(--border);
+  font-size: 0.9375rem;
+  color: var(--text);
+  white-space: pre-wrap; /* preserve pretalx paragraph breaks */
+}
+.event-row.is-open {
+  border-color: var(--border-hi);
 }
 
 /* Star toggle */
