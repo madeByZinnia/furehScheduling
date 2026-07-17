@@ -1,12 +1,6 @@
 import { describe, it, expect } from 'vitest';
 import fc from 'fast-check';
-import {
-  expandOccurrences,
-  normalizeString,
-  conDay,
-  uniqueCodes,
-  type RawSlot,
-} from './expand';
+import { expandOccurrences, normalizeString, conDay, uniqueCodes, type RawSlot } from './expand';
 
 // A slot arbitrary with UNIQUE (code, start) pairs — a pretalx submission has at
 // most one slot at any given instant, so distinct ids are guaranteed there.
@@ -15,7 +9,10 @@ const slotsArb = fc
     fc.tuple(
       fc.option(fc.constantFrom('CZKVLN', 'ABCDEF', 'REG123', 'ZZZ999'), { nil: null }),
       // start epochs across the con window (2026-07-16..19, con-local)
-      fc.integer({ min: Date.parse('2026-07-16T00:00:00-06:00'), max: Date.parse('2026-07-19T23:00:00-06:00') }),
+      fc.integer({
+        min: Date.parse('2026-07-16T00:00:00-06:00'),
+        max: Date.parse('2026-07-19T23:00:00-06:00'),
+      }),
     ),
     { selector: ([code, start]) => `${code}@${start}`, minLength: 1, maxLength: 60 },
   )
@@ -82,8 +79,18 @@ describe('expandOccurrences — expansion counts (property)', () => {
 
   it('code-less slots get distinct, stable synthetic ids', () => {
     const slots: RawSlot[] = [
-      { code: null, title: 'Overflow', start: '2026-07-17T10:00:00-06:00', end: '2026-07-17T11:00:00-06:00' },
-      { code: null, title: 'Overflow', start: '2026-07-18T10:00:00-06:00', end: '2026-07-18T11:00:00-06:00' },
+      {
+        code: null,
+        title: 'Overflow',
+        start: '2026-07-17T10:00:00-06:00',
+        end: '2026-07-17T11:00:00-06:00',
+      },
+      {
+        code: null,
+        title: 'Overflow',
+        start: '2026-07-18T10:00:00-06:00',
+        end: '2026-07-18T11:00:00-06:00',
+      },
     ];
     const a = expandOccurrences(slots);
     const b = expandOccurrences([...slots].reverse());
@@ -93,8 +100,20 @@ describe('expandOccurrences — expansion counts (property)', () => {
 
   it('two code-less slots at the same instant in different rooms do not collide', () => {
     const slots: RawSlot[] = [
-      { code: null, title: 'Overflow', room: 'Wyndham - Gallery 1', start: '2026-07-17T10:00:00-06:00', end: '2026-07-17T11:00:00-06:00' },
-      { code: null, title: 'Overflow', room: 'Delta - Gallery 2', start: '2026-07-17T10:00:00-06:00', end: '2026-07-17T11:00:00-06:00' },
+      {
+        code: null,
+        title: 'Overflow',
+        room: 'Wyndham - Gallery 1',
+        start: '2026-07-17T10:00:00-06:00',
+        end: '2026-07-17T11:00:00-06:00',
+      },
+      {
+        code: null,
+        title: 'Overflow',
+        room: 'Delta - Gallery 2',
+        start: '2026-07-17T10:00:00-06:00',
+        end: '2026-07-17T11:00:00-06:00',
+      },
     ];
     const occ = expandOccurrences(slots);
     expect(new Set(occ.map((o) => o.id)).size).toBe(2);

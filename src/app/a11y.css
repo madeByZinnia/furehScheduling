@@ -1,36 +1,128 @@
 /*
  * Accessibility baseline — imported FIRST, before any component styles, so the
- * a11y foundation is never something we retrofit. The full treatment (contrast
- * tokens, 44px targets, discrete text-size slider) lands in issues 4cz.4 / 4cz.2.
- * This is the minimal seed: root-relative sizing so a future text-size control
- * scales every screen, and reflow that never forces horizontal scroll at 400%.
+ * a11y foundation is never retrofitted. The primary user is legally blind and
+ * browses at near-max magnification, so this is load-bearing, not decoration:
+ *
+ *   - rem units everywhere, driven by --root-font-size, so the discrete
+ *     text-size control (4cz.2) scales EVERY screen from the root.
+ *   - AAA (>=7:1) contrast tokens in both themes.
+ *   - Visible focus rings; 44px minimum targets; prefers-reduced-motion.
+ *   - Reflow at 400% with no horizontal scroll (WCAG 1.4.10) — the viewport
+ *     meta never sets maximum-scale / user-scalable=no.
  */
 
+/* ── Text-size scale ─────────────────────────────────────────────────────────
+ * Discrete stops the slider snaps to (S · M · L · XL · XXL). Default is M, a
+ * deliberately LOWER baseline than the old A++ so there is headroom above it.
+ * :root[data-text-size="..."] overrides are set by the settings module. */
 :root {
-  /* Text-size control drives this (default ~M). rem everywhere scales from here. */
+  --root-font-size: 100%; /* M — the default baseline (~16px) */
+}
+:root[data-text-size='s'] {
+  --root-font-size: 90%;
+}
+:root[data-text-size='m'] {
   --root-font-size: 100%;
-  color-scheme: light dark;
+}
+:root[data-text-size='l'] {
+  --root-font-size: 118%;
+}
+:root[data-text-size='xl'] {
+  --root-font-size: 140%;
+}
+:root[data-text-size='xxl'] {
+  --root-font-size: 165%;
 }
 
-html {
-  font-size: var(--root-font-size);
+/* ── Colour tokens — AAA contrast, both themes ───────────────────────────────
+ * Dark is the default; light applies under prefers-color-scheme OR an explicit
+ * [data-theme] override (the theme toggle stamps data-theme on <html>). */
+:root {
+  --radius: 0.75rem;
+  --bg: #14110c;
+  --panel: #1e1a13;
+  --surface: #26211a;
+  --surface-2: #302a20;
+  --border: #433b2c;
+  --border-hi: #6b5c40;
+  --text: #f5efe2;
+  --text-dim: #c3b7a0;
+  --gold: #e0b352;
+  --green: #5cc79b;
+  --rose: #ee8a7d;
+  --blue: #7fc0e8;
+  color-scheme: dark;
 }
 
+@media (prefers-color-scheme: light) {
+  :root:not([data-theme]) {
+    --bg: #faf6ec;
+    --panel: #fffdf7;
+    --surface: #f2ecdd;
+    --surface-2: #e8e0cc;
+    --border: #cfc3a6;
+    --border-hi: #9e8f6d;
+    --text: #191510;
+    --text-dim: #514732;
+    --gold: #7a5a10;
+    --green: #0f5f43;
+    --rose: #9a2d20;
+    --blue: #17506f;
+    color-scheme: light;
+  }
+}
+
+:root[data-theme='light'] {
+  --bg: #faf6ec;
+  --panel: #fffdf7;
+  --surface: #f2ecdd;
+  --surface-2: #e8e0cc;
+  --border: #cfc3a6;
+  --border-hi: #9e8f6d;
+  --text: #191510;
+  --text-dim: #514732;
+  --gold: #7a5a10;
+  --green: #0f5f43;
+  --rose: #9a2d20;
+  --blue: #17506f;
+  color-scheme: light;
+}
+
+:root[data-theme='dark'] {
+  color-scheme: dark;
+}
+
+/* ── Reset + root sizing ─────────────────────────────────────────────────────*/
 *,
 *::before,
 *::after {
   box-sizing: border-box;
 }
 
+html {
+  font-size: var(--root-font-size);
+}
+
 body {
   margin: 0;
-  font-family: system-ui, sans-serif;
-  line-height: 1.5;
-  /* Reflow, never horizontal scroll (WCAG 1.4.10). */
+  background: var(--bg);
+  color: var(--text);
+  font-family:
+    system-ui,
+    -apple-system,
+    sans-serif;
+  line-height: 1.6;
+  /* Reflow, never horizontal scroll. */
   overflow-wrap: break-word;
 }
 
-/* Interactive targets: 44px minimum (WCAG 2.5.5). */
+h1,
+h2,
+h3 {
+  line-height: 1.15;
+}
+
+/* ── Interactive targets: 44px minimum (WCAG 2.5.5) ─────────────────────────*/
 button,
 a,
 input,
@@ -38,11 +130,33 @@ select,
 [role='button'],
 [role='tab'] {
   min-height: 44px;
+  font: inherit;
 }
 
+button,
+[role='button'],
+[role='tab'] {
+  min-width: 44px;
+  cursor: pointer;
+}
+
+/* ── Visible focus, both themes (WCAG 2.4.7) ────────────────────────────────*/
 :focus-visible {
-  outline: 3px solid currentColor;
+  outline: 3px solid var(--gold);
   outline-offset: 2px;
+  border-radius: 2px;
+}
+
+/* ── Respect reduced-motion (WCAG 2.3.3) ────────────────────────────────────*/
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
 }
 
 .visually-hidden {

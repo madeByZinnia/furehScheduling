@@ -27,5 +27,5 @@
     "allowJs": false,
     "noEmit": true
   },
-  "include": ["src", "scripts", "vite.config.ts", "vitest.workers.config.ts"]
+  "include": ["src", "scripts", "test", "vite.config.ts", "vitest.workers.config.ts"]
 }

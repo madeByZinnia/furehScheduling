@@ -1,0 +1,18 @@
+dist/
+coverage/
+node_modules/
+.worktrees/
+package-lock.json
+src/data/schedule.json
+
+# Hand-authored prose / instruction files — not Prettier's to reflow
+docs/
+static/
+*.md
+
+# Tool / infra config — managed elsewhere, not Prettier's to reformat
+.beads/
+.github/
+.claude/
+.codex/
+.agents/
