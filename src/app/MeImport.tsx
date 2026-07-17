@@ -5,15 +5,17 @@ import { parseCodes, matchKnownCodes, type CodeMatch } from './import';
 
 /**
  * Where the user copies their favourites from. The fur-eh schedule runs on
- * pretalx at events.fureh.ca; the favourites (favs) endpoint returns the
+ * pretalx at events.fureh.ca; the API's favourites endpoint returns the
  * logged-in user's starred submission codes as JSON, which the user select-all
- * + copies and pastes below. See import.ts for why this can't be fetched.
+ * + copies and pastes below. See import.ts for why this can't be fetched here
+ * (ACAO:* without credentials, so the browser can't read it cross-origin).
  *
- * TODO(4cz.8): confirm the exact favourites path against the live pretalx
- * install before launch. `/schedule/favs/` is the pretalx convention; if the
- * event uses a different route this constant is the single place to change.
+ * Verified against the live install: pretalx routes it as
+ * `api/events/<event>/submissions/favourites/` (the schedule.html "favs" link is
+ * client-side localStorage only — this API path is the one that emits JSON).
+ * Anonymous requests get 403; the logged-in user opening it sees their JSON.
  */
-const FAVOURITES_URL = 'https://events.fureh.ca/2026/schedule/favs/';
+const FAVOURITES_URL = 'https://events.fureh.ca/api/events/2026/submissions/favourites/';
 
 /** Open a URL, preferring the Telegram WebApp bridge when present. */
 function openFavourites(): void {
