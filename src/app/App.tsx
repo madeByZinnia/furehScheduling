@@ -6,6 +6,7 @@ import { useNow } from './useNow';
 import { formatTime } from './datetime';
 import { DisplaySettings } from './DisplaySettings';
 import { MeExport } from './MeExport';
+import { MeImport } from './MeImport';
 import { ScheduleView } from './schedule/ScheduleView';
 import { useStars } from './stars';
 
@@ -27,6 +28,8 @@ export function App() {
       <DisplaySettings />
 
       <MeExport occurrences={schedule.occurrences} />
+
+      <MeImport occurrences={schedule.occurrences} />
 
       {schedule.occurrences.length === 0 ? (
         <p class="empty">

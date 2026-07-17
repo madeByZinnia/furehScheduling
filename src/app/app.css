@@ -334,6 +334,71 @@
   color: var(--text-dim);
 }
 
+/* ── Import from fur-eh favourites ───────────────────────────────────────────*/
+.me-import {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 0.6rem;
+  padding: 1rem;
+  margin-bottom: 1rem;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+}
+.me-import h2 {
+  margin: 0;
+  font-size: 1rem;
+}
+.me-import-label {
+  font-size: 0.9375rem;
+  color: var(--text);
+}
+.me-import-text {
+  width: 100%;
+  padding: 0.6rem 0.75rem;
+  font-size: 1rem;
+  color: var(--text);
+  background: var(--panel);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  resize: vertical;
+}
+.me-import-text::placeholder {
+  color: var(--text-dim);
+}
+.me-link {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  padding: 0.4rem 0.8rem;
+  color: var(--text);
+  background: var(--panel);
+  border: 1px solid var(--border-hi);
+  border-radius: var(--radius);
+  font-weight: 600;
+}
+.me-import-titles {
+  align-self: stretch;
+  max-height: 12rem;
+  overflow-y: auto;
+  margin: 0;
+  padding: 0.5rem 0.75rem 0.5rem 1.75rem;
+  background: var(--panel);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  font-size: 0.9375rem;
+}
+.me-import-titles li {
+  margin: 0.15rem 0;
+}
+.me-import-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.6rem;
+  align-items: center;
+}
+
 .empty {
   color: var(--text-dim);
   padding: 2rem 0;
