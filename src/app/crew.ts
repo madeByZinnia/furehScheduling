@@ -27,6 +27,7 @@ const store = createStore<CrewState>({ kind: 'idle' });
 /** Injectable for tests; defaults to the real roster pull for the boot session. */
 let loader: () => Promise<RosterResult> = () => fetchRoster(getTelegramSession());
 let inflight = false;
+let pending = false;
 
 function fromResult(result: RosterResult): CrewState {
   if (result.kind === 'non-telegram') return { kind: 'non-telegram' };
@@ -35,19 +36,34 @@ function fromResult(result: RosterResult): CrewState {
 }
 
 async function doLoad(): Promise<void> {
-  if (inflight) return;
+  if (inflight) {
+    // A refresh asked for mid-load (e.g. the boot star-sync landing while the
+    // very first roster fetch is still in flight) must not be dropped — coalesce
+    // it and run once, after the current load settles. Otherwise the pre-sync
+    // roster would win and the member wouldn't see their own just-synced stars.
+    pending = true;
+    return;
+  }
   inflight = true;
   const prev = store.get();
   // Show a spinner only when there's nothing to show yet; a refresh keeps the
   // current roster visible until the new one lands.
   if (prev.kind === 'idle') store.set({ kind: 'loading' });
   try {
-    store.set(fromResult(await loader()));
+    const next = fromResult(await loader());
+    // A transient refresh FAILURE keeps the last good roster rather than
+    // clobbering it — fetchRoster reports network/HTTP failures as
+    // { kind: 'error' } (it never rejects), so this must be handled here too,
+    // not only in the catch below.
+    if (!(next.kind === 'error' && prev.kind === 'ok')) store.set(next);
   } catch {
-    // A background refresh failure must not wipe a good roster.
     if (prev.kind !== 'ok') store.set({ kind: 'error' });
   } finally {
     inflight = false;
+    if (pending) {
+      pending = false;
+      void doLoad();
+    }
   }
 }
 
@@ -90,5 +106,6 @@ export function __setCrewLoader(fn: () => Promise<RosterResult>): void {
 /** Test-only: reset to the un-loaded state. */
 export function __resetCrew(): void {
   inflight = false;
+  pending = false;
   store.set({ kind: 'idle' });
 }

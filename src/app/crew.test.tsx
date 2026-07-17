@@ -109,6 +109,58 @@ describe('crew store', () => {
     expect(state()).toEqual({ kind: 'ok', len: '2' });
   });
 
+  it('a refresh requested during the initial load is queued, not dropped', async () => {
+    // Reproduces the boot race: the star-sync lands while the very first roster
+    // fetch is still in flight. The queued refresh must run and win.
+    let resolveFirst!: (r: RosterResult) => void;
+    const first = new Promise<RosterResult>((res) => {
+      resolveFirst = res;
+    });
+    let calls = 0;
+    await mount(() => {
+      calls += 1;
+      return calls === 1 ? first : Promise.resolve({ kind: 'ok', roster: two });
+    });
+    expect(state().kind).toBe('loading'); // first load still in flight
+
+    // A sync lands mid-load → refresh requested while inflight.
+    await act(async () => {
+      refreshCrew();
+      await Promise.resolve();
+    });
+
+    // Now the pre-sync first load resolves; the queued refresh must then run.
+    await act(async () => {
+      resolveFirst({ kind: 'ok', roster: one });
+      await Promise.resolve();
+    });
+    await flush();
+    await flush();
+
+    expect(calls).toBe(2); // the queued refresh was NOT dropped
+    expect(state()).toEqual({ kind: 'ok', len: '2' }); // second (post-sync) load won
+  });
+
+  it('a background refresh returning {kind:"error"} keeps the last good roster', async () => {
+    // fetchRoster reports failures as { kind: 'error' } (not a reject), so this
+    // path must be preserved too — complements the reject-based case below.
+    let calls = 0;
+    await mount(() => {
+      calls += 1;
+      return calls === 1
+        ? Promise.resolve({ kind: 'ok', roster: one })
+        : Promise.resolve({ kind: 'error' });
+    });
+    expect(state()).toEqual({ kind: 'ok', len: '1' });
+
+    await act(async () => {
+      refreshCrew();
+      await Promise.resolve();
+    });
+    await flush();
+    expect(state()).toEqual({ kind: 'ok', len: '1' }); // error result did not clobber
+  });
+
   it('a failed background refresh keeps the last good roster', async () => {
     let calls = 0;
     await mount(() => {
