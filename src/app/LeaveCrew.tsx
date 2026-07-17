@@ -1,5 +1,6 @@
 import { useState } from 'preact/hooks';
 import { getTelegramSession } from './telegram-session';
+import { suspendAutoSync } from './crewSync';
 import { leaveCrew, type MutationResult } from './events';
 
 /**
@@ -26,12 +27,26 @@ export function LeaveCrew({
 
   if (!isTelegram) return null;
 
+  // Each confirmation starts fresh: the destructive "also cancel my events" box
+  // must never carry over a previous tick (bgx.1 — default unchecked, every time).
+  const openConfirm = () => {
+    setCancelOwn(false);
+    setStatus('idle');
+    setOpen(true);
+  };
+  const dismiss = () => {
+    setCancelOwn(false);
+    setOpen(false);
+  };
+
   const confirm = async (): Promise<void> => {
     setBusy(true);
     setStatus('idle');
     const res = await onLeave(cancelOwn);
     setBusy(false);
     if (res.ok) {
+      // Stop auto-sync so a later star/ghost change can't silently re-add us.
+      suspendAutoSync();
       setOpen(false);
       setStatus('done');
     } else {
@@ -55,7 +70,7 @@ export function LeaveCrew({
         Leave crew
       </h3>
       {!open ? (
-        <button type="button" class="btn-danger" onClick={() => setOpen(true)}>
+        <button type="button" class="btn-danger" onClick={openConfirm}>
           Leave crew &amp; stop sharing
         </button>
       ) : (
@@ -78,7 +93,7 @@ export function LeaveCrew({
             </p>
           )}
           <div class="leave-actions">
-            <button type="button" class="event-back" onClick={() => setOpen(false)}>
+            <button type="button" class="event-back" onClick={dismiss}>
               ✕ Keep me in
             </button>
             <button type="button" class="btn-danger" disabled={busy} onClick={() => void confirm()}>

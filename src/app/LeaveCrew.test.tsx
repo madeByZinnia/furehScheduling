@@ -3,11 +3,16 @@ import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import { render } from 'preact';
 import { act } from 'preact/test-utils';
 import type { MutationResult } from './events';
+
+vi.mock('./crewSync', () => ({ suspendAutoSync: vi.fn() }));
+
 import { LeaveCrew } from './LeaveCrew';
+import { suspendAutoSync } from './crewSync';
 
 let container: HTMLElement;
 
 beforeEach(() => {
+  vi.mocked(suspendAutoSync).mockClear();
   container = document.createElement('div');
   document.body.appendChild(container);
 });
@@ -50,6 +55,40 @@ describe('LeaveCrew', () => {
       await Promise.resolve();
     });
     expect(onLeave).toHaveBeenCalledWith(false);
+  });
+
+  it('re-opening the confirm after a dismiss resets the box to unchecked', () => {
+    void act(() => {
+      render(<LeaveCrew isTelegram onLeave={vi.fn(okLeave)} />, container);
+    });
+
+    click(container.querySelector('.btn-danger')); // open
+    const box = container.querySelector<HTMLInputElement>('.check input[type="checkbox"]')!;
+    void act(() => {
+      box.checked = true;
+      box.dispatchEvent(new Event('change', { bubbles: true }));
+    });
+
+    click(container.querySelector('.event-back')); // ✕ Keep me in (dismiss)
+    click(container.querySelector('.btn-danger')); // re-open
+
+    const reopened = container.querySelector<HTMLInputElement>('.check input[type="checkbox"]')!;
+    expect(reopened.checked).toBe(false); // bgx.1: never carries a previous tick
+  });
+
+  it('suspends auto-sync on a successful leave (a later change must not re-add you)', async () => {
+    void act(() => {
+      render(<LeaveCrew isTelegram onLeave={vi.fn(okLeave)} />, container);
+    });
+    click(container.querySelector('.btn-danger')); // open
+    const confirm = [...container.querySelectorAll<HTMLButtonElement>('.leave-actions .btn-danger')].find(
+      (b) => b.textContent.includes('Leave crew'),
+    )!;
+    click(confirm);
+    await act(async () => {
+      await Promise.resolve();
+    });
+    expect(vi.mocked(suspendAutoSync)).toHaveBeenCalledTimes(1);
   });
 
   it('ticking the box sends cancelOwnEvents = true', async () => {
