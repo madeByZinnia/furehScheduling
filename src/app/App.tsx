@@ -28,7 +28,10 @@ export function App() {
       <p>
         <strong>Now (America/Edmonton):</strong> {current}
         {isTimeTravelling() && (
-          <span> — time-travelling via <code>?now=</code></span>
+          <span>
+            {' '}
+            — time-travelling via <code>?now=</code>
+          </span>
         )}
       </p>
     </main>

@@ -112,9 +112,7 @@ function adaptFrab(doc: FrabSchedule): { slots: RawSlot[]; talks: RawTalk[] } {
             abstract: normalizeString(t.abstract ?? t.description)
               ? (t.abstract ?? t.description)
               : prev?.abstract,
-            track: normalizeString(normalizeTrack(t.track))
-              ? normalizeTrack(t.track)
-              : prev?.track,
+            track: normalizeString(normalizeTrack(t.track)) ? normalizeTrack(t.track) : prev?.track,
           });
         }
       }
