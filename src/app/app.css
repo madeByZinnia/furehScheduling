@@ -1,12 +1,69 @@
 /* Component styles — layered AFTER a11y.css (which owns tokens, sizing, focus).
  * Everything sizes in rem so the text-size control scales it from the root. */
 
+/* Nominal height of the fixed bottom nav bar's content (excludes the safe-area
+   inset, added separately). In REM so it scales with the text-size setting along
+   with the nav's label/icon — the bar grows to keep the labels readable rather
+   than pinning them tiny. The FAB offset and the .app bottom padding both derive
+   from this, so they scale in lockstep. */
+:root {
+  --bottom-nav-h: 3.75rem;
+}
+
 .app {
   max-width: 44rem;
   margin: 0 auto;
-  /* Bottom space clears the fixed jump-to-now FAB (~4.5rem tall zone) plus the
-     safe-area inset, so the last event row's star is never trapped under it. */
-  padding: 0 1rem calc(6rem + env(safe-area-inset-bottom, 0px));
+  /* Bottom space clears BOTH the fixed bottom nav bar and the jump-to-now FAB
+     that floats just above it, plus the safe-area inset — so the last event
+     row's star is never trapped under either. */
+  padding: 0 1rem calc(var(--bottom-nav-h) + 6rem + env(safe-area-inset-bottom, 0px));
+}
+
+/* ── Bottom navigation ───────────────────────────────────────────────────────*/
+.bottom-nav {
+  position: fixed;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  z-index: 30; /* above the FAB (z-index 20) */
+  display: flex;
+  background: var(--panel);
+  border-top: 2px solid var(--border);
+  /* Keep the tappable bar clear of the phone's home indicator. */
+  padding-bottom: env(safe-area-inset-bottom, 0px);
+}
+.bottom-nav-tab {
+  flex: 1;
+  /* min-height (not a fixed height) so the bar grows if larger text needs it. */
+  min-height: var(--bottom-nav-h);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 0.15rem;
+  padding: 0.35rem 0.25rem;
+  background: transparent;
+  border: none;
+  /* A top accent bar marks the active tab by SHAPE, not colour alone. */
+  border-top: 3px solid transparent;
+  color: var(--text-dim);
+  /* rem so the label honours the text-size setting. */
+  font-size: 0.8125rem;
+  font-weight: 500;
+  letter-spacing: 0.03em;
+}
+.bottom-nav-label {
+  text-align: center;
+}
+/* Icon kept modest (smaller than the old 20px) so the scalable label has room. */
+.bottom-nav-icon {
+  font-size: 1.15rem;
+  line-height: 1;
+}
+.bottom-nav-tab.is-active {
+  color: var(--gold);
+  font-weight: 700; /* bold weight = text-shape difference, not just colour */
+  border-top-color: var(--gold);
 }
 
 .app-head {
@@ -538,7 +595,8 @@
 .fab {
   position: fixed;
   z-index: 20;
-  bottom: calc(1rem + env(safe-area-inset-bottom, 0px));
+  /* Float 1rem above the fixed bottom nav bar (which owns the safe-area inset). */
+  bottom: calc(1rem + var(--bottom-nav-h) + env(safe-area-inset-bottom, 0px));
   right: max(1rem, calc(50vw - 22rem + 1rem));
   min-height: 44px; /* tap target */
   padding: 0 18px;
