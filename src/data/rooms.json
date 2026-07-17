@@ -1,0 +1,101 @@
+{
+  "_comment": "M4 room/facility geometry (bead aau.2). Rects are BUILDING-NORMALIZED [U0,V0,U1,V1]: U 0→1 is west→east, V 0→1 is north→south, relative to the building's outline. At load time they are affine-fit into that building's real OSM footprint bbox (see src/app/map/geometry.ts) so the drawn floor lands in true metres. Traced by eye from static/FUREH2026_HOOM_QRG_WEB.pdf (Wyndham Main Floor) against the OSM footprint — 'provisional' until survey-verified; the QRG is a stylised, not-to-scale map, and this pass is a bbox fit (no rotation correction yet). 'schedule' is the exact schedule.json room string, or null for facilities that never host a session. 'kind' drives styling. Off-map + location-unknown lists gate the (deferred) build check aau.1.",
+  "provisional": true,
+  "offMap": ["Delta - Downtown", "Delta - Parking Garage"],
+  "locationUnknown": [],
+  "floors": [
+    {
+      "building": "wyndham",
+      "floor": "main",
+      "placement": "footprint-bbox",
+      "scale": 0.94,
+      "rooms": [
+        { "name": "Terrace 5", "aka": "Game Room", "kind": "panel", "schedule": "Wyndham - Terrace 5", "rect": [0.80, 0.02, 0.98, 0.13] },
+        { "name": "Terrace 4", "aka": "Reg", "kind": "panel", "schedule": "Wyndham - Terrace 4", "rect": [0.66, 0.30, 0.79, 0.44] },
+        { "name": "Terrace 3", "aka": "Art Lounge", "kind": "panel", "schedule": "Wyndham - Terrace 3", "rect": [0.82, 0.30, 0.95, 0.44] },
+        { "name": "Terrace 2", "aka": "Art Show", "kind": "panel", "schedule": "Wyndham - Terrace 2", "rect": [0.66, 0.45, 0.79, 0.60] },
+        { "name": "Terrace 1", "aka": "Escape Room", "kind": "panel", "schedule": "Wyndham - Terrace 1", "rect": [0.82, 0.45, 0.95, 0.60] },
+        { "name": "Lounge", "aka": null, "kind": "amenity", "schedule": null, "rect": [0.42, 0.22, 0.62, 0.34] },
+        { "name": "Atrium Café", "aka": null, "kind": "amenity", "schedule": null, "rect": [0.28, 0.36, 0.62, 0.70] },
+        { "name": "Atrium", "aka": null, "kind": "panel", "schedule": "Wyndham - Atrium", "rect": [0.30, 0.72, 0.62, 0.95] },
+        { "name": "Sushi Toshi", "aka": null, "kind": "amenity", "schedule": null, "rect": [0.06, 0.74, 0.20, 0.90] },
+        { "name": "Front Desk", "aka": null, "kind": "desk", "schedule": null, "rect": [0.66, 0.74, 0.80, 0.86] },
+        { "name": "North Entrance", "aka": null, "kind": "entrance", "schedule": null, "rect": [0.60, 0.00, 0.66, 0.04] },
+        { "name": "Main Entrance", "aka": null, "kind": "entrance", "schedule": null, "rect": [0.955, 0.60, 0.99, 0.66] },
+        { "name": "South Entrance", "aka": null, "kind": "entrance", "schedule": null, "rect": [0.30, 0.96, 0.36, 1.00] },
+        { "name": "Washroom (north)", "aka": null, "kind": "washroom", "schedule": null, "rect": [0.628, 0.18, 0.658, 0.24] },
+        { "name": "Elevator (north)", "aka": null, "kind": "elevator", "schedule": null, "rect": [0.628, 0.25, 0.658, 0.29] },
+        { "name": "Elevator (mid)", "aka": null, "kind": "elevator", "schedule": null, "rect": [0.628, 0.49, 0.658, 0.53] },
+        { "name": "Stairs (mid)", "aka": null, "kind": "stairs", "schedule": null, "rect": [0.628, 0.54, 0.658, 0.58] }
+      ]
+    },
+    {
+      "building": "delta",
+      "floor": "main",
+      "placement": "footprint-bbox",
+      "scale": 0.9,
+      "rooms": [
+        { "name": "Grande Ballroom", "aka": "Dealer's Den", "kind": "panel", "schedule": "Delta - Dealers Den", "rect": [0.063, 0.091, 0.492, 0.98] },
+        { "name": "Crystal Gallery", "aka": "18+ Dealer's Den", "kind": "panel", "schedule": null, "rect": [0.616, 0.473, 0.900, 0.726] },
+        { "name": "Main Entrance", "aka": null, "kind": "entrance", "schedule": null, "rect": [0.56, 0.95, 0.62, 1.0] },
+        { "name": "Washroom (north)", "aka": null, "kind": "washroom", "schedule": null, "rect": [0.56, 0.22, 0.60, 0.28] },
+        { "name": "Washroom (mid)", "aka": null, "kind": "washroom", "schedule": null, "rect": [0.56, 0.51, 0.60, 0.57] },
+        { "name": "Stairs (mid)", "aka": null, "kind": "stairs", "schedule": null, "rect": [0.50, 0.70, 0.54, 0.76] },
+        { "name": "Elevator (east)", "aka": null, "kind": "elevator", "schedule": null, "rect": [0.93, 0.54, 0.98, 0.61] }
+      ]
+    },
+    {
+      "building": "wyndham",
+      "floor": "parking1",
+      "placement": "footprint-bbox",
+      "scale": 0.98,
+      "_note": "Underground — no OSM footprint. Overlaid on the tower footprint via the shared corner homography; TRUE georeferencing (bead aau.6) aligns P1 to Main via the shared elevator+stairs. Provisional.",
+      "rooms": [
+        { "name": "Imperial", "aka": "Second Stage", "kind": "panel", "schedule": "Wyndham - Imperial", "rect": [0.06, 0.12, 0.94, 0.86] },
+        { "name": "Washroom", "aka": null, "kind": "washroom", "schedule": null, "rect": [0.45, 0.02, 0.52, 0.1] },
+        { "name": "Elevator", "aka": null, "kind": "elevator", "schedule": null, "rect": [0.5, 0.9, 0.58, 0.99] }
+      ]
+    },
+    {
+      "building": "wyndham",
+      "floor": "parking2",
+      "placement": "footprint-bbox",
+      "scale": 0.98,
+      "_note": "Underground — see parking1 note (aau.6). Provisional.",
+      "rooms": [
+        { "name": "Jubilee", "aka": "Main Stage", "kind": "panel", "schedule": "Wyndham - Main Stage", "rect": [0.009, 0.45, 0.69, 0.8] },
+        { "name": "Gallery 3", "aka": "HIV Testing", "kind": "panel", "schedule": "Wyndham - Gallery 3", "rect": [0.709, 0.263, 0.826, 0.35] },
+        { "name": "Gallery 2", "aka": null, "kind": "amenity", "schedule": null, "rect": [0.709, 0.363, 0.826, 0.438] },
+        { "name": "Gallery 1", "aka": "Headless Lounge", "kind": "panel", "schedule": "Wyndham - Gallery 1", "rect": [0.709, 0.475, 0.826, 0.575] },
+        { "name": "Fitness Center & Pool", "aka": null, "kind": "amenity", "schedule": null, "rect": [0.009, 0.019, 0.69, 0.438] },
+        { "name": "Con Ops", "aka": null, "kind": "amenity", "schedule": null, "rect": [0.80, 0.69, 0.90, 0.80] },
+        { "name": "Elevator (north)", "aka": null, "kind": "elevator", "schedule": null, "rect": [0.845, 0.10, 0.89, 0.17] },
+        { "name": "Elevator (mid)", "aka": null, "kind": "elevator", "schedule": null, "rect": [0.845, 0.49, 0.89, 0.56] },
+        { "name": "Washroom (east)", "aka": null, "kind": "washroom", "schedule": null, "rect": [0.845, 0.20, 0.89, 0.27] },
+        { "name": "Stairs", "aka": null, "kind": "stairs", "schedule": null, "rect": [0.915, 0.72, 0.96, 0.80] }
+      ]
+    },
+    {
+      "building": "delta",
+      "floor": "second",
+      "placement": "footprint-bbox",
+      "scale": 0.98,
+      "_note": "2nd floor — no independent OSM footprint. Overlaid on the Delta footprint via the shared corner homography; aau.6 aligns 2nd→Main via shared circulation cores. Provisional.",
+      "rooms": [
+        { "name": "Fort McMurray Room", "aka": null, "kind": "panel", "schedule": "Delta - Fort McMurray Room", "rect": [0.111, 0.203, 0.276, 0.383] },
+        { "name": "Red Deer Room", "aka": null, "kind": "panel", "schedule": "Delta - Red Deer Room", "rect": [0.29, 0.203, 0.41, 0.383] },
+        { "name": "Medicine Hat Room", "aka": null, "kind": "panel", "schedule": "Delta - Medicine Hat Room", "rect": [0.415, 0.203, 0.53, 0.383] },
+        { "name": "Edmonton Room", "aka": null, "kind": "panel", "schedule": "Delta - Edmonton Room", "rect": [0.871, 0.172, 0.991, 0.391] },
+        { "name": "Canmore Room", "aka": "Headless Lounge", "kind": "panel", "schedule": "Delta - Canmore Room", "rect": [0.051, 0.484, 0.226, 0.641] },
+        { "name": "Glacier Room", "aka": null, "kind": "panel", "schedule": "Delta - Glacier Room", "rect": [0.226, 0.469, 0.567, 0.641] },
+        { "name": "Lethbridge Room", "aka": null, "kind": "panel", "schedule": "Delta - Lethbridge Room", "rect": [0.576, 0.578, 0.696, 0.75] },
+        { "name": "Calgary Room", "aka": null, "kind": "panel", "schedule": "Delta - Calgary Room", "rect": [0.866, 0.594, 0.991, 0.75] },
+        { "name": "Grande Prairie Room", "aka": null, "kind": "panel", "schedule": null, "rect": [0.866, 0.844, 0.991, 0.984] },
+        { "name": "Elevator (mid)", "aka": null, "kind": "elevator", "schedule": null, "rect": [0.61, 0.31, 0.66, 0.38] },
+        { "name": "Washroom (nw)", "aka": null, "kind": "washroom", "schedule": null, "rect": [0.05, 0.26, 0.1, 0.33] },
+        { "name": "Stairs (nw)", "aka": null, "kind": "stairs", "schedule": null, "rect": [0.0, 0.32, 0.05, 0.39] },
+        { "name": "Stairs (ne)", "aka": null, "kind": "stairs", "schedule": null, "rect": [0.83, 0.0, 0.88, 0.07] }
+      ]
+    }
+  ]
+}

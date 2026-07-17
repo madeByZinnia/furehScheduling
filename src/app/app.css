@@ -20,6 +20,26 @@
   font-size: 1.5rem;
 }
 
+/* ── View toggle (Schedule / Map) ───────────────────────────────────────────*/
+.view-toggle {
+  display: flex;
+  gap: 0.5rem;
+  margin: 0.5rem 0 1rem;
+}
+.view-tab {
+  padding: 0.5rem 1.1rem;
+  font-size: 1rem;
+  color: var(--text-dim);
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+}
+.view-tab[aria-pressed='true'] {
+  color: var(--ink, var(--bg));
+  background: var(--gold);
+  border-color: var(--gold);
+}
+
 /* ── Search ─────────────────────────────────────────────────────────────────*/
 .search {
   width: 100%;
