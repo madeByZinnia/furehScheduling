@@ -7,6 +7,8 @@ import { GhostToggle } from './GhostToggle';
 import { MeExport } from './MeExport';
 import { MeImport } from './MeImport';
 import { CrewSection } from './CrewSection';
+import { EventsPanel } from './events/EventsPanel';
+import { LeaveCrew } from './LeaveCrew';
 import { ScheduleView } from './schedule/ScheduleView';
 import { BottomNav } from './nav/BottomNav';
 import type { Tab } from './nav/tabs';
@@ -36,7 +38,12 @@ export function App() {
           <ScheduleView occurrences={schedule.occurrences} />
         ))}
 
-      {tab === 'crew' && <CrewSection />}
+      {tab === 'crew' && (
+        <>
+          <EventsPanel />
+          <CrewSection />
+        </>
+      )}
 
       {tab === 'me' && (
         <>
@@ -44,6 +51,7 @@ export function App() {
           <GhostToggle />
           <MeExport occurrences={schedule.occurrences} />
           <MeImport occurrences={schedule.occurrences} />
+          <LeaveCrew />
         </>
       )}
 
