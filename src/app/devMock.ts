@@ -27,6 +27,11 @@ const occIds = (scheduleJson as Schedule).occurrences.slice(0, 6).map((o) => o.i
 const plansFor = (from: number, to: number) => occIds.slice(from, to).map((id) => ({ occurrenceId: id }));
 
 export const MOCK_ROSTER: Roster = [
+  // The real /api/roster includes the requesting user, so you appear in the
+  // Members list too. (On plain web the mock has no Telegram identity, so it
+  // can't fold "you" into the picker's "You" chip — Zinnia shows as a normal
+  // member chip here; inside Telegram she'd be excluded from the picker/going.)
+  { userId: 100, displayName: 'Zinnia', ghost: false, plans: plansFor(0, 2) },
   { userId: 101, displayName: 'Valerie', ghost: false, plans: plansFor(0, 3) },
   { userId: 102, displayName: 'Maximiliana-Longname', ghost: false, plans: plansFor(1, 4) },
   { userId: 103, displayName: 'Moss', ghost: false, plans: [] },
