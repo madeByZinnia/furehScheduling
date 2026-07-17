@@ -45,6 +45,21 @@ export function toggleStar(id: OccurrenceId): void {
   store.set(next);
 }
 
+/**
+ * Bulk union: add many occurrence ids at once (paste-import from fur-eh
+ * favourites). Unions into the existing set — already-starred ids are a no-op —
+ * and persists once. If nothing new is added, the store reference is left
+ * untouched so subscribers don't re-render pointlessly.
+ */
+export function addStars(ids: OccurrenceId[]): void {
+  const current = store.get();
+  const next = new Set(current);
+  for (const id of ids) next.add(id);
+  if (next.size === current.size) return; // no new ids — nothing changed
+  persist(next);
+  store.set(next);
+}
+
 export function starCount(): number {
   return store.get().size;
 }

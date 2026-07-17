@@ -19,10 +19,6 @@
   margin: 0;
   font-size: 1.5rem;
 }
-.app-head .when {
-  font-size: 0.8125rem;
-  color: var(--gold);
-}
 
 /* ── Search ─────────────────────────────────────────────────────────────────*/
 .search {
@@ -276,6 +272,127 @@
   background: var(--gold);
   border-color: var(--gold);
   font-weight: 700;
+}
+
+/* ── My schedule / .ics export ───────────────────────────────────────────────*/
+.me-export {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 0.6rem;
+  padding: 1rem;
+  margin-bottom: 1rem;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+}
+.me-export h2 {
+  margin: 0;
+  font-size: 1rem;
+}
+.me-count {
+  margin: 0;
+  font-size: 0.8125rem;
+  color: var(--text-dim);
+}
+.me-remind {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-size: 0.9375rem;
+  color: var(--text);
+}
+.me-download {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  padding: 0.5rem 1rem;
+  color: var(--ink, var(--bg));
+  background: var(--gold);
+  border: 1px solid var(--gold);
+  border-radius: var(--radius);
+  font-weight: 700;
+}
+.me-download:disabled {
+  color: var(--text-dim);
+  background: var(--panel);
+  border-color: var(--border);
+  cursor: default;
+}
+.me-hint {
+  margin: 0;
+  font-size: 0.8125rem;
+  color: var(--text-dim);
+}
+.me-note {
+  margin: 0;
+  font-size: 0.75rem;
+  color: var(--text-dim);
+}
+
+/* ── Import from fur-eh favourites ───────────────────────────────────────────*/
+.me-import {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 0.6rem;
+  padding: 1rem;
+  margin-bottom: 1rem;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+}
+.me-import h2 {
+  margin: 0;
+  font-size: 1rem;
+}
+.me-import-label {
+  font-size: 0.9375rem;
+  color: var(--text);
+}
+.me-import-text {
+  width: 100%;
+  padding: 0.6rem 0.75rem;
+  font-size: 1rem;
+  color: var(--text);
+  background: var(--panel);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  resize: vertical;
+}
+.me-import-text::placeholder {
+  color: var(--text-dim);
+}
+.me-link {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  padding: 0.4rem 0.8rem;
+  color: var(--text);
+  background: var(--panel);
+  border: 1px solid var(--border-hi);
+  border-radius: var(--radius);
+  font-weight: 600;
+}
+.me-import-titles {
+  align-self: stretch;
+  max-height: 12rem;
+  overflow-y: auto;
+  margin: 0;
+  padding: 0.5rem 0.75rem 0.5rem 1.75rem;
+  background: var(--panel);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  font-size: 0.9375rem;
+}
+.me-import-titles li {
+  margin: 0.15rem 0;
+}
+.me-import-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.6rem;
+  align-items: center;
 }
 
 .empty {
