@@ -11,3 +11,6 @@ dist/
 *.local
 .wrangler/
 coverage/
+
+# Git worktrees live here (inside the repo, ignored)
+.worktrees/
