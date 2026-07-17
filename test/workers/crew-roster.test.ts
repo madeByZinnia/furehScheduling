@@ -44,13 +44,35 @@ async function signValid(fields: Record<string, string>, token: string): Promise
   return params.toString();
 }
 
-/** A fresh, validly-signed blob for a given user id (auth_date on the real clock). */
-async function freshInitData(userId: number): Promise<string> {
+/**
+ * A fresh, validly-signed blob for a user. When `chatId` is given, the SIGNED
+ * `chat` object carries the crew — that (not a body chatId) is how the Worker
+ * now selects the crew, so it is part of the HMAC-protected data_check_string.
+ */
+async function freshInitData(userId: number, chatId?: number): Promise<string> {
+  const fields: Record<string, string> = {
+    auth_date: String(Math.floor(Date.now() / 1000)),
+    query_id: 'AAF-example',
+    user: JSON.stringify({ id: userId, first_name: 'Robin', username: 'robin' }),
+  };
+  if (chatId !== undefined) {
+    fields.chat = JSON.stringify({ id: chatId, type: 'supergroup' });
+  }
+  return signValid(fields, TOKEN);
+}
+
+/**
+ * A validly-signed blob whose ONLY crew-shaped field is a SIGNED `start_param`
+ * (no `chat`). start_param is user-chosen, so even with a valid HMAC it must NOT
+ * select a crew — the Worker must reject this with 400.
+ */
+async function freshInitDataStartParamOnly(userId: number, startParam: string): Promise<string> {
   return signValid(
     {
       auth_date: String(Math.floor(Date.now() / 1000)),
       query_id: 'AAF-example',
       user: JSON.stringify({ id: userId, first_name: 'Robin', username: 'robin' }),
+      start_param: startParam,
     },
     TOKEN,
   );
@@ -67,7 +89,7 @@ function post(path: string, body: unknown): Promise<Response> {
 async function rosterFor(chatId: number, userId: number): Promise<{
   roster: { userId: number; ghost: boolean; plans: { occurrenceId: string }[] }[];
 }> {
-  const res = await post('/api/roster', { initData: await freshInitData(userId), chatId });
+  const res = await post('/api/roster', { initData: await freshInitData(userId, chatId) });
   expect(res.status).toBe(200);
   return res.json<{
     roster: { userId: number; ghost: boolean; plans: { occurrenceId: string }[] }[];
@@ -177,15 +199,15 @@ describe('Crew roster + ghost mode', () => {
 });
 
 // End-to-end through the REAL Worker fetch (SELF), using valid signed initData —
-// this exercises the /api/sync validation guards, not just the DO RPC. The
-// Worker names the DO by String(chatId), so each distinct chatId is a fresh crew.
+// this exercises the /api/sync validation guards, not just the DO RPC. The crew
+// is now derived from the SIGNED `chat` in initData, so each distinct signed chat
+// is a fresh crew and NO chatId is sent in the request body.
 describe('POST /api/sync — validation guards (real fetch)', () => {
   it('valid sync (ghost:false, stars:[...]) → 200 and plans land end-to-end', async () => {
     const CHAT = 900001;
     const UID = 42;
     const res = await post('/api/sync', {
-      initData: await freshInitData(UID),
-      chatId: CHAT,
+      initData: await freshInitData(UID, CHAT),
       ghost: false,
       stars: [X, Y],
     });
@@ -203,8 +225,7 @@ describe('POST /api/sync — validation guards (real fetch)', () => {
     const UID = 42;
     // Pre-ghost the member via a VALID sync (ghost:true) with real stars underneath.
     const pre = await post('/api/sync', {
-      initData: await freshInitData(UID),
-      chatId: CHAT,
+      initData: await freshInitData(UID, CHAT),
       ghost: true,
       stars: [X, Y],
     });
@@ -217,8 +238,7 @@ describe('POST /api/sync — validation guards (real fetch)', () => {
 
     // Now a sync that OMITS ghost must be rejected — never silently un-ghost.
     const res = await post('/api/sync', {
-      initData: await freshInitData(UID),
-      chatId: CHAT,
+      initData: await freshInitData(UID, CHAT),
       stars: [X, Y],
     });
     expect(res.status).toBe(400);
@@ -234,8 +254,7 @@ describe('POST /api/sync — validation guards (real fetch)', () => {
 
   it('non-boolean ghost → 400', async () => {
     const res = await post('/api/sync', {
-      initData: await freshInitData(42),
-      chatId: 900003,
+      initData: await freshInitData(42, 900003),
       ghost: 'yes',
       stars: [X],
     });
@@ -248,8 +267,7 @@ describe('POST /api/sync — validation guards (real fetch)', () => {
     const UID = 42;
     // Seed a visible member with two stars.
     const seed = await post('/api/sync', {
-      initData: await freshInitData(UID),
-      chatId: CHAT,
+      initData: await freshInitData(UID, CHAT),
       ghost: false,
       stars: [X, Y],
     });
@@ -257,8 +275,7 @@ describe('POST /api/sync — validation guards (real fetch)', () => {
 
     // A sync missing `stars` must be rejected, NOT coerced to [] (which would wipe).
     const res = await post('/api/sync', {
-      initData: await freshInitData(UID),
-      chatId: CHAT,
+      initData: await freshInitData(UID, CHAT),
       ghost: false,
     });
     expect(res.status).toBe(400);
@@ -274,8 +291,7 @@ describe('POST /api/sync — validation guards (real fetch)', () => {
     const CHAT = 900005;
     const UID = 42;
     const bad = await post('/api/sync', {
-      initData: await freshInitData(UID),
-      chatId: CHAT,
+      initData: await freshInitData(UID, CHAT),
       ghost: false,
       stars: 'nope',
     });
@@ -284,8 +300,7 @@ describe('POST /api/sync — validation guards (real fetch)', () => {
 
     // An explicit empty array is an intentional clear — still accepted.
     const ok = await post('/api/sync', {
-      initData: await freshInitData(UID),
-      chatId: CHAT,
+      initData: await freshInitData(UID, CHAT),
       ghost: false,
       stars: [],
     });
@@ -293,5 +308,82 @@ describe('POST /api/sync — validation guards (real fetch)', () => {
     const { roster } = await rosterFor(CHAT, UID);
     const me = roster.find((e) => e.userId === UID);
     expect(me?.plans).toEqual([]);
+  });
+});
+
+// Crew SELECTION now comes from the HMAC-verified initData, never the body. These
+// tests pin that contract: the security discriminator, the "no crew source" case,
+// and cross-chat isolation via two distinct signed chats.
+describe('POST /api/sync — crew is derived from SIGNED initData (security)', () => {
+  it('SECURITY: a body chatId for crew B is IGNORED; the op lands in the SIGNED crew A only', async () => {
+    const CREW_A = 950101;
+    const CREW_B = 950102;
+    const UID = 77;
+
+    // initData is SIGNED for crew A, but the body ALSO carries chatId = crew B.
+    // The Worker must ignore body.chatId entirely and operate on crew A.
+    const res = await post('/api/sync', {
+      initData: await freshInitData(UID, CREW_A),
+      chatId: CREW_B, // attacker-supplied cross-crew selector — must be ignored
+      ghost: false,
+      stars: [X, Y],
+    });
+    expect(res.status).toBe(200);
+
+    // Crew A (the SIGNED crew) received the member + stars.
+    const inA = await rosterFor(CREW_A, UID);
+    const meA = inA.roster.find((e) => e.userId === UID);
+    expect(meA?.plans.map((p) => p.occurrenceId)).toEqual([X, Y]);
+
+    // Crew B (the body chatId) was NEVER touched — the user/stars did not land there.
+    const inB = await rosterFor(CREW_B, UID);
+    expect(inB.roster.find((e) => e.userId === UID)).toBeUndefined();
+    expect(inB.roster).toEqual([]);
+  });
+
+  it('initData with NEITHER chat NOR start_param → 400 cannot determine crew', async () => {
+    const res = await post('/api/sync', {
+      initData: await freshInitData(42), // no chatId → no signed chat
+      ghost: false,
+      stars: [X],
+    });
+    expect(res.status).toBe(400);
+    expect(await res.json()).toEqual({ error: 'cannot determine crew from initData' });
+  });
+
+  it('SECURITY: initData with ONLY a signed start_param (no chat) → 400 (start_param is not a crew)', async () => {
+    // Even though the start_param is validly signed, it is user-chosen and must
+    // NOT be accepted as a crew selector.
+    const res = await post('/api/sync', {
+      initData: await freshInitDataStartParamOnly(42, '950101'),
+      ghost: false,
+      stars: [X],
+    });
+    expect(res.status).toBe(400);
+    expect(await res.json()).toEqual({ error: 'cannot determine crew from initData' });
+  });
+
+  it('two different SIGNED chats are two isolated crews', async () => {
+    const CREW_1 = 950201;
+    const CREW_2 = 950202;
+
+    await post('/api/sync', {
+      initData: await freshInitData(1, CREW_1),
+      ghost: false,
+      stars: [X],
+    });
+    await post('/api/sync', {
+      initData: await freshInitData(2, CREW_2),
+      ghost: false,
+      stars: [Y],
+    });
+
+    const one = await rosterFor(CREW_1, 1);
+    const two = await rosterFor(CREW_2, 2);
+    expect(one.roster.map((e) => e.userId)).toEqual([1]);
+    expect(two.roster.map((e) => e.userId)).toEqual([2]);
+    // Neither crew leaked into the other.
+    expect(one.roster.find((e) => e.userId === 2)).toBeUndefined();
+    expect(two.roster.find((e) => e.userId === 1)).toBeUndefined();
   });
 });

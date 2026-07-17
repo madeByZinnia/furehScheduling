@@ -11,6 +11,7 @@
 import type { Env } from './env';
 import { Crew } from './crew-do';
 import {
+  crewIdFromParams,
   getUpdates,
   setWebhook,
   verifyInitData,
@@ -55,10 +56,58 @@ function displayNameFor(user: TelegramUser): string {
   return user.first_name ?? user.username ?? String(user.id);
 }
 
-/** Coerce/validate an inbound chat id the same way every crew route does. */
-function parseChatId(raw: unknown): number | null {
-  const chatId = Number(raw);
-  return Number.isSafeInteger(chatId) ? chatId : null;
+/**
+ * Fields any crew endpoint may read out of the request body. Crew SELECTION is
+ * NOT among them — the crew is derived from the HMAC-verified initData, never
+ * from a body-supplied chatId (which is deliberately absent from this type).
+ */
+type CrewBody = {
+  initData?: string;
+  ghost?: unknown;
+  stars?: unknown;
+  cancelOwnEvents?: unknown;
+  eventId?: unknown;
+  title?: unknown;
+  day?: unknown;
+  startIso?: unknown;
+  endIso?: unknown;
+  location?: unknown;
+  notes?: unknown;
+  starred?: unknown;
+};
+
+type ResolvedCrew = {
+  body: CrewBody;
+  user: TelegramUser;
+  crewId: string;
+  crew: ReturnType<Env['CREW']['getByName']>;
+};
+
+/**
+ * The single crew gate for every /api/sync, /api/roster, /api/leave and
+ * /api/events/* handler. Reads the body once, verifies initData, and derives the
+ * crew from the SIGNED `chat.id` only (NOT `start_param`, which is user-chosen) —
+ * a body-supplied `chatId` is ignored entirely, closing the cross-crew hole.
+ * Returns the parsed body so callers can
+ * read ghost/stars/event fields, or a ready-made error Response.
+ */
+async function resolveCrew(
+  request: Request,
+  env: Env,
+): Promise<{ ok: true; ctx: ResolvedCrew } | { ok: false; res: Response }> {
+  const body = await request.json<CrewBody>().catch(() => null);
+  const result = await verifyInitData(body?.initData ?? '', env.BOT_TOKEN);
+  if (!result.ok || result.user === null) {
+    return { ok: false, res: json({ error: 'invalid initData' }, 401) };
+  }
+  const crewId = crewIdFromParams(result.params);
+  if (crewId === null) {
+    return { ok: false, res: json({ error: 'cannot determine crew from initData' }, 400) };
+  }
+  return {
+    ok: true,
+    ctx: { body: body ?? {}, user: result.user, crewId, crew: env.CREW.getByName(crewId) },
+  };
 }
 
 /**
@@ -83,28 +132,18 @@ function sanitizeStars(raw: unknown): string[] {
  * so a client can't sync on someone else's behalf.
  */
 async function handleSync(request: Request, env: Env): Promise<Response> {
-  const body = await request
-    .json<{ initData?: string; chatId?: unknown; ghost?: unknown; stars?: unknown }>()
-    .catch(() => null);
-  const result = await verifyInitData(body?.initData ?? '', env.BOT_TOKEN);
-  if (!result.ok || result.user === null) return json({ error: 'invalid initData' }, 401);
-  const chatId = parseChatId(body?.chatId);
-  if (chatId === null) return json({ error: 'invalid chatId' }, 400);
+  const resolved = await resolveCrew(request, env);
+  if (!resolved.ok) return resolved.res;
+  const { body, user, crew } = resolved.ctx;
   // Privacy: `ghost` is a privacy control, so its ABSENCE must NEVER un-ghost an
   // existing ghost member (which would expose their stars via /api/roster). A
   // missing or malformed ghost is rejected — only an explicit boolean is accepted.
-  if (typeof body?.ghost !== 'boolean') return json({ error: 'ghost must be a boolean' }, 400);
+  if (typeof body.ghost !== 'boolean') return json({ error: 'ghost must be a boolean' }, 400);
   // Data safety: a missing/non-array `stars` must NOT be coerced to [] — that
   // would silently WIPE an existing member's stars. Require an explicit array
   // (an empty [] is still valid: an intentional clear).
   if (!Array.isArray(body.stars)) return json({ error: 'stars must be an array' }, 400);
-  const crew = env.CREW.getByName(String(chatId));
-  await crew.syncMember(
-    result.user.id,
-    displayNameFor(result.user),
-    body.ghost,
-    sanitizeStars(body.stars),
-  );
+  await crew.syncMember(user.id, displayNameFor(user), body.ghost, sanitizeStars(body.stars));
   return json({ ok: true });
 }
 
@@ -115,29 +154,20 @@ async function handleSync(request: Request, env: Env): Promise<Response> {
  * actual crew members is a follow-up.
  */
 async function handleRoster(request: Request, env: Env): Promise<Response> {
-  const body = await request.json<{ initData?: string; chatId?: unknown }>().catch(() => null);
-  const result = await verifyInitData(body?.initData ?? '', env.BOT_TOKEN);
-  if (!result.ok) return json({ error: 'invalid initData' }, 401);
-  const chatId = parseChatId(body?.chatId);
-  if (chatId === null) return json({ error: 'invalid chatId' }, 400);
-  const crew = env.CREW.getByName(String(chatId));
-  return json({ roster: await crew.getRoster() });
+  const resolved = await resolveCrew(request, env);
+  if (!resolved.ok) return resolved.res;
+  return json({ roster: await resolved.ctx.crew.getRoster() });
 }
 
 /** POST /api/leave — remove the acting (verified) user from a crew. */
 async function handleLeave(request: Request, env: Env): Promise<Response> {
-  const body = await request
-    .json<{ initData?: string; chatId?: unknown; cancelOwnEvents?: unknown }>()
-    .catch(() => null);
-  const result = await verifyInitData(body?.initData ?? '', env.BOT_TOKEN);
-  if (!result.ok || result.user === null) return json({ error: 'invalid initData' }, 401);
-  const chatId = parseChatId(body?.chatId);
-  if (chatId === null) return json({ error: 'invalid chatId' }, 400);
+  const resolved = await resolveCrew(request, env);
+  if (!resolved.ok) return resolved.res;
+  const { body, user, crew } = resolved.ctx;
   // The bgx.1 flag: default OFF. Leaving is pure privacy unless the user EXPLICITLY
   // opts to also cancel the events they own (still soft — shown as "[CANCELLED]").
-  const cancelOwnEvents = body?.cancelOwnEvents === true;
-  const crew = env.CREW.getByName(String(chatId));
-  await crew.leaveCrew(result.user.id, { cancelOwnEvents });
+  const cancelOwnEvents = body.cancelOwnEvents === true;
+  await crew.leaveCrew(user.id, { cancelOwnEvents });
   return json({ ok: true });
 }
 
@@ -178,39 +208,21 @@ function isOwnerMismatch(err: unknown): boolean {
   return err instanceof Error && err.message === 'not owner';
 }
 
-type EventBody = {
-  initData?: string;
-  chatId?: unknown;
-  eventId?: unknown;
-  title?: unknown;
-  day?: unknown;
-  startIso?: unknown;
-  endIso?: unknown;
-  location?: unknown;
-  notes?: unknown;
-  starred?: unknown;
-};
-
 /**
- * Resolve initData + chatId shared by every /api/events/* handler. Returns the
- * verified user id and the bound crew stub, or a ready-made error Response.
+ * Resolve the crew shared by every /api/events/* handler. Delegates to the
+ * shared `resolveCrew` gate (crew derived from the SIGNED initData, never a body
+ * chatId) and exposes the verified user id + bound crew stub, or an error Response.
  */
 async function eventContext(
   request: Request,
   env: Env,
 ): Promise<
-  | { ok: true; body: EventBody; userId: number; crew: ReturnType<Env['CREW']['getByName']> }
+  | { ok: true; body: CrewBody; userId: number; crew: ReturnType<Env['CREW']['getByName']> }
   | { ok: false; res: Response }
 > {
-  const body = await request.json<EventBody>().catch(() => null);
-  if (body === null) return { ok: false, res: json({ error: 'invalid body' }, 400) };
-  const result = await verifyInitData(body.initData ?? '', env.BOT_TOKEN);
-  if (!result.ok || result.user === null) {
-    return { ok: false, res: json({ error: 'invalid initData' }, 401) };
-  }
-  const chatId = parseChatId(body.chatId);
-  if (chatId === null) return { ok: false, res: json({ error: 'invalid chatId' }, 400) };
-  return { ok: true, body, userId: result.user.id, crew: env.CREW.getByName(String(chatId)) };
+  const resolved = await resolveCrew(request, env);
+  if (!resolved.ok) return resolved;
+  return { ok: true, body: resolved.ctx.body, userId: resolved.ctx.user.id, crew: resolved.ctx.crew };
 }
 
 /** POST /api/events/create — create a custom event owned by the verified user. */

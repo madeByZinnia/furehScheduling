@@ -30,10 +30,12 @@ export interface TelegramLaunch {
   /** RAW signed initData for the Worker, verbatim. Null when absent/empty. */
   initData: string | null;
   /**
-   * `tgWebAppStartParam` from the fragment — an UNTRUSTED launch hint. The hash
-   * is attacker-controllable, so this MUST NOT authorize or select a crew
-   * server-side: the Worker derives the authoritative crew from the HMAC-verified
-   * `initData` (its signed `chat`/`start_param`), never from a client value.
+   * `tgWebAppStartParam` from the fragment — an UNTRUSTED launch hint. Even the
+   * SIGNED `start_param` inside initData is user-chosen (anyone can craft a
+   * `startapp=<crew id>` deep link Telegram will sign), so it MUST NOT authorize
+   * or select a crew server-side: the Worker derives the authoritative crew from
+   * the HMAC-verified `initData`'s signed `chat.id` only, never from `start_param`
+   * or any client value.
    */
   startParam: string | null;
   /** Display-only user; null on any parse failure. */

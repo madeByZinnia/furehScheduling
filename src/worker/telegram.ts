@@ -101,6 +101,42 @@ export async function verifyInitData(
   return { ok: true, user, params };
 }
 
+/**
+ * Derive the crew id from the VERIFIED initData params — ONLY from the signed
+ * `chat.id`. HMAC proves a field was not tampered in transit, but that is NOT
+ * the same as authorization:
+ *
+ *   - `chat` is set by Telegram from the actual group the Mini App was opened
+ *     in — a group the launching user is really a member of — so it IS an
+ *     authorization signal for that crew.
+ *   - `start_param` is USER-CHOSEN: anyone can open a crafted deep link
+ *     (`startapp=<any crew id>`) and Telegram will legitimately sign that
+ *     value. A valid HMAC on a user-controllable value proves nothing about
+ *     authorization, so using it as the Durable Object name would let an
+ *     attacker steer to any crew whose id they know. We therefore NEVER read
+ *     `start_param` here. Supporting deep-link launches would require a
+ *     separate, server-issued crew capability token (follow-up work).
+ *
+ * Never trust a body-supplied chatId either — only this signed value.
+ * Returns null when no usable signed `chat.id` is present.
+ */
+export function crewIdFromParams(params: URLSearchParams): string | null {
+  const chatRaw = params.get('chat');
+  if (chatRaw !== null) {
+    try {
+      const chat = JSON.parse(chatRaw) as { id?: unknown };
+      // Telegram chat ids are safe integers. Reject fractional / unsafe /
+      // precision-losing values that could alias another DO name.
+      if (typeof chat.id === 'number' && Number.isSafeInteger(chat.id)) {
+        return String(chat.id);
+      }
+    } catch {
+      // Malformed chat JSON → no crew (never throw).
+    }
+  }
+  return null;
+}
+
 // ── Bot API client ─────────────────────────────────────────────────────────
 // Thin wrappers over the HTTP Bot API. They call the global `fetch`, so tests
 // stub `fetch` to assert calls without hitting the network.

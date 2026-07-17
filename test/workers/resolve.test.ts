@@ -1,7 +1,7 @@
 import { SELF } from 'cloudflare:test';
 import { describe, it, expect } from 'vitest';
 import fc from 'fast-check';
-import { verifyInitData } from '../../src/worker/telegram';
+import { verifyInitData, crewIdFromParams } from '../../src/worker/telegram';
 
 // Matches the miniflare BOT_TOKEN binding in vitest.workers.config.ts, so the
 // SELF.fetch('/api/resolve') path verifies against the same key.
@@ -157,6 +157,52 @@ describe('POST /api/resolve', () => {
   it('rejects a missing body with 401', async () => {
     const res = await SELF.fetch('https://example.com/api/resolve', { method: 'POST' });
     expect(res.status).toBe(401);
+  });
+});
+
+// crewIdFromParams is the crew SELECTOR over already-verified params. It must
+// derive the crew ONLY from the signed `chat.id` (an authorization signal set by
+// Telegram from the real group), and NEVER from the user-controllable
+// `start_param` — a valid HMAC on a user-chosen value is not authorization.
+describe('crewIdFromParams — crew selection (SECURITY)', () => {
+  const params = (fields: Record<string, string>): URLSearchParams =>
+    new URLSearchParams(fields);
+
+  it('valid chat.id → its string form', () => {
+    expect(crewIdFromParams(params({ chat: JSON.stringify({ id: 900001, type: 'supergroup' }) }))).toBe(
+      '900001',
+    );
+    // Negative ids (Telegram group ids are negative) still work.
+    expect(crewIdFromParams(params({ chat: JSON.stringify({ id: -1001234567890 }) }))).toBe(
+      '-1001234567890',
+    );
+  });
+
+  it('fractional chat.id → null (not a safe integer)', () => {
+    expect(crewIdFromParams(params({ chat: JSON.stringify({ id: 1.5 }) }))).toBeNull();
+  });
+
+  it('unsafe-integer chat.id → null (precision-losing, could alias another DO)', () => {
+    // MAX_SAFE_INTEGER + 2 is not representable exactly, so reject it.
+    expect(
+      crewIdFromParams(params({ chat: `{"id":${Number.MAX_SAFE_INTEGER + 2},"type":"supergroup"}` })),
+    ).toBeNull();
+  });
+
+  it('missing chat → null', () => {
+    expect(crewIdFromParams(params({ query_id: 'AAF-example' }))).toBeNull();
+  });
+
+  it('malformed chat JSON → null (never throws)', () => {
+    expect(crewIdFromParams(params({ chat: 'not-json' }))).toBeNull();
+    expect(crewIdFromParams(params({ chat: '{"id":}' }))).toBeNull();
+  });
+
+  it('SECURITY: start_param alone is NOT accepted as a crew → null', () => {
+    // start_param is user-chosen; a signed value proves no authorization.
+    expect(crewIdFromParams(params({ start_param: '900001' }))).toBeNull();
+    // Even alongside a start_param, absence of chat → null (start_param ignored).
+    expect(crewIdFromParams(params({ start_param: 'crew-A', query_id: 'x' }))).toBeNull();
   });
 });
 
