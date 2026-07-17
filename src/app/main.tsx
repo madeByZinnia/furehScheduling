@@ -4,6 +4,7 @@ import { App } from './App';
 import { configureNow } from './now';
 import { initSettings } from './settings';
 import { startAutoSync } from './crewSync';
+import { startCrewAutoRefresh } from './crew';
 
 configureNow(); // apply ?now= override before anything reads "now"
 initSettings(); // apply persisted theme + text size to <html>
@@ -14,6 +15,10 @@ initSettings(); // apply persisted theme + text size to <html>
 // subscription lives for the app's lifetime; the unsubscribe is intentionally
 // dropped.
 startAutoSync();
+// Re-pull the shared crew roster whenever this device's sync lands, so the
+// member list and the schedule's "also going" chips stay fresh. Lifetime
+// subscription; unsubscribe intentionally dropped.
+startCrewAutoRefresh();
 
 const root = document.getElementById('app');
 if (!root) throw new Error('#app root element missing');

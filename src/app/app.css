@@ -97,29 +97,72 @@
 /* ── Filter zone (search + favourites) ───────────────────────────────────────*/
 /* Sits between the search input and the browse-only day tabs, grouping the two
    filters that compose (search narrows within favourites). */
-.filter-bar {
+/* ── Whose-favourites picker ─────────────────────────────────────────────────*/
+.whose-faves {
   display: flex;
   flex-wrap: wrap;
   gap: 0.5rem;
   margin: 0 0 0.5rem;
 }
-.faves-toggle {
+.whose-chip {
   display: inline-flex;
   align-items: center;
+  gap: 0.4rem;
   min-height: 2.75rem; /* 44px tap target */
-  padding: 0.4rem 0.9rem;
+  max-width: 100%;
+  padding: 0.35rem 0.8rem;
   color: var(--text-dim);
   background: var(--surface);
-  border: 1px solid var(--border);
+  border: 2px solid var(--border);
   border-radius: var(--radius);
   font-weight: 600;
 }
-.faves-toggle[aria-pressed='true'] {
+.whose-chip .whose-star {
+  color: var(--gold);
+}
+/* A crew member's name must never widen the chip past the row — clamp it. */
+.whose-chip .whose-name {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  max-width: 8rem;
+}
+/* Active state: bold weight (a text-shape cue) plus the gold fill, not colour
+   alone — and aria-pressed carries it for assistive tech. */
+.whose-chip[aria-pressed='true'] {
   color: var(--ink, var(--bg));
   background: var(--gold);
   border-color: var(--gold);
   font-weight: 700;
 }
+.whose-chip[aria-pressed='true'] .whose-star {
+  color: var(--ink, var(--bg));
+}
+
+/* ── Avatar (initial badge) ──────────────────────────────────────────────────*/
+/* Background colour is set inline (a stable per-user palette). Text is fixed dark
+   ink — the palette colours are light enough for it to read in both themes. */
+.avatar {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex: none;
+  border-radius: 50%;
+  color: #14110c;
+  font-weight: 700;
+  line-height: 1;
+}
+.avatar-sm {
+  width: 1.25rem;
+  height: 1.25rem;
+  font-size: 0.7rem;
+}
+.avatar-md {
+  width: 2.125rem;
+  height: 2.125rem;
+  font-size: 0.95rem;
+}
+
 .filter-status {
   margin: 0 0 1rem;
   font-size: 0.8125rem;
@@ -212,6 +255,49 @@
 }
 .event-row .track {
   color: var(--green);
+}
+
+/* "Also going" — crew (minus you) who starred this session. Sits BELOW the
+   title/description as its own row with real spacing, so it can never collide
+   with the room/meta line. Chips wrap; long names clamp rather than overflow. */
+.going {
+  display: flex;
+  align-items: baseline;
+  flex-wrap: wrap;
+  gap: 0.3rem 0.5rem;
+  margin-top: 0.5rem;
+}
+.going-label {
+  font-size: 0.6875rem;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  color: var(--text-dim);
+}
+.going-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.3rem;
+  min-width: 0;
+}
+.going-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.3rem;
+  max-width: 100%;
+  padding: 0.1rem 0.5rem 0.1rem 0.15rem;
+  background: var(--surface-2);
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  font-size: 0.8125rem;
+}
+.going-name {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  max-width: 7rem;
 }
 
 /* Disclosure: the title/meta area doubles as an expand toggle when there's a
@@ -527,9 +613,23 @@
   border: 1px solid var(--border);
   border-radius: var(--radius);
 }
+.crew-head {
+  align-self: stretch;
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 0.5rem;
+  flex-wrap: wrap;
+}
 .crew-section h2 {
   margin: 0;
   font-size: 1rem;
+}
+.crew-count-label {
+  font-size: 0.6875rem;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  color: var(--text-dim);
 }
 .crew-status {
   margin: 0;
@@ -557,27 +657,41 @@
   gap: 0.6rem;
 }
 .crew-member {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
   padding: 0.6rem 0.75rem;
   background: var(--panel);
   border: 1px solid var(--border);
   border-radius: var(--radius);
 }
+.crew-member-main {
+  flex: 1 1 auto;
+  min-width: 0;
+}
 .crew-member-name {
   display: block;
   font-weight: 600;
+  overflow-wrap: anywhere;
 }
 .crew-member-note {
-  margin: 0.25rem 0 0;
+  margin: 0.15rem 0 0;
   font-size: 0.8125rem;
   color: var(--text-dim);
 }
-.crew-member-plans {
-  margin: 0.25rem 0 0;
-  padding-left: 1.25rem;
-  font-size: 0.9375rem;
+.crew-member-count {
+  flex: none;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  line-height: 1.1;
+  font-weight: 700;
+  color: var(--text);
 }
-.crew-member-plans li {
-  margin: 0.1rem 0;
+.crew-member-count small {
+  font-size: 0.7rem;
+  font-weight: 500;
+  color: var(--text-dim);
 }
 
 .empty {
