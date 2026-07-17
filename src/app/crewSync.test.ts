@@ -89,8 +89,8 @@ describe('postSync', () => {
   });
 });
 
-describe('fetchRoster', () => {
-  it('parses a { roster: [...] } response into typed entries', async () => {
+describe('fetchRoster — RosterResult distinguishes the four outcomes', () => {
+  it('good body → { kind: "ok", roster } with typed entries', async () => {
     const payload = {
       roster: [
         {
@@ -104,7 +104,7 @@ describe('fetchRoster', () => {
       ],
     };
     const fetchFn = vi.fn().mockResolvedValue(jsonResponse(payload));
-    const roster = await fetchRoster(TG, fetchFn);
+    const result = await fetchRoster(TG, fetchFn);
 
     expect(fetchFn).toHaveBeenCalledTimes(1);
     const [url, init] = fetchFn.mock.calls[0] as [string, RequestInit];
@@ -120,23 +120,51 @@ describe('fetchRoster', () => {
       },
       { userId: 8, displayName: 'Kit', ghost: true, plans: [] },
     ];
-    expect(roster).toEqual(expected);
+    expect(result).toEqual({ kind: 'ok', roster: expected });
   });
 
-  it('non-telegram → null, no fetch', async () => {
+  it('valid but EMPTY roster → { kind: "ok", roster: [] } (NOT an error)', async () => {
+    const fetchFn = vi.fn().mockResolvedValue(jsonResponse({ roster: [] }));
+    expect(await fetchRoster(TG, fetchFn as unknown as typeof fetch)).toEqual({
+      kind: 'ok',
+      roster: [],
+    });
+  });
+
+  it('non-telegram → { kind: "non-telegram" }, no fetch', async () => {
     const fetchFn = vi.fn();
-    expect(await fetchRoster(WEB, fetchFn as unknown as typeof fetch)).toBeNull();
+    expect(await fetchRoster(WEB, fetchFn as unknown as typeof fetch)).toEqual({
+      kind: 'non-telegram',
+    });
     expect(fetchFn).not.toHaveBeenCalled();
   });
 
-  it('malformed response (roster not an array) → null', async () => {
+  it('malformed body (roster not an array) → { kind: "error" }, NOT ok with []', async () => {
     const fetchFn = vi.fn().mockResolvedValue(jsonResponse({ roster: 'nope' }));
-    expect(await fetchRoster(TG, fetchFn as unknown as typeof fetch)).toBeNull();
+    expect(await fetchRoster(TG, fetchFn as unknown as typeof fetch)).toEqual({
+      kind: 'error',
+    });
   });
 
-  it('network error → null, does not throw', async () => {
+  it('malformed body (top-level not an object shape, e.g. {}) → { kind: "error" }', async () => {
+    const fetchFn = vi.fn().mockResolvedValue(jsonResponse({}));
+    expect(await fetchRoster(TG, fetchFn as unknown as typeof fetch)).toEqual({
+      kind: 'error',
+    });
+  });
+
+  it('non-2xx (e.g. 500) → { kind: "error" }', async () => {
+    const fetchFn = vi.fn().mockResolvedValue(jsonResponse({ roster: [] }, false));
+    expect(await fetchRoster(TG, fetchFn as unknown as typeof fetch)).toEqual({
+      kind: 'error',
+    });
+  });
+
+  it('network error → { kind: "error" }, does not throw', async () => {
     const fetchFn = vi.fn().mockRejectedValue(new Error('offline'));
-    await expect(fetchRoster(TG, fetchFn as unknown as typeof fetch)).resolves.toBeNull();
+    await expect(fetchRoster(TG, fetchFn as unknown as typeof fetch)).resolves.toEqual({
+      kind: 'error',
+    });
   });
 });
 

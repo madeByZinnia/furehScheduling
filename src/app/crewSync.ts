@@ -37,6 +37,22 @@ export interface RosterEntry {
 
 export type Roster = RosterEntry[];
 
+/**
+ * The four distinct outcomes of a roster pull, kept separate so the UI can tell
+ * them apart:
+ *  - `non-telegram`: plain web — there is no signed identity to sync under. Not
+ *    an error; the UI nudges the user to open in Telegram.
+ *  - `ok`: a validated roster (which may legitimately be EMPTY, e.g. a solo crew).
+ *  - `error`: a network reject, a non-2xx status, OR a malformed body. The UI can
+ *    surface a real failure + Retry.
+ * Collapsing these into a single `null` made the error/Retry state unreachable and
+ * mislabelled genuine failures as "Open in Telegram".
+ */
+export type RosterResult =
+  | { kind: 'non-telegram' }
+  | { kind: 'ok'; roster: Roster }
+  | { kind: 'error' };
+
 /** The POST /api/sync body. Note: NO chatId — the Worker derives the crew. */
 export interface SyncBody {
   initData: string;
@@ -121,27 +137,34 @@ function toRoster(value: unknown): Roster | null {
 }
 
 /**
- * Pull the crew roster from the Worker. Returns null on plain web, on any network
- * error, or on a malformed/failed response. The parsed shape is validated
- * defensively before being returned.
+ * Pull the crew roster from the Worker. NEVER throws to the caller. Returns a
+ * {@link RosterResult} that distinguishes the four outcomes:
+ *  - plain web (non-Telegram / no signed initData) → `{ kind: 'non-telegram' }`.
+ *  - network reject, non-2xx status, or a body that fails defensive validation
+ *    (including an entirely malformed top-level shape) → `{ kind: 'error' }`.
+ *  - a valid roster, INCLUDING an empty array → `{ kind: 'ok', roster }`.
+ * The parsed shape is validated defensively before being returned. Never logs
+ * initData.
  */
 export async function fetchRoster(
   session: TelegramSession,
   fetchFn: typeof fetch = fetch,
-): Promise<Roster | null> {
-  if (!session.isTelegram || session.initData == null) return null;
+): Promise<RosterResult> {
+  if (!session.isTelegram || session.initData == null) return { kind: 'non-telegram' };
   try {
     const res = await fetchFn('/api/roster', {
       method: 'POST',
       headers: { 'content-type': 'application/json' },
       body: JSON.stringify({ initData: session.initData }),
     });
-    if (!res.ok) return null;
+    if (!res.ok) return { kind: 'error' };
     const parsed = (await res.json()) as unknown;
-    if (typeof parsed !== 'object' || parsed === null) return null;
-    return toRoster((parsed as Record<string, unknown>).roster);
+    if (typeof parsed !== 'object' || parsed === null) return { kind: 'error' };
+    const roster = toRoster((parsed as Record<string, unknown>).roster);
+    if (roster === null) return { kind: 'error' };
+    return { kind: 'ok', roster };
   } catch {
-    return null;
+    return { kind: 'error' };
   }
 }
 

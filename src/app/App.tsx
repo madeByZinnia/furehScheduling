@@ -2,8 +2,10 @@ import './app.css';
 import scheduleJson from '../data/schedule.json';
 import type { Schedule } from '../data/expand';
 import { DisplaySettings } from './DisplaySettings';
+import { GhostToggle } from './GhostToggle';
 import { MeExport } from './MeExport';
 import { MeImport } from './MeImport';
+import { CrewSection } from './CrewSection';
 import { ScheduleView } from './schedule/ScheduleView';
 
 const schedule = scheduleJson as Schedule;
@@ -17,9 +19,13 @@ export function App() {
 
       <DisplaySettings />
 
+      <GhostToggle />
+
       <MeExport occurrences={schedule.occurrences} />
 
       <MeImport occurrences={schedule.occurrences} />
+
+      <CrewSection />
 
       {schedule.occurrences.length === 0 ? (
         <p class="empty">
