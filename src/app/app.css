@@ -147,9 +147,17 @@
 }
 .event-row .chevron {
   flex: none;
+  align-self: center; /* balance against the whole title/meta block */
+  width: 1.5rem;
+  height: 1.5rem;
   color: var(--text-dim);
-  font-size: 0.9rem;
-  line-height: 1.6;
+  transition:
+    transform 150ms ease,
+    color 150ms ease;
+}
+.event-row.is-open .chevron {
+  transform: rotate(90deg); /* points down when expanded */
+  color: var(--gold); /* ties into the gold accent (day tabs, stars) */
 }
 .event-row .desc {
   margin-top: 0.6rem;
@@ -157,6 +165,20 @@
   border-top: 1px solid var(--border);
   font-size: 0.9375rem;
   color: var(--text);
+  overflow: hidden;
+  animation: card-expand 200ms ease-out;
+}
+@keyframes card-expand {
+  from {
+    opacity: 0;
+    max-height: 0;
+    transform: translateY(-0.25rem);
+  }
+  to {
+    opacity: 1;
+    max-height: 40rem;
+    transform: translateY(0);
+  }
 }
 .event-row .desc .md-p {
   margin: 0 0 0.5rem;

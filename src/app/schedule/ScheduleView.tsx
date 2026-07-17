@@ -40,7 +40,7 @@ export function ScheduleView({ occurrences }: { occurrences: Occurrence[] }) {
       <input
         type="search"
         class="search"
-        placeholder="Search title, room, track…"
+        placeholder="Search title, room, category…"
         aria-label="Search the schedule"
         value={query}
         onInput={(e) => setQuery((e.target as HTMLInputElement).value)}
@@ -160,9 +160,16 @@ function EventRow({ occ }: { occ: Occurrence }) {
               <span class="title">{occ.title}</span>
               {meta}
             </span>
-            <span class="chevron" aria-hidden="true">
-              {open ? '▾' : '▸'}
-            </span>
+            <svg class="chevron" viewBox="0 0 24 24" aria-hidden="true">
+              <path
+                d="M9 6l6 6-6 6"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="2.5"
+                stroke-linecap="round"
+                stroke-linejoin="round"
+              />
+            </svg>
           </button>
         ) : (
           <div class="disc-main static">
