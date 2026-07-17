@@ -52,6 +52,12 @@ describe('parseInline', () => {
       { kind: 'link', text: 'https://fur-eh.ca', href: 'https://fur-eh.ca' },
       { kind: 'text', text: ').' },
     ]);
+    // Bracket-wrapped bare url: the trailing ']' is split back to text.
+    expect(parseInline('[https://fur-eh.ca]')).toEqual([
+      { kind: 'text', text: '[' },
+      { kind: 'link', text: 'https://fur-eh.ca', href: 'https://fur-eh.ca' },
+      { kind: 'text', text: ']' },
+    ]);
     // A balanced ')' inside a BARE url is kept; only trailing punctuation is split.
     expect(parseInline('at https://en.wikipedia.org/wiki/Fox_(animal).')).toEqual([
       { kind: 'text', text: 'at ' },

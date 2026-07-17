@@ -44,21 +44,25 @@ export function extractHref(target: string): string | null {
   return bare ? safeHref(bare[0]) : null;
 }
 
+// Punctuation a bare url should not swallow when it sits at the end (in prose).
+const TRAILING_PUNCT = new Set(['.', ',', ';', ':', '!', '?', ']', '}', "'", '"']);
+
 /**
- * Split a bare url off its trailing sentence punctuation (`.`, `,`, `)` …). A
- * closing paren is only trailing punctuation when it is UNBALANCED — a `)` that
- * closes a `(` inside the url (e.g. `…/Fox_(animal)`) is kept.
+ * Split a bare url off its trailing sentence punctuation. A closing paren is only
+ * trailing when it is UNBALANCED — a `)` that closes a `(` inside the url
+ * (e.g. `…/Fox_(animal)`) is kept as part of the url.
  */
 function splitTrailingPunct(url: string): { url: string; trailing: string } {
   const opens = (url.match(/\(/g) ?? []).length;
   let end = url.length;
   for (;;) {
     const ch = url[end - 1];
+    if (ch === undefined) break;
     if (ch === ')') {
       const closes = (url.slice(0, end).match(/\)/g) ?? []).length;
       if (closes <= opens) break; // balances an opening paren → part of the url
       end -= 1;
-    } else if (ch !== undefined && '.,;:!?'.includes(ch)) {
+    } else if (TRAILING_PUNCT.has(ch)) {
       end -= 1;
     } else {
       break;
