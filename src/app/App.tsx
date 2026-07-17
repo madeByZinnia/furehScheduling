@@ -5,6 +5,7 @@ import { isTimeTravelling } from './now';
 import { useNow } from './useNow';
 import { formatTime } from './datetime';
 import { DisplaySettings } from './DisplaySettings';
+import { MeExport } from './MeExport';
 import { ScheduleView } from './schedule/ScheduleView';
 import { useStars } from './stars';
 
@@ -24,6 +25,8 @@ export function App() {
       </header>
 
       <DisplaySettings />
+
+      <MeExport occurrences={schedule.occurrences} />
 
       {schedule.occurrences.length === 0 ? (
         <p class="empty">
