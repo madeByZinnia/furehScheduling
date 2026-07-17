@@ -25,4 +25,11 @@ export interface Env {
    * endpoint is open (fine for local, set it in production).
    */
   SETUP_KEY?: string;
+  /**
+   * Direct Link Mini App base URL (e.g. https://t.me/mybot/app). When set, the
+   * pinned digest carries an inline "open the crew schedule" button whose url is
+   * `${MINIAPP_URL}?startapp=<chat_id>`, so the Worker can membership-verify the
+   * launch. Optional: deploys without it simply omit the button.
+   */
+  MINIAPP_URL?: string;
 }

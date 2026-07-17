@@ -243,23 +243,47 @@ export function isActiveMember(m: { status: string; isMember: boolean }): boolea
   }
 }
 
-/** Send a message (HTML parse mode). Returns the new message id. */
-export async function sendMessage(token: string, chatId: number, text: string): Promise<number> {
+/**
+ * A minimal inline-keyboard reply markup — just enough to carry url buttons (the
+ * only kind the digest uses). Passed through verbatim to the Bot API.
+ */
+export interface InlineKeyboardMarkup {
+  inline_keyboard: { text: string; url: string }[][];
+}
+
+/**
+ * Send a message (HTML parse mode). Returns the new message id. When
+ * `replyMarkup` is provided it is attached as the message's `reply_markup`;
+ * omitting it leaves the request body byte-identical to a markup-less send.
+ */
+export async function sendMessage(
+  token: string,
+  chatId: number,
+  text: string,
+  replyMarkup?: InlineKeyboardMarkup,
+): Promise<number> {
   const result = await callBot<SentMessage>(token, 'sendMessage', {
     chat_id: chatId,
     text,
     parse_mode: 'HTML',
     disable_web_page_preview: true,
+    // Only include the key when a markup is supplied, so unset === omitted.
+    ...(replyMarkup !== undefined ? { reply_markup: replyMarkup } : {}),
   });
   return result.message_id;
 }
 
-/** Edit an existing message in place. Fires NO notification (that's the point). */
+/**
+ * Edit an existing message in place. Fires NO notification (that's the point).
+ * When `replyMarkup` is provided it is attached; omitting it keeps the body
+ * byte-identical to a markup-less edit.
+ */
 export async function editMessageText(
   token: string,
   chatId: number,
   messageId: number,
   text: string,
+  replyMarkup?: InlineKeyboardMarkup,
 ): Promise<void> {
   try {
     await callBot<SentMessage>(token, 'editMessageText', {
@@ -268,6 +292,7 @@ export async function editMessageText(
       text,
       parse_mode: 'HTML',
       disable_web_page_preview: true,
+      ...(replyMarkup !== undefined ? { reply_markup: replyMarkup } : {}),
     });
   } catch (err) {
     // Editing to identical text returns "message is not modified" — benign; the
