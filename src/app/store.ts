@@ -38,3 +38,23 @@ export function useStore<T>(store: Store<T>): T {
   useEffect(() => store.subscribe(() => setValue(store.get())), [store]);
   return value;
 }
+
+/**
+ * Subscribe to a derived slice of a store, re-rendering only when that slice
+ * changes (Object.is). Lets one row watch just its own flag without re-rendering
+ * on every unrelated change to the whole value.
+ */
+export function useStoreSelector<T, S>(store: Store<T>, selector: (value: T) => S): S {
+  const [slice, setSlice] = useState(() => selector(store.get()));
+  useEffect(
+    () =>
+      store.subscribe(() => {
+        const next = selector(store.get());
+        setSlice((prev) => (Object.is(prev, next) ? prev : next));
+      }),
+    // selector is treated as stable (module-level or inline pure); re-subscribing
+    // on every render would defeat the purpose.
+    [store],
+  );
+  return slice;
+}

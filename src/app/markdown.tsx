@@ -47,7 +47,12 @@ export function parseInline(text: string): InlineToken[] {
   return tokens;
 }
 
-/** Split into paragraph blocks on line breaks; blank lines separate. */
+/**
+ * Split into paragraphs: each non-blank line is its own paragraph. The pretalx
+ * feed separates logical paragraphs (e.g. the "_Hosted by …_" line from the
+ * body) with a single newline and does not hard-wrap, so per-line splitting —
+ * not blank-line splitting — matches the source's paragraph semantics.
+ */
 export function splitBlocks(text: string): string[] {
   return text
     .split(/\r?\n/)
@@ -67,6 +72,7 @@ function renderToken(tok: InlineToken, key: number): ComponentChildren {
       return (
         <a key={key} href={tok.href} target="_blank" rel="noopener noreferrer">
           {tok.text}
+          <span class="visually-hidden"> (opens in a new tab)</span>
         </a>
       );
   }

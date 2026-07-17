@@ -1,5 +1,5 @@
 import type { OccurrenceId } from '../data/ids';
-import { createStore, useStore } from './store';
+import { createStore, useStore, useStoreSelector } from './store';
 
 /**
  * Local stars — per OCCURRENCE, not per item. Starring "Registration" must star
@@ -49,9 +49,9 @@ export function starCount(): number {
   return store.get().size;
 }
 
-/** Reactive: re-renders on any star change; returns whether `id` is starred. */
+/** Reactive: re-renders only when THIS occurrence's starred flag flips. */
 export function useIsStarred(id: OccurrenceId): boolean {
-  return useStore(store).has(id);
+  return useStoreSelector(store, (set) => set.has(id));
 }
 
 /** Reactive: the full set of starred occurrence ids. */

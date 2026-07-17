@@ -60,7 +60,7 @@
 .day-tab small {
   font-size: 0.75rem;
 }
-.day-tab[aria-selected='true'] {
+.day-tab[aria-pressed='true'] {
   color: var(--ink, var(--bg));
   background: var(--gold);
   border-color: var(--gold);

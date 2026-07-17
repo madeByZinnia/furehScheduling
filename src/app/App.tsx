@@ -1,8 +1,8 @@
 import './app.css';
-import { useMemo } from 'preact/hooks';
 import scheduleJson from '../data/schedule.json';
 import type { Schedule } from '../data/expand';
-import { now, isTimeTravelling } from './now';
+import { isTimeTravelling } from './now';
+import { useNow } from './useNow';
 import { formatTime } from './datetime';
 import { DisplaySettings } from './DisplaySettings';
 import { ScheduleView } from './schedule/ScheduleView';
@@ -12,7 +12,7 @@ const schedule = scheduleJson as Schedule;
 
 export function App() {
   const stars = useStars();
-  const when = useMemo(() => formatTime(now().toISOString()), []);
+  const when = formatTime(useNow().toISOString());
 
   return (
     <main class="app">

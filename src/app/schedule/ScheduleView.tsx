@@ -2,7 +2,7 @@ import { Fragment } from 'preact';
 import { useMemo, useState } from 'preact/hooks';
 import type { Occurrence } from '../../data/expand';
 import { conDay } from '../../data/expand';
-import { now } from '../now';
+import { useNow } from '../useNow';
 import { formatTime, formatWeekdayShort, formatWeekdayLong, formatDayNum } from '../datetime';
 import { useIsStarred, toggleStar } from '../stars';
 import { Markdown } from '../markdown';
@@ -16,7 +16,7 @@ import {
 
 export function ScheduleView({ occurrences }: { occurrences: Occurrence[] }) {
   const [query, setQuery] = useState('');
-  const nowDate = useMemo(() => now(), []);
+  const nowDate = useNow();
   const tabs = useMemo(() => dayTabs(occurrences), [occurrences]);
   const [dayIndex, setDayIndex] = useState(() => defaultDayIndex(tabs, nowDate));
 
@@ -46,19 +46,16 @@ export function ScheduleView({ occurrences }: { occurrences: Occurrence[] }) {
         onInput={(e) => setQuery((e.target as HTMLInputElement).value)}
       />
 
-      <nav
-        class={`day-tabs${searching ? ' dimmed' : ''}`}
-        role="tablist"
-        aria-label="Schedule day"
-        aria-hidden={searching}
-      >
+      {/* Day filter — a group of toggle buttons, not an ARIA tablist: there is
+          no tab/tabpanel widget here, just a filter, so aria-pressed is the
+          honest, fully-keyboard-native semantics. */}
+      <div class={`day-tabs${searching ? ' dimmed' : ''}`} role="group" aria-label="Filter by day">
         {tabs.map((tab, i) => (
           <button
             key={tab.day}
             type="button"
-            role="tab"
             class="day-tab"
-            aria-selected={!searching && i === dayIndex}
+            aria-pressed={!searching && i === dayIndex}
             aria-label={formatWeekdayLong(tab.startISO)}
             disabled={searching}
             onClick={() => setDayIndex(i)}
@@ -67,7 +64,7 @@ export function ScheduleView({ occurrences }: { occurrences: Occurrence[] }) {
             <small>{formatDayNum(tab.startISO)}</small>
           </button>
         ))}
-      </nav>
+      </div>
 
       {searching ? (
         <SearchResults occurrences={filtered} query={query} />
