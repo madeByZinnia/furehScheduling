@@ -105,8 +105,8 @@ describe('downloadIcs — the only DOM side-effect', () => {
     });
     revokeObjectURL = vi.fn();
     // happy-dom does not implement object URLs; provide them.
-    URL.createObjectURL = createObjectURL as unknown as typeof URL.createObjectURL;
-    URL.revokeObjectURL = revokeObjectURL as unknown as typeof URL.revokeObjectURL;
+    URL.createObjectURL = createObjectURL;
+    URL.revokeObjectURL = revokeObjectURL;
 
     // Capture the anchor at click time (jsdom/happy-dom won't navigate).
     clickSpy = vi

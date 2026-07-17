@@ -54,6 +54,7 @@ const LONE_SURROGATE_STRUCTURAL =
   /[\uD800-\uDBFF](?![\uDC00-\uDFFF])|(?<![\uD800-\uDBFF])[\uDC00-\uDFFF]/;
 
 /** C0 control characters (U+0000–U+001F) plus DEL (U+007F). */
+// eslint-disable-next-line no-control-regex -- matches C0 control chars + DEL by design
 const CONTROL_CHARS = /[\u0000-\u001F\u007F]/;
 
 /**

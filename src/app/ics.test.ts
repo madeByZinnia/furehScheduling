@@ -262,12 +262,12 @@ describe('deterministic fold boundaries (Fix 4 / octet folding)', () => {
   it('a 75-octet ASCII line stays one physical line; 76 folds into two', () => {
     const at75 = fold('a'.repeat(75)).split('\r\n');
     expect(at75).toHaveLength(1);
-    expect(enc.encode(at75[0]!).length).toBe(75);
+    expect(enc.encode(at75[0]).length).toBe(75);
 
     const at76 = fold('a'.repeat(76)).split('\r\n');
     expect(at76).toHaveLength(2);
-    expect(enc.encode(at76[0]!).length).toBe(75); // first line full
-    expect(enc.encode(at76[1]!).length).toBe(2); // ' ' + one 'a'
+    expect(enc.encode(at76[0]).length).toBe(75); // first line full
+    expect(enc.encode(at76[1]).length).toBe(2); // ' ' + one 'a'
   });
 
   it('a 4-byte emoji straddling byte 75 folds so BOTH lines are valid UTF-8', () => {
@@ -277,8 +277,8 @@ describe('deterministic fold boundaries (Fix 4 / octet folding)', () => {
     const physical = fold(s).split('\r\n');
     expect(physical).toHaveLength(2);
     // Exact octet lengths: 74 ASCII, then ' ' + 4-byte emoji = 5.
-    expect(enc.encode(physical[0]!).length).toBe(74);
-    expect(enc.encode(physical[1]!).length).toBe(5);
+    expect(enc.encode(physical[0]).length).toBe(74);
+    expect(enc.encode(physical[1]).length).toBe(5);
     // Both physical lines are valid UTF-8 — no sequence was cut (no U+FFFD).
     for (const line of physical) {
       expect(new TextDecoder().decode(enc.encode(line))).toBe(line);
