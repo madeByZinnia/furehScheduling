@@ -1,0 +1,191 @@
+/* Component styles — layered AFTER a11y.css (which owns tokens, sizing, focus).
+ * Everything sizes in rem so the text-size control scales it from the root. */
+
+.app {
+  max-width: 44rem;
+  margin: 0 auto;
+  padding: 0 1rem 4rem;
+}
+
+.app-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  flex-wrap: wrap;
+  padding: 1rem 0 0.5rem;
+}
+.app-head h1 {
+  margin: 0;
+  font-size: 1.5rem;
+}
+.app-head .when {
+  font-size: 0.8125rem;
+  color: var(--gold);
+}
+
+/* ── Search ─────────────────────────────────────────────────────────────────*/
+.search {
+  width: 100%;
+  padding: 0.75rem 1rem;
+  margin: 0.5rem 0 1rem;
+  font-size: 1rem;
+  color: var(--text);
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+}
+.search::placeholder {
+  color: var(--text-dim);
+}
+
+/* ── Day tabs ────────────────────────────────────────────────────────────────*/
+.day-tabs {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  margin-bottom: 1rem;
+}
+.day-tab {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  line-height: 1.2;
+  padding: 0.4rem 0.9rem;
+  color: var(--text-dim);
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+}
+.day-tab small {
+  font-size: 0.75rem;
+}
+.day-tab[aria-selected='true'] {
+  color: var(--ink, var(--bg));
+  background: var(--gold);
+  border-color: var(--gold);
+  font-weight: 700;
+}
+
+/* ── Time groups + rows ──────────────────────────────────────────────────────*/
+.time-group {
+  margin-bottom: 1.25rem;
+}
+.time-group > h2 {
+  font-size: 0.9375rem;
+  color: var(--text-dim);
+  margin: 0 0 0.5rem;
+  padding-bottom: 0.25rem;
+  border-bottom: 1px solid var(--border);
+}
+
+.event-row {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.75rem;
+  padding: 0.75rem;
+  background: var(--panel);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  margin-bottom: 0.5rem;
+}
+.event-row .body {
+  flex: 1 1 auto;
+  min-width: 0;
+}
+.event-row .title {
+  font-weight: 600;
+  margin: 0;
+}
+.event-row .meta {
+  font-size: 0.8125rem;
+  color: var(--text-dim);
+  margin: 0.15rem 0 0;
+}
+.event-row .track {
+  color: var(--green);
+}
+
+/* Star toggle */
+.star {
+  flex: none;
+  font-size: 1.25rem;
+  line-height: 1;
+  color: var(--text-dim);
+  background: transparent;
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.star[aria-pressed='true'] {
+  color: var(--gold);
+  border-color: var(--gold);
+}
+
+/* ── Now separator ───────────────────────────────────────────────────────────*/
+.now-sep {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  margin: 0.75rem 0;
+  color: var(--rose);
+  font-size: 0.8125rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+}
+.now-sep::before,
+.now-sep::after {
+  content: '';
+  flex: 1;
+  height: 2px;
+  background: var(--rose);
+}
+
+/* ── Display settings ────────────────────────────────────────────────────────*/
+.display-settings {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 1.5rem;
+  padding: 1rem;
+  margin-bottom: 1rem;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+}
+.display-settings fieldset {
+  border: none;
+  margin: 0;
+  padding: 0;
+}
+.display-settings legend {
+  font-size: 0.8125rem;
+  color: var(--text-dim);
+  padding: 0;
+  margin-bottom: 0.4rem;
+}
+.seg {
+  display: inline-flex;
+  gap: 0.25rem;
+}
+.seg button {
+  padding: 0.3rem 0.7rem;
+  color: var(--text-dim);
+  background: var(--panel);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+}
+.seg button[aria-pressed='true'] {
+  color: var(--ink, var(--bg));
+  background: var(--gold);
+  border-color: var(--gold);
+  font-weight: 700;
+}
+
+.empty {
+  color: var(--text-dim);
+  padding: 2rem 0;
+  text-align: center;
+}
