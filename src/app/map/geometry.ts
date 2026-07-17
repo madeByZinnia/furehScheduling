@@ -69,14 +69,30 @@ interface BuildingsFile {
   buildings: BuildingMeta[];
 }
 
-export type RoomKind = 'panel' | 'amenity' | 'desk' | 'entrance' | 'washroom' | 'elevator' | 'stairs';
+export type RoomKind =
+  | 'panel'
+  | 'amenity'
+  | 'desk'
+  | 'entrance'
+  | 'washroom'
+  | 'elevator'
+  | 'stairs'
+  | 'structure'; // hatched, inaccessible back-of-house / structural block
 
-interface RoomRect {
+type UV = [number, number];
+
+interface RoomDef {
   name: string;
   aka: string | null;
   kind: RoomKind;
   schedule: string | null;
-  rect: [number, number, number, number];
+  /** Axis-aligned shorthand: [u0,v0,u1,v1]. Sugar for a 4-vertex `poly`. */
+  rect?: [number, number, number, number];
+  /** Arbitrary (concave/convex) outline, [U,V] vertices, clockwise. */
+  poly?: UV[];
+  /** Outline edge indices to OMIT from the wall stroke — i.e. door openings.
+   *  Edge i runs from vertex i to vertex i+1 (wrapping). */
+  doors?: number[];
 }
 
 interface FloorRooms {
@@ -86,7 +102,10 @@ interface FloorRooms {
   /** Inset factor: shrink the fit inside the footprint so rooms sit within the
    *  outer wall (the OSM footprint is the outer wall; rooms are inside it). */
   scale?: number;
-  rooms: RoomRect[];
+  rooms: RoomDef[];
+  /** Interior wall lines not owned by a single room outline (structural cores,
+   *  corridor partitions), as [U,V] polylines. */
+  walls?: UV[][];
 }
 
 interface RoomsFile {
@@ -111,13 +130,15 @@ export interface BuildingGeom {
   floors: Floor[];
 }
 
-/** One drawn room, in metres, ready for an SVG <polygon>. */
+/** One drawn room, in metres. `polygon` is the fill; `outline` is the wall runs
+ *  to stroke (door openings already removed → gaps in the outline). */
 export interface RoomShape {
   name: string;
   aka: string | null;
   kind: RoomKind;
   schedule: string | null;
   polygon: Point[];
+  outline: Point[][];
   centroid: Point;
 }
 
@@ -276,15 +297,36 @@ function place(u: number, v: number, box: OrientedBox, scale: number): Point {
   };
 }
 
-/** Fit a building-normalized rect into the oriented box → a metre rectangle. */
-function rectToPolygon(rect: [number, number, number, number], box: OrientedBox, scale: number): Point[] {
-  const [u0, v0, u1, v1] = rect;
+/** [U,V] vertices of a room: its `poly`, or its `rect` expanded to 4 corners. */
+function roomVerts(r: RoomDef): UV[] {
+  if (r.poly) return r.poly;
+  const [u0, v0, u1, v1] = r.rect!;
   return [
-    place(u0, v0, box, scale),
-    place(u1, v0, box, scale),
-    place(u1, v1, box, scale),
-    place(u0, v1, box, scale),
+    [u0, v0],
+    [u1, v0],
+    [u1, v1],
+    [u0, v1],
   ];
+}
+
+/** Split a closed vertex ring into wall runs, dropping the `doors` edges (gaps).
+ *  Edge i connects vertex i → i+1 (wrapping); a run is a maximal door-free span. */
+function outlineRuns(verts: Point[], doors: number[]): Point[][] {
+  const skip = new Set(doors);
+  const n = verts.length;
+  const runs: Point[][] = [];
+  let cur: Point[] = [];
+  for (let i = 0; i < n; i++) {
+    if (skip.has(i)) {
+      if (cur.length) runs.push(cur);
+      cur = [];
+      continue;
+    }
+    if (cur.length === 0) cur.push(verts[i]!);
+    cur.push(verts[(i + 1) % n]!);
+  }
+  if (cur.length) runs.push(cur);
+  return runs;
 }
 
 function centroid(poly: Point[]): Point {
@@ -295,7 +337,7 @@ function centroid(poly: Point[]): Point {
   };
 }
 
-/** Rooms for a building+floor, as metre polygons. Empty if that floor is untraced. */
+/** Rooms for a building+floor, as metre polygons + door-aware wall runs. */
 export function floorRooms(buildingId: string, floorId: string): RoomShape[] {
   const b = getBuilding(buildingId);
   if (!b) return [];
@@ -304,9 +346,28 @@ export function floorRooms(buildingId: string, floorId: string): RoomShape[] {
   const box = buildingBox(b);
   const scale = fr.scale ?? 1;
   return fr.rooms.map((r) => {
-    const polygon = rectToPolygon(r.rect, box, scale);
-    return { name: r.name, aka: r.aka, kind: r.kind, schedule: r.schedule, polygon, centroid: centroid(polygon) };
+    const polygon = roomVerts(r).map(([u, v]) => place(u, v, box, scale));
+    return {
+      name: r.name,
+      aka: r.aka,
+      kind: r.kind,
+      schedule: r.schedule,
+      polygon,
+      outline: outlineRuns(polygon, r.doors ?? []),
+      centroid: centroid(polygon),
+    };
   });
+}
+
+/** Interior wall polylines for a building+floor, in metres. */
+export function interiorWalls(buildingId: string, floorId: string): Point[][] {
+  const b = getBuilding(buildingId);
+  if (!b) return [];
+  const fr = roomsData.floors.find((f) => f.building === buildingId && f.floor === floorId);
+  if (!fr?.walls) return [];
+  const box = buildingBox(b);
+  const scale = fr.scale ?? 1;
+  return fr.walls.map((w) => w.map(([u, v]) => place(u, v, box, scale)));
 }
 
 /**

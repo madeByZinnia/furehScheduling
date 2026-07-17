@@ -11,6 +11,7 @@ import {
   buildings,
   buildingRoomNames,
   floorRooms,
+  interiorWalls,
   locateScheduleRoom,
   pois,
   streetLabels,
@@ -121,6 +122,7 @@ export function MapView() {
   const { view, handlers } = usePanZoom(svgRef, target, FULL_VIEW);
 
   const rooms: RoomShape[] = building && floorId ? floorRooms(building.id, floorId) : [];
+  const walls: Point[][] = building && floorId ? interiorWalls(building.id, floorId) : [];
 
   // While a building's floor is open, hide any outdoor POI that duplicates one of
   // that building's rooms (e.g. the Sushi Toshi restaurant pin over the Wyndham
@@ -171,15 +173,20 @@ export function MapView() {
           onPointerLeave={handlers.onPointerUp}
           onWheel={handlers.onWheel}
         >
-          {/* clip the drawn floor to the real footprint — a hard guarantee that
-              no room box is ever shown outside the building outline */}
-          {building && (
-            <defs>
+          <defs>
+            {/* diagonal hatch for inaccessible structural blocks (matches the QRG) */}
+            <pattern id="hatch" patternUnits="userSpaceOnUse" width="2.4" height="2.4" patternTransform="rotate(45)">
+              <rect class="hatch-bg" width="2.4" height="2.4" />
+              <line class="hatch-line" x1="0" y1="0" x2="0" y2="2.4" />
+            </pattern>
+            {/* clip the drawn floor to the real footprint — a hard guarantee that
+                no room box is ever shown outside the building outline */}
+            {building && (
               <clipPath id="floor-clip">
                 <path d={toPath(building.footprint, true)} />
               </clipPath>
-            </defs>
-          )}
+            )}
+          </defs>
 
           {/* outdoor OSM basemap — always present, drawn beneath everything */}
           <g class="layer-basemap">
@@ -216,18 +223,42 @@ export function MapView() {
             ))}
           </g>
 
-          {/* drawn floor: rooms + icons + labels, only when a floor is selected */}
+          {/* drawn floor: fills, then walls (door gaps), then icons + labels */}
           {rooms.length > 0 && (
             <g class="layer-floor" clip-path="url(#floor-clip)">
-              {rooms.map((r) => {
+              {/* inaccessible structural blocks (hatched), beneath everything */}
+              {rooms
+                .filter((r) => r.kind === 'structure')
+                .map((r) => (
+                  <path key={`s-${r.name}`} class="room-fill room-structure" d={toPath(r.polygon, true)} />
+                ))}
+              {/* room fills (no stroke — walls are drawn separately) */}
+              {rooms
+                .filter((r) => r.kind !== 'structure')
+                .map((r) => {
+                  const starred = !!r.schedule && starHits.rooms.has(r.schedule);
+                  return (
+                    <path
+                      key={`f-${r.name}`}
+                      class={`room-fill room-${r.kind}${starred ? ' room-starred' : ''}`}
+                      d={toPath(r.polygon, true)}
+                    />
+                  );
+                })}
+              {/* interior walls (structural cores, partitions) */}
+              {walls.map((w, i) => (
+                <path key={`w-${i}`} class="interior-wall" d={toPath(w, false)} />
+              ))}
+              {/* room outlines — wall runs with door openings left as gaps */}
+              {rooms.flatMap((r) => {
                 const starred = !!r.schedule && starHits.rooms.has(r.schedule);
-                return (
+                return r.outline.map((run, i) => (
                   <path
-                    key={r.name}
-                    class={`room room-${r.kind}${starred ? ' room-starred' : ''}`}
-                    d={toPath(r.polygon, true)}
+                    key={`o-${r.name}-${i}`}
+                    class={`room-outline${starred ? ' outline-starred' : ''}`}
+                    d={toPath(run, false)}
                   />
-                );
+                ));
               })}
               {rooms
                 .filter((r) => ICON_KINDS.has(r.kind))

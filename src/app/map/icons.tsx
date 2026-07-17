@@ -60,7 +60,8 @@ function glyph(kind: RoomKind) {
       );
     case 'panel':
     case 'amenity':
-      return null; // drawn as filled rooms with labels, not glyphs
+    case 'structure':
+      return null; // drawn as filled areas, not glyphs
   }
 }
 

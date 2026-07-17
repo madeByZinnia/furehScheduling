@@ -164,22 +164,18 @@
 }
 
 /* ── drawn floor ──────────────────────────────────────────────────────────── */
-.room {
-  vector-effect: non-scaling-stroke;
-  stroke-width: 1.25;
-  stroke-linejoin: round;
+/* Room FILLS carry the kind colour (no stroke — walls are drawn separately). */
+.room-fill {
+  stroke: none;
 }
 .room-panel {
   fill: var(--gold);
   fill-opacity: 0.28;
-  stroke: var(--gold);
 }
-/* your-stars overlay — a starred room glows brighter with a heavier gold edge */
+/* your-stars overlay — a starred room glows brighter */
 .room-starred {
   fill: var(--gold);
   fill-opacity: 0.55;
-  stroke: var(--gold);
-  stroke-width: 2.5;
 }
 .label-starred {
   fill: var(--gold);
@@ -188,24 +184,52 @@
 .room-amenity {
   fill: var(--surface-2);
   fill-opacity: 0.7;
-  stroke: var(--border-hi);
 }
 .room-desk {
   fill: var(--blue);
   fill-opacity: 0.25;
-  stroke: var(--blue);
 }
 .room-entrance {
   fill: var(--green);
   fill-opacity: 0.55;
-  stroke: var(--green);
 }
 .room-washroom,
 .room-elevator,
 .room-stairs {
   fill: var(--text-dim);
   fill-opacity: 0.5;
+}
+/* inaccessible structural blocks — diagonal hatch (the QRG's brown/grey stripes) */
+.room-structure {
+  fill: url(#hatch);
+}
+.hatch-bg {
+  fill: var(--surface-2);
+  fill-opacity: 0.55;
+}
+.hatch-line {
+  stroke: var(--border-hi);
+  stroke-width: 0.6;
+}
+
+/* WALLS: room outlines (with door gaps) + interior partitions, drawn as lines. */
+.room-outline,
+.interior-wall {
+  fill: none;
   stroke: var(--text-dim);
+  vector-effect: non-scaling-stroke;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+.room-outline {
+  stroke-width: 2;
+}
+.interior-wall {
+  stroke-width: 1.4;
+}
+.outline-starred {
+  stroke: var(--gold);
+  stroke-width: 2.6;
 }
 
 /* facility glyphs inherit `color` as their stroke/fill (currentColor) */
