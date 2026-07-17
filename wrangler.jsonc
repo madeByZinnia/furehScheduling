@@ -1,6 +1,5 @@
 {
-  // Minimal Worker config — placeholder until the M2 backend lands. Present now
-  // so the @cloudflare/vitest-pool-workers harness has a real workerd target.
+  // Worker + SQLite Durable Object + static assets, all in one deploy.
   "$schema": "node_modules/wrangler/config-schema.json",
   "name": "fureh-schedules",
   "main": "src/worker/index.ts",
@@ -9,5 +8,20 @@
   "assets": {
     "directory": "./dist/",
     "not_found_handling": "single-page-application",
+    // Without this the SPA fallback returns index.html for every unmatched path
+    // and SWALLOWS the API routes. /telegram/* is not under /api/*, so list it
+    // explicitly. First smoke test after deploy: /api/health returns JSON.
+    // NOTE: the per-route ARRAY form requires Wrangler v4 to DEPLOY (v3 only
+    // accepts a boolean). The vitest workers pool accepts it today; the CLI bump
+    // to v4 (+ matching pool/vitest) happens when we wire the live deploy — see
+    // beads fureh-schedules-2qs.1. `wrangler deploy` on v3 will error on this.
+    "run_worker_first": ["/api/*", "/telegram/*"],
   },
+  "durable_objects": {
+    "bindings": [{ "name": "CREW", "class_name": "Crew" }],
+  },
+  // MUST be new_sqlite_classes, NOT new_classes: new_classes makes KV-backed DOs
+  // that fail on new accounts and cannot be converted to SQLite once deployed.
+  "migrations": [{ "tag": "v1", "new_sqlite_classes": ["Crew"] }],
+  "observability": { "enabled": true },
 }
