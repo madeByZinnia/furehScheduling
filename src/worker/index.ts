@@ -16,6 +16,7 @@ import {
   verifyInitData,
   type TelegramChat,
   type TelegramUpdate,
+  type TelegramUser,
 } from './telegram';
 import { effectiveNow } from './now';
 
@@ -47,6 +48,92 @@ async function handleResolve(request: Request, env: Env): Promise<Response> {
   console.log(`resolve ${result.ok ? 'ok' : 'rejected'}`);
   if (!result.ok) return json({ error: 'invalid initData' }, 401);
   return json({ accessCode: crypto.randomUUID(), user: result.user });
+}
+
+/** Human label for a verified user — NEVER a client-supplied name. */
+function displayNameFor(user: TelegramUser): string {
+  return user.first_name ?? user.username ?? String(user.id);
+}
+
+/** Coerce/validate an inbound chat id the same way every crew route does. */
+function parseChatId(raw: unknown): number | null {
+  const chatId = Number(raw);
+  return Number.isSafeInteger(chatId) ? chatId : null;
+}
+
+/**
+ * Sanitize a client `stars` payload into a bounded string[]. Drops non-strings,
+ * empties, and absurdly long entries; caps the count so one request can't store
+ * an unbounded set. The DO enforces the cap again (defense in depth).
+ */
+function sanitizeStars(raw: unknown): string[] {
+  if (!Array.isArray(raw)) return [];
+  const out: string[] = [];
+  for (const s of raw) {
+    if (typeof s !== 'string' || s.length === 0 || s.length > 200) continue;
+    out.push(s);
+    if (out.length >= 1000) break;
+  }
+  return out;
+}
+
+/**
+ * POST /api/sync — upsert the acting user's roster row + stars for a crew.
+ * The user id and display name come from the VERIFIED initData, never the body,
+ * so a client can't sync on someone else's behalf.
+ */
+async function handleSync(request: Request, env: Env): Promise<Response> {
+  const body = await request
+    .json<{ initData?: string; chatId?: unknown; ghost?: unknown; stars?: unknown }>()
+    .catch(() => null);
+  const result = await verifyInitData(body?.initData ?? '', env.BOT_TOKEN);
+  if (!result.ok || result.user === null) return json({ error: 'invalid initData' }, 401);
+  const chatId = parseChatId(body?.chatId);
+  if (chatId === null) return json({ error: 'invalid chatId' }, 400);
+  // Privacy: `ghost` is a privacy control, so its ABSENCE must NEVER un-ghost an
+  // existing ghost member (which would expose their stars via /api/roster). A
+  // missing or malformed ghost is rejected — only an explicit boolean is accepted.
+  if (typeof body?.ghost !== 'boolean') return json({ error: 'ghost must be a boolean' }, 400);
+  // Data safety: a missing/non-array `stars` must NOT be coerced to [] — that
+  // would silently WIPE an existing member's stars. Require an explicit array
+  // (an empty [] is still valid: an intentional clear).
+  if (!Array.isArray(body.stars)) return json({ error: 'stars must be an array' }, 400);
+  const crew = env.CREW.getByName(String(chatId));
+  await crew.syncMember(
+    result.user.id,
+    displayNameFor(result.user),
+    body.ghost,
+    sanitizeStars(body.stars),
+  );
+  return json({ ok: true });
+}
+
+/**
+ * POST /api/roster — the crew roster for a chat. getRoster already redacts a
+ * ghost member's plans server-side, so a ghost member's plans NEVER hit the wire.
+ * NOTE: for this slice any valid initData user may read; gating the read to
+ * actual crew members is a follow-up.
+ */
+async function handleRoster(request: Request, env: Env): Promise<Response> {
+  const body = await request.json<{ initData?: string; chatId?: unknown }>().catch(() => null);
+  const result = await verifyInitData(body?.initData ?? '', env.BOT_TOKEN);
+  if (!result.ok) return json({ error: 'invalid initData' }, 401);
+  const chatId = parseChatId(body?.chatId);
+  if (chatId === null) return json({ error: 'invalid chatId' }, 400);
+  const crew = env.CREW.getByName(String(chatId));
+  return json({ roster: await crew.getRoster() });
+}
+
+/** POST /api/leave — remove the acting (verified) user from a crew. */
+async function handleLeave(request: Request, env: Env): Promise<Response> {
+  const body = await request.json<{ initData?: string; chatId?: unknown }>().catch(() => null);
+  const result = await verifyInitData(body?.initData ?? '', env.BOT_TOKEN);
+  if (!result.ok || result.user === null) return json({ error: 'invalid initData' }, 401);
+  const chatId = parseChatId(body?.chatId);
+  if (chatId === null) return json({ error: 'invalid chatId' }, 400);
+  const crew = env.CREW.getByName(String(chatId));
+  await crew.leaveCrew(result.user.id);
+  return json({ ok: true });
 }
 
 // A tiny diagnostic page: opened as a Mini App, it reads the real
@@ -237,6 +324,9 @@ export default {
       return handleResolveCheck();
     }
     if (pathname === '/api/resolve' && post) return handleResolve(request, env);
+    if (pathname === '/api/sync' && post) return handleSync(request, env);
+    if (pathname === '/api/roster' && post) return handleRoster(request, env);
+    if (pathname === '/api/leave' && post) return handleLeave(request, env);
     if (pathname === '/telegram/webhook' && post) return handleWebhook(request, env, ctx);
     if (pathname === '/telegram/setup' && post) return handleSetup(request, url, env);
     if (pathname === '/telegram/trigger' && post) return handleTrigger(request, url, env);
