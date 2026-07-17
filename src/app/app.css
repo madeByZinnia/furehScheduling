@@ -19,10 +19,6 @@
   margin: 0;
   font-size: 1.5rem;
 }
-.app-head .when {
-  font-size: 0.8125rem;
-  color: var(--gold);
-}
 
 /* ── Search ─────────────────────────────────────────────────────────────────*/
 .search {
@@ -259,6 +255,26 @@
   padding: 0;
   margin-bottom: 0.4rem;
 }
+/* Text-size discrete slider: native range (gold accent) + a visible size chip.
+   The native thumb has no transition, so prefers-reduced-motion needs no gating. */
+.size-slider {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+.size-range {
+  flex: 1 1 auto;
+  min-width: 8rem;
+  accent-color: var(--gold);
+}
+.size-value {
+  flex: none;
+  min-width: 2.5rem;
+  text-align: center;
+  font-weight: 700;
+  color: var(--gold);
+}
+
 .seg {
   display: flex;
   flex-wrap: wrap; /* buttons wrap instead of overflowing at large text sizes */
