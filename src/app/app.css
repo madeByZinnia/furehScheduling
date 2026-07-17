@@ -1,12 +1,61 @@
 /* Component styles — layered AFTER a11y.css (which owns tokens, sizing, focus).
  * Everything sizes in rem so the text-size control scales it from the root. */
 
+/* Height of the fixed bottom nav bar's content (excludes the safe-area inset,
+   which is added separately). In px, not rem, so the bar stays a stable size
+   regardless of the text-size setting — same rationale as the FAB below. */
+:root {
+  --bottom-nav-h: 56px;
+}
+
 .app {
   max-width: 44rem;
   margin: 0 auto;
-  /* Bottom space clears the fixed jump-to-now FAB (~4.5rem tall zone) plus the
-     safe-area inset, so the last event row's star is never trapped under it. */
-  padding: 0 1rem calc(6rem + env(safe-area-inset-bottom, 0px));
+  /* Bottom space clears BOTH the fixed bottom nav bar and the jump-to-now FAB
+     that floats just above it, plus the safe-area inset — so the last event
+     row's star is never trapped under either. */
+  padding: 0 1rem calc(var(--bottom-nav-h) + 6rem + env(safe-area-inset-bottom, 0px));
+}
+
+/* ── Bottom navigation ───────────────────────────────────────────────────────*/
+.bottom-nav {
+  position: fixed;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  z-index: 30; /* above the FAB (z-index 20) */
+  display: flex;
+  background: var(--panel);
+  border-top: 2px solid var(--border);
+  /* Keep the tappable bar clear of the phone's home indicator. */
+  padding-bottom: env(safe-area-inset-bottom, 0px);
+}
+.bottom-nav-tab {
+  flex: 1;
+  height: var(--bottom-nav-h);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 2px;
+  padding: 6px 4px;
+  background: transparent;
+  border: none;
+  /* A top accent bar marks the active tab by SHAPE, not colour alone. */
+  border-top: 3px solid transparent;
+  color: var(--text-dim);
+  font-size: 12px;
+  font-weight: 500;
+  letter-spacing: 0.03em;
+}
+.bottom-nav-icon {
+  font-size: 20px;
+  line-height: 1;
+}
+.bottom-nav-tab.is-active {
+  color: var(--gold);
+  font-weight: 700; /* bold weight = text-shape difference, not just colour */
+  border-top-color: var(--gold);
 }
 
 .app-head {
@@ -538,7 +587,8 @@
 .fab {
   position: fixed;
   z-index: 20;
-  bottom: calc(1rem + env(safe-area-inset-bottom, 0px));
+  /* Float 1rem above the fixed bottom nav bar (which owns the safe-area inset). */
+  bottom: calc(1rem + var(--bottom-nav-h) + env(safe-area-inset-bottom, 0px));
   right: max(1rem, calc(50vw - 22rem + 1rem));
   min-height: 44px; /* tap target */
   padding: 0 18px;
