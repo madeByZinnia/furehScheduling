@@ -115,6 +115,12 @@ async function handleWebhook(
  */
 async function handleSetup(request: Request, url: URL, env: Env): Promise<Response> {
   if (!bearerOk(request, env.SETUP_KEY)) return json({ error: 'forbidden' }, 403);
+  // Registering a webhook without a secret would produce one the fail-closed
+  // handler rejects — refuse rather than report a broken success.
+  const webhookSecret = env.WEBHOOK_SECRET;
+  if (webhookSecret === undefined || webhookSecret === '') {
+    return json({ error: 'WEBHOOK_SECRET not configured' }, 503);
+  }
 
   // getUpdates is the ONLY expected failure here (Telegram disables it once a
   // webhook is active); surface anything else instead of masking a real problem.
@@ -129,28 +135,34 @@ async function handleSetup(request: Request, url: URL, env: Env): Promise<Respon
     }
   }
 
-  const groups = new Map<number, boolean>(); // chatId → isAdmin
+  // Keep each chat's LATEST membership status (updates are chronological), so an
+  // "administrator" then "kicked" ends as kicked — never OR historical states.
+  const latest = new Map<number, string>();
   for (const update of updates) {
     const mcm = update.my_chat_member;
     if (mcm !== undefined && isGroupChat(mcm.chat)) {
-      const admin = mcm.new_chat_member.status === 'administrator';
-      groups.set(mcm.chat.id, (groups.get(mcm.chat.id) ?? false) || admin);
+      latest.set(mcm.chat.id, mcm.new_chat_member.status);
     }
     const msg = update.message;
-    if (msg !== undefined && isGroupChat(msg.chat) && !groups.has(msg.chat.id)) {
-      groups.set(msg.chat.id, false);
+    if (msg !== undefined && isGroupChat(msg.chat) && !latest.has(msg.chat.id)) {
+      latest.set(msg.chat.id, 'member');
     }
   }
 
   const configured: { chatId: number; admin: boolean }[] = [];
-  for (const [chatId, admin] of Array.from(groups.entries())) {
+  for (const [chatId, status] of Array.from(latest.entries())) {
     const crew = env.CREW.getByName(String(chatId));
+    if (status === 'left' || status === 'kicked') {
+      await crew.deactivate();
+      continue;
+    }
+    const admin = status === 'administrator';
     await crew.configure(chatId);
     await crew.setAdmin(admin);
     configured.push({ chatId, admin });
   }
 
-  await setWebhook(env.BOT_TOKEN, `${url.origin}/telegram/webhook`, env.WEBHOOK_SECRET ?? '');
+  await setWebhook(env.BOT_TOKEN, `${url.origin}/telegram/webhook`, webhookSecret);
   return json({ configured, webhook: 'registered' });
 }
 

@@ -63,9 +63,12 @@ export class Crew extends DurableObject<Env> {
        ON CONFLICT(id) DO UPDATE SET chat_id = excluded.chat_id`,
       chatId,
     );
-    // Rebinding to a different chat invalidates the old pinned message id.
+    // Rebinding to a different chat invalidates the old pinned message id AND the
+    // dedupe ledger (else a same-bucket claim would suppress the new chat's first
+    // post).
     if (prev?.chat_id != null && prev.chat_id !== chatId) {
       this.ctx.storage.sql.exec('UPDATE crew_config SET pinned_message_id = NULL WHERE id = 1');
+      this.ctx.storage.sql.exec('DELETE FROM digest_posts');
     }
     if ((await this.ctx.storage.getAlarm()) === null) {
       await this.ctx.storage.setAlarm(Date.now() + DIGEST_INTERVAL_MS);
@@ -93,9 +96,11 @@ export class Crew extends DurableObject<Env> {
   }
 
   override async alarm(): Promise<void> {
-    // Re-arm FIRST — alarms don't repeat; setAlarm overwrites so exactly one is
-    // ever pending. Doing this before the post means a failed post still leaves
-    // a future alarm scheduled.
+    // If the crew was deactivated (bot removed), stop — do NOT re-arm, or a
+    // queued/racing alarm would resurrect an orphan that wakes forever.
+    if (this.config()?.chat_id == null) return;
+    // Re-arm before posting so a throw in postDigest still leaves a future alarm
+    // (setAlarm overwrites, so exactly one is ever pending).
     await this.ctx.storage.setAlarm(Date.now() + DIGEST_INTERVAL_MS);
     await this.postDigest(Date.now());
   }

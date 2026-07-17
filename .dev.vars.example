@@ -1,6 +1,8 @@
 # Copy to `.dev.vars` (gitignored) for `wrangler dev`. These are LOCAL dummies.
 # In production these are real Cloudflare secrets set with:
 #   wrangler secret put BOT_TOKEN
-#   wrangler secret put WEBHOOK_SECRET
+#   wrangler secret put WEBHOOK_SECRET   # required — webhook fails closed without it
+#   wrangler secret put SETUP_KEY        # required — guards /telegram/setup + /trigger
 BOT_TOKEN=dev-placeholder-bot-token
 WEBHOOK_SECRET=dev-placeholder-webhook-secret
+SETUP_KEY=dev-placeholder-setup-key
