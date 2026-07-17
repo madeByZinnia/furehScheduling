@@ -1,0 +1,58 @@
+/*
+ * Accessibility baseline — imported FIRST, before any component styles, so the
+ * a11y foundation is never something we retrofit. The full treatment (contrast
+ * tokens, 44px targets, discrete text-size slider) lands in issues 4cz.4 / 4cz.2.
+ * This is the minimal seed: root-relative sizing so a future text-size control
+ * scales every screen, and reflow that never forces horizontal scroll at 400%.
+ */
+
+:root {
+  /* Text-size control drives this (default ~M). rem everywhere scales from here. */
+  --root-font-size: 100%;
+  color-scheme: light dark;
+}
+
+html {
+  font-size: var(--root-font-size);
+}
+
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  font-family: system-ui, sans-serif;
+  line-height: 1.5;
+  /* Reflow, never horizontal scroll (WCAG 1.4.10). */
+  overflow-wrap: break-word;
+}
+
+/* Interactive targets: 44px minimum (WCAG 2.5.5). */
+button,
+a,
+input,
+select,
+[role='button'],
+[role='tab'] {
+  min-height: 44px;
+}
+
+:focus-visible {
+  outline: 3px solid currentColor;
+  outline-offset: 2px;
+}
+
+.visually-hidden {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}

@@ -4,3 +4,10 @@
 *.db
 .beads-credential-key
 .beads/proxieddb/
+
+# Node / build
+node_modules/
+dist/
+*.local
+.wrangler/
+coverage/
