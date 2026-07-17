@@ -961,6 +961,52 @@
   flex-wrap: wrap;
 }
 
+/* ── Me: display name + about ────────────────────────────────────────────────*/
+.me-section {
+  display: flex;
+  flex-direction: column;
+  gap: 0.6rem;
+  padding: 1rem;
+  margin-bottom: 1rem;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+}
+.me-section h2 {
+  margin: 0;
+  font-size: 1rem;
+}
+.me-note {
+  margin: 0;
+  font-size: 0.8125rem;
+  color: var(--text-dim);
+}
+
+/* "About the dev" — a quiet, collapsed disclosure at the very bottom. */
+.about-dev {
+  margin: 1.5rem 0 0.5rem;
+  color: var(--text-dim);
+  font-size: 0.875rem;
+}
+.about-dev > summary {
+  cursor: pointer;
+  min-height: 2.75rem;
+  display: flex;
+  align-items: center;
+  color: var(--text-dim);
+}
+.about-dev-body {
+  padding: 0.25rem 0 0.5rem;
+}
+.about-dev-links {
+  margin: 0.5rem 0 0;
+  padding-left: 1.1rem;
+  line-height: 1.9;
+}
+.about-dev-links a {
+  color: var(--blue);
+}
+
 .empty {
   color: var(--text-dim);
   padding: 2rem 0;

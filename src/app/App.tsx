@@ -3,9 +3,11 @@ import { useState } from 'preact/hooks';
 import scheduleJson from '../data/schedule.json';
 import type { Schedule } from '../data/expand';
 import { DisplaySettings } from './DisplaySettings';
+import { DisplayNameSetting } from './DisplayNameSetting';
 import { GhostToggle } from './GhostToggle';
 import { MeExport } from './MeExport';
 import { MeImport } from './MeImport';
+import { AboutDev } from './AboutDev';
 import { CrewSection } from './CrewSection';
 import { EventsPanel } from './events/EventsPanel';
 import { LeaveCrew } from './LeaveCrew';
@@ -51,11 +53,13 @@ export function App() {
 
       {tab === 'me' && (
         <>
+          <DisplayNameSetting />
           <DisplaySettings />
           <GhostToggle />
           <MeExport occurrences={schedule.occurrences} />
           <MeImport occurrences={schedule.occurrences} />
           <LeaveCrew {...(mock ? mockLeaveProps : {})} />
+          <AboutDev />
         </>
       )}
 

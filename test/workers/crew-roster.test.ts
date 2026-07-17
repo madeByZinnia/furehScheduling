@@ -551,3 +551,54 @@ describe('POST /api/sync — direct-link start_param is membership-verified', ()
     expect(me?.plans.map((p) => p.occurrenceId)).toEqual([X, Y]);
   });
 });
+
+// The display name may be a CLIENT-chosen custom name (sanitized), falling back
+// to the verified Telegram name (first_name 'Robin') when blank/absent.
+describe('POST /api/sync — custom display name', () => {
+  async function nameInRoster(chatId: number, userId: number): Promise<string> {
+    const res = await post('/api/roster', { initData: await freshInitData(userId, chatId) });
+    expect(res.status).toBe(200);
+    const { roster } = await res.json<{
+      roster: { userId: number; displayName: string }[];
+    }>();
+    const me = roster.find((m) => m.userId === userId);
+    expect(me).toBeDefined();
+    return me?.displayName ?? '';
+  }
+
+  it('stores a trimmed custom displayName and returns it in the roster', async () => {
+    const CHAT = 970001;
+    const UID = 55;
+    const res = await post('/api/sync', {
+      initData: await freshInitData(UID, CHAT),
+      ghost: false,
+      stars: [],
+      displayName: '  Zinnia  ',
+    });
+    expect(res.status).toBe(200);
+    expect(await nameInRoster(CHAT, UID)).toBe('Zinnia');
+  });
+
+  it('falls back to the Telegram name when displayName is blank', async () => {
+    const CHAT = 970002;
+    const UID = 56;
+    await post('/api/sync', {
+      initData: await freshInitData(UID, CHAT),
+      ghost: false,
+      stars: [],
+      displayName: '   ',
+    });
+    expect(await nameInRoster(CHAT, UID)).toBe('Robin');
+  });
+
+  it('falls back to the Telegram name when displayName is omitted', async () => {
+    const CHAT = 970003;
+    const UID = 57;
+    await post('/api/sync', {
+      initData: await freshInitData(UID, CHAT),
+      ghost: false,
+      stars: [],
+    });
+    expect(await nameInRoster(CHAT, UID)).toBe('Robin');
+  });
+});

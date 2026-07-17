@@ -2,6 +2,7 @@ import type { TelegramSession } from './telegram-session';
 import { getTelegramSession } from './telegram-session';
 import { subscribeStars, getStarsSnapshot } from './stars';
 import { subscribeGhost, getGhost } from './ghost';
+import { subscribeDisplayName, getDisplayName } from './profile';
 
 /**
  * Crew sync — the client half of the crew roster. It pushes THIS device's stars
@@ -58,20 +59,27 @@ export interface SyncBody {
   initData: string;
   ghost: boolean;
   stars: string[];
+  /** Custom crew name; omitted when blank so the Worker uses the Telegram name. */
+  displayName?: string;
 }
 
 /**
  * PURE: build the sync body from an explicit session + state. Returns null when
  * there is nothing to sync (plain web, or no signed initData) — the caller then
- * no-ops. Never includes a chatId.
+ * no-ops. Never includes a chatId. A blank `displayName` is omitted so the Worker
+ * falls back to the verified Telegram name.
  */
 export function buildSyncBody(
   session: TelegramSession,
   ghost: boolean,
   stars: string[],
+  displayName = '',
 ): SyncBody | null {
   if (!session.isTelegram || session.initData == null) return null;
-  return { initData: session.initData, ghost, stars };
+  const body: SyncBody = { initData: session.initData, ghost, stars };
+  const name = displayName.trim();
+  if (name !== '') body.displayName = name;
+  return body;
 }
 
 /**
@@ -102,9 +110,10 @@ export async function postSync(
   ghost: boolean,
   stars: string[],
   fetchFn: typeof fetch = fetch,
+  displayName = '',
 ): Promise<boolean> {
   if (autoSyncSuspended) return false;
-  const body = buildSyncBody(session, ghost, stars);
+  const body = buildSyncBody(session, ghost, stars, displayName);
   if (body === null) return false;
   try {
     const res = await fetchFn('/api/sync', {
@@ -246,7 +255,7 @@ export function startAutoSync(opts: AutoSyncOptions = {}): () => void {
   const flush = (): void => {
     timer = null;
     // postSync never throws; the returned promise is intentionally not awaited.
-    void postSync(session, getGhost(), getStarsSnapshot(), fetchFn).then((ok) => {
+    void postSync(session, getGhost(), getStarsSnapshot(), fetchFn, getDisplayName()).then((ok) => {
       // Only a successful push (true) notifies; a no-op/failed push must not fire.
       if (ok) notifySynced();
     });
@@ -259,6 +268,7 @@ export function startAutoSync(opts: AutoSyncOptions = {}): () => void {
 
   const unsubStars = subscribeStars(schedule);
   const unsubGhost = subscribeGhost(schedule);
+  const unsubName = subscribeDisplayName(schedule);
 
   // Seed the crew with whatever is already local (also debounced).
   schedule();
@@ -266,6 +276,7 @@ export function startAutoSync(opts: AutoSyncOptions = {}): () => void {
   return () => {
     unsubStars();
     unsubGhost();
+    unsubName();
     if (timer !== null) {
       clearTimeout(timer);
       timer = null;
