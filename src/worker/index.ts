@@ -44,8 +44,48 @@ function bearerOk(request: Request, key: string | undefined): boolean {
 async function handleResolve(request: Request, env: Env): Promise<Response> {
   const body = await request.json<{ initData?: string }>().catch(() => null);
   const result = await verifyInitData(body?.initData ?? '', env.BOT_TOKEN);
+  console.log(`resolve ${result.ok ? 'ok' : 'rejected'}`);
   if (!result.ok) return json({ error: 'invalid initData' }, 401);
   return json({ accessCode: crypto.randomUUID(), user: result.user });
+}
+
+// A tiny diagnostic page: opened as a Mini App, it reads the real
+// Telegram.WebApp.initData and POSTs it to /api/resolve, showing ✅/❌ on screen.
+// No secrets — it only resolves the opener's own initData. External Telegram
+// script is fine here (served as a normal webview page, not a CSP'd artifact).
+const RESOLVE_CHECK_HTML = `<!doctype html>
+<html lang="en"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Fur-Eh resolve check</title>
+<script src="https://telegram.org/js/telegram-web-app.js"></script>
+<style>body{font-family:system-ui,-apple-system,sans-serif;margin:0;padding:32px;background:#17120d;color:#f0e6d8}
+h1{font-size:19px;font-weight:600}#status{font-size:56px;margin:20px 0}
+pre{white-space:pre-wrap;word-break:break-word;background:#211a13;border:1px solid #3a2f22;padding:16px;border-radius:10px;font-size:14px;line-height:1.5}</style>
+</head><body>
+<h1>Fur-Eh — initData resolve check</h1>
+<div id="status">…</div>
+<pre id="out">running…</pre>
+<script>
+(function(){
+  var out=document.getElementById('out'), st=document.getElementById('status');
+  var tg=window.Telegram&&window.Telegram.WebApp; if(tg&&tg.ready)tg.ready();
+  var initData=tg?tg.initData:'';
+  if(!initData){st.textContent='⚠️';out.textContent='No initData — open this INSIDE Telegram as a Mini App, not in a normal browser.';return;}
+  fetch('/api/resolve',{method:'POST',headers:{'content-type':'application/json'},body:JSON.stringify({initData:initData})})
+    .then(function(r){return r.json().then(function(d){return {status:r.status,ok:r.ok,body:d};});})
+    .then(function(res){
+      st.textContent=res.ok?'✅':'❌';
+      out.textContent=(res.ok?'resolve OK':'resolve REJECTED')+' ('+res.status+')\\n'+JSON.stringify(res.body,null,2);
+    })
+    .catch(function(e){st.textContent='❌';out.textContent='error: '+e;});
+})();
+</script>
+</body></html>`;
+
+function handleResolveCheck(): Response {
+  return new Response(RESOLVE_CHECK_HTML, {
+    headers: { 'content-type': 'text/html; charset=utf-8' },
+  });
 }
 
 /** Attach a crew to a group chat (and record admin status) from one update. */
@@ -193,6 +233,9 @@ export default {
     const post = request.method === 'POST';
 
     if (pathname === '/api/health') return json({ ok: true });
+    if (pathname === '/telegram/resolve-check' && request.method === 'GET') {
+      return handleResolveCheck();
+    }
     if (pathname === '/api/resolve' && post) return handleResolve(request, env);
     if (pathname === '/telegram/webhook' && post) return handleWebhook(request, env, ctx);
     if (pathname === '/telegram/setup' && post) return handleSetup(request, url, env);

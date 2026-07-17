@@ -159,3 +159,11 @@ describe('POST /api/resolve', () => {
     expect(res.status).toBe(401);
   });
 });
+
+describe('GET /telegram/resolve-check', () => {
+  it('serves the diagnostic HTML page', async () => {
+    const res = await SELF.fetch('https://example.com/telegram/resolve-check');
+    expect(res.status).toBe(200);
+    expect(res.headers.get('content-type')).toContain('text/html');
+  });
+});
