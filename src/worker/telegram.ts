@@ -25,6 +25,11 @@ export type InitDataResult =
 
 const encoder = new TextEncoder();
 
+// initData is single-use at resolve time, so a day is a generous ceiling that
+// still stops a captured blob from being replayed indefinitely.
+const MAX_INITDATA_AGE_SEC = 86_400;
+const MAX_FUTURE_SKEW_SEC = 300;
+
 async function hmacSha256(keyData: BufferSource, message: string): Promise<ArrayBuffer> {
   const key = await crypto.subtle.importKey(
     'raw',
@@ -50,9 +55,14 @@ function timingSafeEqual(a: string, b: string): boolean {
 
 /**
  * Verify a Telegram WebApp `initData` query string against the bot token.
- * Returns the parsed user on success, or `{ ok: false }` for any tamper.
+ * Returns the parsed user on success, or `{ ok: false }` for any tamper or a
+ * stale/missing `auth_date` (replay protection). `nowMs` is injectable for tests.
  */
-export async function verifyInitData(initData: string, botToken: string): Promise<InitDataResult> {
+export async function verifyInitData(
+  initData: string,
+  botToken: string,
+  nowMs: number = Date.now(),
+): Promise<InitDataResult> {
   const params = new URLSearchParams(initData);
   const providedHash = params.get('hash');
   if (providedHash === null) return { ok: false };
@@ -69,6 +79,15 @@ export async function verifyInitData(initData: string, botToken: string): Promis
   const secret = await hmacSha256(encoder.encode('WebAppData'), botToken);
   const expectedHash = toHex(await hmacSha256(new Uint8Array(secret), dataCheckString));
   if (!timingSafeEqual(expectedHash, providedHash)) return { ok: false };
+
+  // Replay protection: a validly-signed blob must also be recent. Reject a
+  // missing / non-numeric / stale / far-future auth_date.
+  const authDateRaw = params.get('auth_date');
+  if (authDateRaw === null) return { ok: false };
+  const authDate = Number(authDateRaw);
+  if (!Number.isFinite(authDate)) return { ok: false };
+  const ageSec = nowMs / 1000 - authDate;
+  if (ageSec > MAX_INITDATA_AGE_SEC || ageSec < -MAX_FUTURE_SKEW_SEC) return { ok: false };
 
   let user: TelegramUser | null = null;
   const userRaw = params.get('user');
@@ -129,13 +148,21 @@ export async function editMessageText(
   messageId: number,
   text: string,
 ): Promise<void> {
-  await callBot<SentMessage>(token, 'editMessageText', {
-    chat_id: chatId,
-    message_id: messageId,
-    text,
-    parse_mode: 'HTML',
-    disable_web_page_preview: true,
-  });
+  try {
+    await callBot<SentMessage>(token, 'editMessageText', {
+      chat_id: chatId,
+      message_id: messageId,
+      text,
+      parse_mode: 'HTML',
+      disable_web_page_preview: true,
+    });
+  } catch (err) {
+    // Editing to identical text returns "message is not modified" — benign; the
+    // pinned digest is already current, so treat it as success (and let the pin
+    // retry that follows still run).
+    if (err instanceof Error && err.message.includes('message is not modified')) return;
+    throw err;
+  }
 }
 
 /**

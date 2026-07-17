@@ -57,14 +57,30 @@ export class Crew extends DurableObject<Env> {
 
   /** Attach this crew to a Telegram chat and arm the first digest alarm. */
   async configure(chatId: number): Promise<void> {
+    const prev = this.config();
     this.ctx.storage.sql.exec(
       `INSERT INTO crew_config (id, chat_id, is_admin) VALUES (1, ?, 0)
        ON CONFLICT(id) DO UPDATE SET chat_id = excluded.chat_id`,
       chatId,
     );
+    // Rebinding to a different chat invalidates the old pinned message id.
+    if (prev?.chat_id != null && prev.chat_id !== chatId) {
+      this.ctx.storage.sql.exec('UPDATE crew_config SET pinned_message_id = NULL WHERE id = 1');
+    }
     if ((await this.ctx.storage.getAlarm()) === null) {
       await this.ctx.storage.setAlarm(Date.now() + DIGEST_INTERVAL_MS);
     }
+  }
+
+  /**
+   * The bot was removed from the chat (left / kicked): cancel the alarm and
+   * forget the chat, so it doesn't keep firing failing Telegram calls forever.
+   */
+  async deactivate(): Promise<void> {
+    await this.ctx.storage.deleteAlarm();
+    this.ctx.storage.sql.exec(
+      'UPDATE crew_config SET chat_id = NULL, pinned_message_id = NULL, is_admin = 0 WHERE id = 1',
+    );
   }
 
   /** Record whether the bot is a group admin (drives pin vs plain send). */

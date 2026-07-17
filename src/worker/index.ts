@@ -34,6 +34,11 @@ function isGroupChat(chat: TelegramChat): boolean {
   return chat.type === 'group' || chat.type === 'supergroup';
 }
 
+/** Bearer check for the admin endpoints. Fails CLOSED when the key is absent. */
+function bearerOk(request: Request, key: string | undefined): boolean {
+  return key !== undefined && key !== '' && request.headers.get('authorization') === `Bearer ${key}`;
+}
+
 // ── Route handlers ───────────────────────────────────────────────────────────
 
 async function handleResolve(request: Request, env: Env): Promise<Response> {
@@ -51,6 +56,12 @@ async function applyUpdate(update: TelegramUpdate, env: Env): Promise<void> {
     const status = mcm.new_chat_member.status;
     console.log(`my_chat_member chat=${chatId} status=${status}`);
     const crew = env.CREW.getByName(String(chatId));
+    // Bot removed from the chat → stop the alarm and forget it (otherwise the
+    // alarm keeps firing failing Telegram calls every 5 min forever).
+    if (status === 'left' || status === 'kicked') {
+      await crew.deactivate();
+      return;
+    }
     await crew.configure(chatId);
     await crew.setAdmin(status === 'administrator');
     // On promotion, post + silently pin the first digest right away (this is the
@@ -73,9 +84,12 @@ async function handleWebhook(
   env: Env,
   ctx: ExecutionContext,
 ): Promise<Response> {
+  // Fail CLOSED: a missing WEBHOOK_SECRET binding must not leave the webhook open
+  // to forged updates.
   const expected = env.WEBHOOK_SECRET;
   if (
-    expected !== undefined &&
+    expected === undefined ||
+    expected === '' ||
     request.headers.get('X-Telegram-Bot-Api-Secret-Token') !== expected
   ) {
     return new Response('forbidden', { status: 403 });
@@ -100,26 +114,32 @@ async function handleWebhook(
  * never leaves the server.
  */
 async function handleSetup(request: Request, url: URL, env: Env): Promise<Response> {
-  const key = env.SETUP_KEY;
-  if (key !== undefined && request.headers.get('authorization') !== `Bearer ${key}`) {
-    return json({ error: 'forbidden' }, 403);
+  if (!bearerOk(request, env.SETUP_KEY)) return json({ error: 'forbidden' }, 403);
+
+  // getUpdates is the ONLY expected failure here (Telegram disables it once a
+  // webhook is active); surface anything else instead of masking a real problem.
+  let updates: TelegramUpdate[] = [];
+  try {
+    updates = await getUpdates(env.BOT_TOKEN);
+  } catch (err) {
+    const message = err instanceof Error ? err.message : '';
+    if (!/webhook is active/i.test(message)) {
+      console.error('setup getUpdates failed:', message);
+      return json({ error: 'setup: getUpdates failed' }, 502);
+    }
   }
 
   const groups = new Map<number, boolean>(); // chatId → isAdmin
-  try {
-    for (const update of await getUpdates(env.BOT_TOKEN)) {
-      const mcm = update.my_chat_member;
-      if (mcm !== undefined && isGroupChat(mcm.chat)) {
-        const admin = mcm.new_chat_member.status === 'administrator';
-        groups.set(mcm.chat.id, (groups.get(mcm.chat.id) ?? false) || admin);
-      }
-      const msg = update.message;
-      if (msg !== undefined && isGroupChat(msg.chat) && !groups.has(msg.chat.id)) {
-        groups.set(msg.chat.id, false);
-      }
+  for (const update of updates) {
+    const mcm = update.my_chat_member;
+    if (mcm !== undefined && isGroupChat(mcm.chat)) {
+      const admin = mcm.new_chat_member.status === 'administrator';
+      groups.set(mcm.chat.id, (groups.get(mcm.chat.id) ?? false) || admin);
     }
-  } catch {
-    // getUpdates fails once a webhook is active — fine on re-runs.
+    const msg = update.message;
+    if (msg !== undefined && isGroupChat(msg.chat) && !groups.has(msg.chat.id)) {
+      groups.set(msg.chat.id, false);
+    }
   }
 
   const configured: { chatId: number; admin: boolean }[] = [];
@@ -134,13 +154,22 @@ async function handleSetup(request: Request, url: URL, env: Env): Promise<Respon
   return json({ configured, webhook: 'registered' });
 }
 
-/** Testing hook: force a crew's digest now, honoring `?now=` time-travel. */
-async function handleTrigger(url: URL, env: Env): Promise<Response> {
+/**
+ * Admin/testing hook: force a crew's digest now, honoring `?now=` time-travel.
+ * Guarded by the SETUP_KEY bearer — it can drive Telegram sends and rebind a
+ * crew's chat, so it must never be open.
+ */
+async function handleTrigger(request: Request, url: URL, env: Env): Promise<Response> {
+  if (!bearerOk(request, env.SETUP_KEY)) return json({ error: 'forbidden' }, 403);
   const crewId = url.searchParams.get('crew');
-  if (crewId === null) return json({ error: 'crew query param required' }, 400);
+  if (crewId === null || crewId === '') return json({ error: 'crew query param required' }, 400);
   const crew = env.CREW.getByName(crewId);
   const chat = url.searchParams.get('chat');
-  if (chat !== null) await crew.configure(Number(chat));
+  if (chat !== null) {
+    const chatId = Number(chat);
+    if (!Number.isSafeInteger(chatId)) return json({ error: 'invalid chat' }, 400);
+    await crew.configure(chatId);
+  }
   await crew.postDigest(effectiveNow(url).getTime());
   return json({ ok: true });
 }
@@ -155,7 +184,7 @@ export default {
     if (pathname === '/api/resolve' && post) return handleResolve(request, env);
     if (pathname === '/telegram/webhook' && post) return handleWebhook(request, env, ctx);
     if (pathname === '/telegram/setup' && post) return handleSetup(request, url, env);
-    if (pathname === '/telegram/trigger' && post) return handleTrigger(url, env);
+    if (pathname === '/telegram/trigger' && post) return handleTrigger(request, url, env);
 
     return new Response('Not found', { status: 404 });
   },

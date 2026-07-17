@@ -17,6 +17,24 @@ function messageBody(chatId: number) {
   });
 }
 
+function memberBody(chatId: number, status: string) {
+  return JSON.stringify({
+    update_id: 2,
+    my_chat_member: {
+      chat: { id: chatId, type: 'supergroup' },
+      new_chat_member: { status },
+    },
+  });
+}
+
+async function postWebhook(body: string) {
+  return SELF.fetch('https://example.com/telegram/webhook', {
+    method: 'POST',
+    headers: { 'X-Telegram-Bot-Api-Secret-Token': 'test-webhook-secret' },
+    body,
+  });
+}
+
 describe('POST /telegram/webhook', () => {
   it('rejects a bad secret token', async () => {
     const res = await SELF.fetch('https://example.com/telegram/webhook', {
@@ -43,6 +61,21 @@ describe('POST /telegram/webhook', () => {
         .exec<{ chat_id: number | null }>('SELECT chat_id FROM crew_config WHERE id = 1')
         .toArray();
       expect(rows[0]?.chat_id).toBe(GROUP_ID);
+    });
+  });
+
+  it('deactivates the crew (clears chat + alarm) when the bot is removed', async () => {
+    const chatId = -1005550001;
+    expect((await postWebhook(messageBody(chatId))).status).toBe(200); // configure + arm alarm
+    expect((await postWebhook(memberBody(chatId, 'kicked'))).status).toBe(200); // removed
+
+    const crew = env.CREW.getByName(String(chatId));
+    await runInDurableObject(crew, async (_instance: Crew, state) => {
+      const rows = state.storage.sql
+        .exec<{ chat_id: number | null }>('SELECT chat_id FROM crew_config WHERE id = 1')
+        .toArray();
+      expect(rows[0]?.chat_id).toBeNull();
+      expect(await state.storage.getAlarm()).toBeNull();
     });
   });
 });
