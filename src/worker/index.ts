@@ -11,8 +11,10 @@
 import type { Env } from './env';
 import { Crew } from './crew-do';
 import {
-  crewIdFromParams,
+  getChatMember,
   getUpdates,
+  isActiveMember,
+  resolveCrewRef,
   setWebhook,
   verifyInitData,
   type TelegramChat,
@@ -86,10 +88,19 @@ type ResolvedCrew = {
 /**
  * The single crew gate for every /api/sync, /api/roster, /api/leave and
  * /api/events/* handler. Reads the body once, verifies initData, and derives the
- * crew from the SIGNED `chat.id` only (NOT `start_param`, which is user-chosen) —
- * a body-supplied `chatId` is ignored entirely, closing the cross-crew hole.
- * Returns the parsed body so callers can
- * read ghost/stars/event fields, or a ready-made error Response.
+ * crew from the SIGNED initData — a body-supplied `chatId` is ignored entirely,
+ * closing the cross-crew hole.
+ *
+ * Two launch shapes yield the crew, with different trust:
+ *   - Attachment-menu launch → signed `chat.id` (`trusted`): an authorization
+ *     signal on its own, so we proceed with NO membership call.
+ *   - Direct-link launch → signed `start_param` (untrusted): user-choosable, so
+ *     we ask Telegram (getChatMember) whether the acting user is actually an
+ *     active member of that chat and FAIL CLOSED (403) on a non-member OR on any
+ *     getChatMember error.
+ *
+ * Returns the parsed body so callers can read ghost/stars/event fields, or a
+ * ready-made error Response.
  */
 async function resolveCrew(
   request: Request,
@@ -100,13 +111,27 @@ async function resolveCrew(
   if (!result.ok || result.user === null) {
     return { ok: false, res: json({ error: 'invalid initData' }, 401) };
   }
-  const crewId = crewIdFromParams(result.params);
-  if (crewId === null) {
+  const ref = resolveCrewRef(result.params);
+  if (ref === null) {
     return { ok: false, res: json({ error: 'cannot determine crew from initData' }, 400) };
+  }
+  // Untrusted (direct-link start_param): the crew id is user-chosen, so it is
+  // only usable once Telegram confirms the acting user is an active member.
+  // getChatMember never throws — a non-member OR any error → deny (fail closed).
+  if (!ref.trusted) {
+    const membership = await getChatMember(env.BOT_TOKEN, Number(ref.crewId), result.user.id);
+    if (!isActiveMember(membership)) {
+      return { ok: false, res: json({ error: 'not a member of this crew' }, 403) };
+    }
   }
   return {
     ok: true,
-    ctx: { body: body ?? {}, user: result.user, crewId, crew: env.CREW.getByName(crewId) },
+    ctx: {
+      body: body ?? {},
+      user: result.user,
+      crewId: ref.crewId,
+      crew: env.CREW.getByName(ref.crewId),
+    },
   };
 }
 

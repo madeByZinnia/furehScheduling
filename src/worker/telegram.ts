@@ -102,25 +102,34 @@ export async function verifyInitData(
 }
 
 /**
- * Derive the crew id from the VERIFIED initData params — ONLY from the signed
- * `chat.id`. HMAC proves a field was not tampered in transit, but that is NOT
- * the same as authorization:
- *
- *   - `chat` is set by Telegram from the actual group the Mini App was opened
- *     in — a group the launching user is really a member of — so it IS an
- *     authorization signal for that crew.
- *   - `start_param` is USER-CHOSEN: anyone can open a crafted deep link
- *     (`startapp=<any crew id>`) and Telegram will legitimately sign that
- *     value. A valid HMAC on a user-controllable value proves nothing about
- *     authorization, so using it as the Durable Object name would let an
- *     attacker steer to any crew whose id they know. We therefore NEVER read
- *     `start_param` here. Supporting deep-link launches would require a
- *     separate, server-issued crew capability token (follow-up work).
- *
- * Never trust a body-supplied chatId either — only this signed value.
- * Returns null when no usable signed `chat.id` is present.
+ * A crew reference derived from VERIFIED initData, tagged with whether the
+ * source field is authorization-grade on its own (`trusted`) or merely a
+ * user-choosable hint that still requires a membership check (`trusted:false`).
  */
-export function crewIdFromParams(params: URLSearchParams): string | null {
+export interface CrewRef {
+  crewId: string;
+  trusted: boolean;
+}
+
+/**
+ * Derive a crew reference from the VERIFIED initData params. HMAC proves a field
+ * was not tampered in transit, but that is NOT the same as authorization, so the
+ * two crew-bearing fields carry different trust:
+ *
+ *   - `chat` is set by Telegram from the actual group the Mini App was opened in
+ *     (an attachment-menu launch) — a group the launching user is really in — so
+ *     it IS an authorization signal for that crew. → `{ trusted: true }`, no
+ *     membership call needed.
+ *   - `start_param` is USER-CHOSEN: anyone can open a crafted direct link
+ *     (`startapp=<any crew id>`) and Telegram will legitimately sign that value.
+ *     A valid HMAC on a user-controllable value proves nothing about
+ *     authorization, so it MUST be membership-verified (getChatMember) before it
+ *     is used as a Durable Object name. → `{ trusted: false }`.
+ *
+ * `chat` wins when both are present. Never trust a body-supplied chatId either —
+ * only these signed values. Returns null when neither yields a safe-integer id.
+ */
+export function resolveCrewRef(params: URLSearchParams): CrewRef | null {
   const chatRaw = params.get('chat');
   if (chatRaw !== null) {
     try {
@@ -128,11 +137,18 @@ export function crewIdFromParams(params: URLSearchParams): string | null {
       // Telegram chat ids are safe integers. Reject fractional / unsafe /
       // precision-losing values that could alias another DO name.
       if (typeof chat.id === 'number' && Number.isSafeInteger(chat.id)) {
-        return String(chat.id);
+        // Attachment-menu launch: already an authorization signal.
+        return { crewId: String(chat.id), trusted: true };
       }
     } catch {
-      // Malformed chat JSON → no crew (never throw).
+      // Malformed chat JSON → fall through to start_param (never throw).
     }
+  }
+  const sp = params.get('start_param');
+  if (sp !== null && sp !== '' && Number.isSafeInteger(Number(sp))) {
+    // Direct-link launch: user-chosen, so untrusted — the caller MUST verify
+    // membership (getChatMember) before acting on this crew.
+    return { crewId: sp, trusted: false };
   }
   return null;
 }
@@ -164,6 +180,67 @@ async function callBot<T>(token: string, method: string, body: unknown): Promise
     throw new Error(`Telegram ${method} failed: ${data.description ?? `HTTP ${res.status}`}`);
   }
   return data.result;
+}
+
+/** Raw `getChatMember` result fields we read (Telegram sends many more). */
+interface ChatMemberResult {
+  status: string; // 'creator' | 'administrator' | 'member' | 'restricted' | 'left' | 'kicked'
+  is_member?: boolean; // only meaningful for 'restricted'
+}
+
+/**
+ * Ask Telegram whether `userId` is a member of `chatId`. Used to authorize a
+ * direct-link (`start_param`) launch, where the crew id is user-chosen and thus
+ * not authorization on its own.
+ *
+ * FAILS SOFT: on a non-ok Bot API response (e.g. chat/user not found, bot not in
+ * the chat), a network error, or a malformed body we return
+ * `{ status: 'error', isMember: false }` and NEVER throw — the caller treats
+ * anything that is not a proven active membership as "deny" (fail closed).
+ */
+export async function getChatMember(
+  token: string,
+  chatId: number,
+  userId: number,
+): Promise<{ status: string; isMember: boolean }> {
+  try {
+    const res = await fetch(`${API_BASE}/bot${token}/getChatMember`, {
+      method: 'POST',
+      headers: { 'content-type': 'application/json' },
+      body: JSON.stringify({ chat_id: chatId, user_id: userId }),
+      // Bound the auth check: a hung Telegram connection must fail CLOSED (the
+      // AbortError lands in the catch below → deny) rather than leave the
+      // untrusted path pending.
+      signal: AbortSignal.timeout(5000),
+    });
+    const data = await res.json<BotResponse<ChatMemberResult>>();
+    if (!data.ok || data.result === undefined) {
+      return { status: 'error', isMember: false };
+    }
+    return { status: data.result.status, isMember: data.result.is_member === true };
+  } catch {
+    // Network error / non-JSON body → deny, never throw.
+    return { status: 'error', isMember: false };
+  }
+}
+
+/**
+ * True only for an ACTIVE membership: creator/administrator/member always, and a
+ * 'restricted' member only while `is_member` is true (a restricted-but-still-in
+ * user). Everything else — left, kicked, banned, our 'error' sentinel — is false,
+ * so the untrusted direct-link path fails closed.
+ */
+export function isActiveMember(m: { status: string; isMember: boolean }): boolean {
+  switch (m.status) {
+    case 'creator':
+    case 'administrator':
+    case 'member':
+      return true;
+    case 'restricted':
+      return m.isMember === true;
+    default:
+      return false;
+  }
 }
 
 /** Send a message (HTML parse mode). Returns the new message id. */

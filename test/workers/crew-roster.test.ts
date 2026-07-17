@@ -1,5 +1,5 @@
 import { env, runInDurableObject, SELF } from 'cloudflare:test';
-import { describe, it, expect } from 'vitest';
+import { describe, it, expect, vi, afterEach } from 'vitest';
 
 // Real, baked occurrence ids (see src/data/schedule.json) so a non-ghost
 // member's plans resolve to title/start/room. z is a third distinct id.
@@ -63,8 +63,11 @@ async function freshInitData(userId: number, chatId?: number): Promise<string> {
 
 /**
  * A validly-signed blob whose ONLY crew-shaped field is a SIGNED `start_param`
- * (no `chat`). start_param is user-chosen, so even with a valid HMAC it must NOT
- * select a crew — the Worker must reject this with 400.
+ * (no `chat`) — a Direct Link Mini App launch (`?startapp=<groupChatId>`).
+ * start_param is user-chosen, so a valid HMAC is NOT authorization: the Worker
+ * accepts it as a crew selector ONLY after a Telegram membership check
+ * (getChatMember) confirms the acting user is really in that chat. A non-member,
+ * a getChatMember error, or a non-integer start_param all fail closed.
  */
 async function freshInitDataStartParamOnly(userId: number, startParam: string): Promise<string> {
   return signValid(
@@ -76,6 +79,44 @@ async function freshInitDataStartParamOnly(userId: number, startParam: string): 
     },
     TOKEN,
   );
+}
+
+/**
+ * Stub global `fetch` so the Worker's `getChatMember` call resolves to a chosen
+ * outcome. Returns the spy so a test can assert the membership call was (or was
+ * NOT) made. Non-`getChatMember` Telegram calls (none in these tests) default to
+ * `{ ok:true, result:true }`. `mode`:
+ *   - a status string ('member' | 'left' | ...) → `{ ok:true, result:{ status } }`
+ *   - 'api-error' → `{ ok:false }` (Bot API says not-ok)
+ *   - 'reject'    → the fetch promise rejects (network error)
+ */
+function stubTelegram(mode: string): ReturnType<typeof vi.fn> {
+  const fn = vi.fn((input: RequestInfo | URL, _init?: RequestInit): Promise<Response> => {
+    const urlStr =
+      typeof input === 'string' ? input : input instanceof URL ? input.href : input.url;
+    if (urlStr.includes('/getChatMember')) {
+      if (mode === 'reject') return Promise.reject(new Error('network down'));
+      if (mode === 'api-error') {
+        return Promise.resolve(
+          new Response(JSON.stringify({ ok: false, description: 'chat not found' }), {
+            headers: { 'content-type': 'application/json' },
+          }),
+        );
+      }
+      return Promise.resolve(
+        new Response(JSON.stringify({ ok: true, result: { status: mode } }), {
+          headers: { 'content-type': 'application/json' },
+        }),
+      );
+    }
+    return Promise.resolve(
+      new Response(JSON.stringify({ ok: true, result: true }), {
+        headers: { 'content-type': 'application/json' },
+      }),
+    );
+  });
+  vi.stubGlobal('fetch', fn);
+  return fn;
 }
 
 /** POST a JSON body to the running Worker and return the Response. */
@@ -351,11 +392,11 @@ describe('POST /api/sync — crew is derived from SIGNED initData (security)', (
     expect(await res.json()).toEqual({ error: 'cannot determine crew from initData' });
   });
 
-  it('SECURITY: initData with ONLY a signed start_param (no chat) → 400 (start_param is not a crew)', async () => {
-    // Even though the start_param is validly signed, it is user-chosen and must
-    // NOT be accepted as a crew selector.
+  it('start_param that is NOT a valid chat-id integer (and no chat) → 400', async () => {
+    // A non-integer start_param can never be a Telegram chat id, so it is not a
+    // crew selector at all — reject before any membership call.
     const res = await post('/api/sync', {
-      initData: await freshInitDataStartParamOnly(42, '950101'),
+      initData: await freshInitDataStartParamOnly(42, 'abc'),
       ghost: false,
       stars: [X],
     });
@@ -385,5 +426,128 @@ describe('POST /api/sync — crew is derived from SIGNED initData (security)', (
     // Neither crew leaked into the other.
     expect(one.roster.find((e) => e.userId === 2)).toBeUndefined();
     expect(two.roster.find((e) => e.userId === 1)).toBeUndefined();
+  });
+});
+
+// A Direct Link Mini App launch (t.me/<bot>/<app>?startapp=<groupChatId>) delivers
+// the crew id in the SIGNED `start_param`, NOT in `chat`. start_param is
+// user-chosen, so it is authorized ONLY by a live Telegram membership check
+// (getChatMember). These tests stub that Bot API call and pin: member → allowed,
+// everything else (non-member OR getChatMember error) → 403 fail-closed, while the
+// trusted `chat.id` path never makes the call.
+describe('POST /api/sync — direct-link start_param is membership-verified', () => {
+  afterEach(() => {
+    vi.unstubAllGlobals();
+  });
+
+  const called = (fn: ReturnType<typeof vi.fn>): boolean =>
+    fn.mock.calls.some((args) => {
+      const input = args[0] as RequestInfo | URL;
+      const urlStr =
+        typeof input === 'string' ? input : input instanceof URL ? input.href : input.url;
+      return urlStr.includes('/getChatMember');
+    });
+
+  it('direct-link + active member → 200 and the user lands in that crew roster', async () => {
+    const CREW = 960001;
+    const UID = 501;
+    const fetchSpy = stubTelegram('member');
+
+    const res = await post('/api/sync', {
+      initData: await freshInitDataStartParamOnly(UID, String(CREW)),
+      ghost: false,
+      stars: [X, Y],
+    });
+    expect(res.status).toBe(200);
+    expect(await res.json()).toEqual({ ok: true });
+    // The membership check WAS performed for the untrusted start_param path.
+    expect(called(fetchSpy)).toBe(true);
+
+    // The user really landed in the crew named by the start_param.
+    const { roster } = await rosterFor(CREW, UID);
+    const me = roster.find((e) => e.userId === UID);
+    expect(me?.plans.map((p) => p.occurrenceId)).toEqual([X, Y]);
+  });
+
+  it('direct-link + NON-member (left) → 403 and the user does NOT land', async () => {
+    const CREW = 960002;
+    const UID = 502;
+    stubTelegram('left');
+
+    const res = await post('/api/sync', {
+      initData: await freshInitDataStartParamOnly(UID, String(CREW)),
+      ghost: false,
+      stars: [X, Y],
+    });
+    expect(res.status).toBe(403);
+    expect(await res.json()).toEqual({ error: 'not a member of this crew' });
+
+    // Fail-closed: nothing was written, the crew roster is unchanged (empty).
+    const { roster } = await rosterFor(CREW, UID);
+    expect(roster).toEqual([]);
+  });
+
+  it('direct-link + kicked → 403 (another inactive status)', async () => {
+    const CREW = 960003;
+    const UID = 503;
+    stubTelegram('kicked');
+
+    const res = await post('/api/sync', {
+      initData: await freshInitDataStartParamOnly(UID, String(CREW)),
+      ghost: false,
+      stars: [X],
+    });
+    expect(res.status).toBe(403);
+    expect(await res.json()).toEqual({ error: 'not a member of this crew' });
+  });
+
+  it('direct-link + getChatMember Bot API error (ok:false) → 403 (fail closed)', async () => {
+    const CREW = 960004;
+    const UID = 504;
+    stubTelegram('api-error');
+
+    const res = await post('/api/sync', {
+      initData: await freshInitDataStartParamOnly(UID, String(CREW)),
+      ghost: false,
+      stars: [X],
+    });
+    expect(res.status).toBe(403);
+    expect(await res.json()).toEqual({ error: 'not a member of this crew' });
+
+    const { roster } = await rosterFor(CREW, UID);
+    expect(roster).toEqual([]);
+  });
+
+  it('direct-link + getChatMember network rejection → 403 (fail closed, never throws 500)', async () => {
+    const CREW = 960005;
+    const UID = 505;
+    stubTelegram('reject');
+
+    const res = await post('/api/sync', {
+      initData: await freshInitDataStartParamOnly(UID, String(CREW)),
+      ghost: false,
+      stars: [X],
+    });
+    expect(res.status).toBe(403);
+    expect(await res.json()).toEqual({ error: 'not a member of this crew' });
+  });
+
+  it('attachment-menu (signed chat.id) still works WITHOUT any membership call', async () => {
+    const CHAT = 960006;
+    const UID = 506;
+    const fetchSpy = stubTelegram('left'); // would DENY if it were ever consulted
+
+    const res = await post('/api/sync', {
+      initData: await freshInitData(UID, CHAT), // signed chat.id → trusted path
+      ghost: false,
+      stars: [X, Y],
+    });
+    expect(res.status).toBe(200);
+    // The trusted path must NOT consult getChatMember — assert it was skipped.
+    expect(called(fetchSpy)).toBe(false);
+
+    const { roster } = await rosterFor(CHAT, UID);
+    const me = roster.find((e) => e.userId === UID);
+    expect(me?.plans.map((p) => p.occurrenceId)).toEqual([X, Y]);
   });
 });

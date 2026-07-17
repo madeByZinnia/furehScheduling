@@ -57,8 +57,11 @@ async function freshInitData(userId: number, chatId?: number): Promise<string> {
 
 /**
  * A validly-signed blob whose ONLY crew-shaped field is a SIGNED `start_param`
- * (no `chat`). start_param is user-chosen, so even with a valid HMAC it must NOT
- * select a crew — the Worker must reject this with 400.
+ * (no `chat`) — a Direct Link Mini App launch. start_param is user-chosen, so a
+ * valid HMAC is NOT authorization: a chat-id-shaped start_param is accepted only
+ * after a Telegram membership check, and a non-integer one is not a crew at all
+ * (→ 400). The membership-verified happy/deny paths are covered in
+ * crew-roster.test.ts; here we only need the non-integer 400 case.
  */
 async function freshInitDataStartParamOnly(userId: number, startParam: string): Promise<string> {
   return signValid(
@@ -415,10 +418,12 @@ describe('POST /api/events/* — endpoint guards (real fetch)', () => {
     expect(bad401.status).toBe(401);
   });
 
-  it('SECURITY: initData with ONLY a signed start_param (no chat) → 400 (start_param is not a crew)', async () => {
-    // A validly-signed but user-chosen start_param must NOT select a crew.
+  it('start_param that is NOT a chat-id integer (no chat) → 400 (not a crew at all)', async () => {
+    // A non-integer start_param can never be a Telegram chat id, so it is rejected
+    // before any membership check. (Integer start_params are membership-verified —
+    // see crew-roster.test.ts for the direct-link member/non-member/error paths.)
     const res = await post('/api/events/list', {
-      initData: await freshInitDataStartParamOnly(42, '910601'),
+      initData: await freshInitDataStartParamOnly(42, 'not-a-chat-id'),
     });
     expect(res.status).toBe(400);
     expect(await res.json()).toEqual({ error: 'cannot determine crew from initData' });
