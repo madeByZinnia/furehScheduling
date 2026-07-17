@@ -5,6 +5,9 @@
   "main": "src/worker/index.ts",
   "compatibility_date": "2025-01-01",
   "compatibility_flags": ["nodejs_compat"],
+  // Public Direct Link Mini App base; the pinned digest appends ?startapp=<chatId>
+  // to make the crew launch button. Not a secret (it's a t.me link).
+  "vars": { "MINIAPP_URL": "https://t.me/fureh_schedule_bot/schedule" },
   "assets": {
     "directory": "./dist/",
     "not_found_handling": "single-page-application",

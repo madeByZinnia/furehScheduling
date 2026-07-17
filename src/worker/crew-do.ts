@@ -1,7 +1,12 @@
 import { DurableObject } from 'cloudflare:workers';
 import type { Env } from './env';
 import { buildDigest, type DigestOccurrence } from './digest';
-import { editMessageText, pinChatMessage, sendMessage } from './telegram';
+import {
+  editMessageText,
+  pinChatMessage,
+  sendMessage,
+  type InlineKeyboardMarkup,
+} from './telegram';
 import scheduleData from '../data/schedule.json';
 
 /**
@@ -297,10 +302,12 @@ export class Crew extends DurableObject<Env> {
     const token = this.env.BOT_TOKEN;
     const text = buildDigest(OCCURRENCES, new Date(nowMs));
 
+    const markup = this.launchMarkup(cfg.chat_id);
+
     // Steady state: a pinned message exists → quiet edit in place, no dedupe
     // needed because edits fire no notification and are idempotent to repeat.
     if (cfg.pinned_message_id !== null) {
-      await editMessageText(token, cfg.chat_id, cfg.pinned_message_id, text);
+      await editMessageText(token, cfg.chat_id, cfg.pinned_message_id, text, markup);
       // Retry the pin every tick: if the initial pin failed (missing rights) it
       // self-heals the moment the admin right is granted; re-pinning an already
       // pinned message is a harmless no-op.
@@ -319,7 +326,7 @@ export class Crew extends DurableObject<Env> {
     );
     if (claim.rowsWritten === 0) return;
 
-    const messageId = await sendMessage(token, cfg.chat_id, text);
+    const messageId = await sendMessage(token, cfg.chat_id, text, markup);
     // Persist the message id BEFORE pinning: if the pin call throws, a retry
     // finds a pinned_message_id and edits instead of sending a duplicate.
     this.ctx.storage.sql.exec(
@@ -346,6 +353,24 @@ export class Crew extends DurableObject<Env> {
     } catch (err) {
       console.warn('pin skipped:', err instanceof Error ? err.message : err);
     }
+  }
+
+  /**
+   * The inline-keyboard "launch the Mini App" button for the pinned digest, or
+   * undefined when no Mini App url is configured (→ the digest posts with no
+   * button, byte-identical to before). The button is a Direct Link Mini App:
+   * `${MINIAPP_URL}?startapp=<chat_id>` carries the crew's own chat id so the
+   * Worker can membership-verify the launch. The negative supergroup id is a
+   * valid startapp value ('-' is allowed).
+   */
+  private launchMarkup(chatId: number): InlineKeyboardMarkup | undefined {
+    const base = this.env.MINIAPP_URL;
+    if (typeof base !== 'string' || base === '') return undefined;
+    return {
+      inline_keyboard: [
+        [{ text: '🗓 Open the crew schedule', url: `${base}?startapp=${String(chatId)}` }],
+      ],
+    };
   }
 
   // ── Crew roster (member plans + ghost mode) ────────────────────────────────

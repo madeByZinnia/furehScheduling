@@ -74,6 +74,20 @@ export function useStars(): Set<OccurrenceId> {
   return useStore(store);
 }
 
+/**
+ * Non-React subscription for the crew-sync orchestrator: fires whenever the
+ * starred set changes. Returns an unsubscribe. Thin wrapper over the private
+ * store's subscribe so the store itself stays module-private.
+ */
+export function subscribeStars(cb: () => void): () => void {
+  return store.subscribe(cb);
+}
+
+/** Current starred occurrence ids as an array (order not guaranteed). */
+export function getStarsSnapshot(): OccurrenceId[] {
+  return [...store.get()];
+}
+
 /** Test-only: reset to empty (and clear storage). */
 export function __resetStars(): void {
   persist(new Set());

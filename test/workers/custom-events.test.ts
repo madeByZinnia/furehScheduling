@@ -38,13 +38,38 @@ async function signValid(fields: Record<string, string>, token: string): Promise
   return params.toString();
 }
 
-/** A fresh, validly-signed blob for a given user id (auth_date on the real clock). */
-async function freshInitData(userId: number): Promise<string> {
+/**
+ * A fresh, validly-signed blob for a user. When `chatId` is given, the SIGNED
+ * `chat` object carries the crew — that (not a body chatId) is how the Worker
+ * now selects the crew, so it is part of the HMAC-protected data_check_string.
+ */
+async function freshInitData(userId: number, chatId?: number): Promise<string> {
+  const fields: Record<string, string> = {
+    auth_date: String(Math.floor(Date.now() / 1000)),
+    query_id: 'AAF-example',
+    user: JSON.stringify({ id: userId, first_name: 'Robin', username: 'robin' }),
+  };
+  if (chatId !== undefined) {
+    fields.chat = JSON.stringify({ id: chatId, type: 'supergroup' });
+  }
+  return signValid(fields, TOKEN);
+}
+
+/**
+ * A validly-signed blob whose ONLY crew-shaped field is a SIGNED `start_param`
+ * (no `chat`) — a Direct Link Mini App launch. start_param is user-chosen, so a
+ * valid HMAC is NOT authorization: a chat-id-shaped start_param is accepted only
+ * after a Telegram membership check, and a non-integer one is not a crew at all
+ * (→ 400). The membership-verified happy/deny paths are covered in
+ * crew-roster.test.ts; here we only need the non-integer 400 case.
+ */
+async function freshInitDataStartParamOnly(userId: number, startParam: string): Promise<string> {
   return signValid(
     {
       auth_date: String(Math.floor(Date.now() / 1000)),
       query_id: 'AAF-example',
       user: JSON.stringify({ id: userId, first_name: 'Robin', username: 'robin' }),
+      start_param: startParam,
     },
     TOKEN,
   );
@@ -294,14 +319,15 @@ describe('Crew custom events — DO level', () => {
   });
 });
 
-// End-to-end through the REAL Worker fetch (SELF) with valid signed initData.
+// End-to-end through the REAL Worker fetch (SELF) with valid signed initData. The
+// crew is derived from the SIGNED `chat` in initData, so NO chatId is sent in the
+// request body.
 describe('POST /api/events/* — endpoint guards (real fetch)', () => {
   it('create → list round-trips end-to-end (owner view)', async () => {
     const CHAT = 910001;
     const UID = 42;
     const created = await post('/api/events/create', {
-      initData: await freshInitData(UID),
-      chatId: CHAT,
+      initData: await freshInitData(UID, CHAT),
       title: 'Rooftop',
       location: 'Rm 1412',
     });
@@ -311,7 +337,7 @@ describe('POST /api/events/* — endpoint guards (real fetch)', () => {
     expect(event.location).toBe('Rm 1412');
     expect(event.ownerId).toBe(UID);
 
-    const listed = await post('/api/events/list', { initData: await freshInitData(UID), chatId: CHAT });
+    const listed = await post('/api/events/list', { initData: await freshInitData(UID, CHAT) });
     expect(listed.status).toBe(200);
     const { events } = await listed.json<{ events: EventView[] }>();
     expect(events.length).toBe(1);
@@ -320,8 +346,7 @@ describe('POST /api/events/* — endpoint guards (real fetch)', () => {
 
   it('empty title → 400', async () => {
     const res = await post('/api/events/create', {
-      initData: await freshInitData(42),
-      chatId: 910002,
+      initData: await freshInitData(42, 910002),
       title: '   ',
     });
     expect(res.status).toBe(400);
@@ -333,22 +358,20 @@ describe('POST /api/events/* — endpoint guards (real fetch)', () => {
     const OWNER = 42;
     const OTHER = 99;
     const created = await post('/api/events/create', {
-      initData: await freshInitData(OWNER),
-      chatId: CHAT,
+      initData: await freshInitData(OWNER, CHAT),
       title: 'Owned',
     });
     const { event } = await created.json<{ event: EventView }>();
 
     const res = await post('/api/events/cancel', {
-      initData: await freshInitData(OTHER),
-      chatId: CHAT,
+      initData: await freshInitData(OTHER, CHAT),
       eventId: event.eventId,
     });
     expect(res.status).toBe(403);
     expect(await res.json()).toEqual({ error: 'not owner' });
 
     // Still present and NOT cancelled.
-    const listed = await post('/api/events/list', { initData: await freshInitData(OWNER), chatId: CHAT });
+    const listed = await post('/api/events/list', { initData: await freshInitData(OWNER, CHAT) });
     const { events } = await listed.json<{ events: EventView[] }>();
     expect(events[0]!.cancelled).toBe(false);
   });
@@ -358,42 +381,76 @@ describe('POST /api/events/* — endpoint guards (real fetch)', () => {
     const OWNER = 42;
     const VIEWER = 7;
     const created = await post('/api/events/create', {
-      initData: await freshInitData(OWNER),
-      chatId: CHAT,
+      initData: await freshInitData(OWNER, CHAT),
       title: 'Starrable',
     });
     const { event } = await created.json<{ event: EventView }>();
 
     const starred = await post('/api/events/star', {
-      initData: await freshInitData(VIEWER),
-      chatId: CHAT,
+      initData: await freshInitData(VIEWER, CHAT),
       eventId: event.eventId,
       starred: true,
     });
     expect(starred.status).toBe(200);
 
-    const listed = await post('/api/events/list', { initData: await freshInitData(VIEWER), chatId: CHAT });
+    const listed = await post('/api/events/list', { initData: await freshInitData(VIEWER, CHAT) });
     const { events } = await listed.json<{ events: EventView[] }>();
     expect(events[0]!.starCount).toBe(1);
     expect(events[0]!.viewerStarred).toBe(true);
 
     // Missing `starred` boolean → 400.
     const bad = await post('/api/events/star', {
-      initData: await freshInitData(VIEWER),
-      chatId: CHAT,
+      initData: await freshInitData(VIEWER, CHAT),
       eventId: event.eventId,
     });
     expect(bad.status).toBe(400);
   });
 
-  it('malformed chatId → 400; bad initData → 401', async () => {
+  it('no crew in initData → 400; bad initData → 401', async () => {
+    // Signed but with NEITHER chat NOR start_param → cannot determine a crew.
     const bad400 = await post('/api/events/list', {
       initData: await freshInitData(42),
-      chatId: 'not-a-number',
     });
     expect(bad400.status).toBe(400);
+    expect(await bad400.json()).toEqual({ error: 'cannot determine crew from initData' });
 
-    const bad401 = await post('/api/events/list', { initData: 'garbage', chatId: 910005 });
+    const bad401 = await post('/api/events/list', { initData: 'garbage' });
     expect(bad401.status).toBe(401);
+  });
+
+  it('start_param that is NOT a chat-id integer (no chat) → 400 (not a crew at all)', async () => {
+    // A non-integer start_param can never be a Telegram chat id, so it is rejected
+    // before any membership check. (Integer start_params are membership-verified —
+    // see crew-roster.test.ts for the direct-link member/non-member/error paths.)
+    const res = await post('/api/events/list', {
+      initData: await freshInitDataStartParamOnly(42, 'not-a-chat-id'),
+    });
+    expect(res.status).toBe(400);
+    expect(await res.json()).toEqual({ error: 'cannot determine crew from initData' });
+  });
+
+  it('SECURITY: a body chatId for a different crew is IGNORED; the op targets the SIGNED crew', async () => {
+    const CREW_A = 910601;
+    const CREW_B = 910602;
+    const UID = 55;
+
+    // Create an event with initData SIGNED for crew A, but a body chatId = crew B.
+    const created = await post('/api/events/create', {
+      initData: await freshInitData(UID, CREW_A),
+      chatId: CREW_B, // attacker-supplied cross-crew selector — must be ignored
+      title: 'Signed-A only',
+    });
+    expect(created.status).toBe(200);
+
+    // The event exists in crew A (the SIGNED crew)…
+    const inA = await post('/api/events/list', { initData: await freshInitData(UID, CREW_A) });
+    const { events: eventsA } = await inA.json<{ events: EventView[] }>();
+    expect(eventsA.length).toBe(1);
+    expect(eventsA[0]!.title).toBe('Signed-A only');
+
+    // …and crew B (the body chatId) is untouched.
+    const inB = await post('/api/events/list', { initData: await freshInitData(UID, CREW_B) });
+    const { events: eventsB } = await inB.json<{ events: EventView[] }>();
+    expect(eventsB).toEqual([]);
   });
 });

@@ -1,7 +1,7 @@
 import { SELF } from 'cloudflare:test';
 import { describe, it, expect } from 'vitest';
 import fc from 'fast-check';
-import { verifyInitData } from '../../src/worker/telegram';
+import { verifyInitData, resolveCrewRef } from '../../src/worker/telegram';
 
 // Matches the miniflare BOT_TOKEN binding in vitest.workers.config.ts, so the
 // SELF.fetch('/api/resolve') path verifies against the same key.
@@ -157,6 +157,69 @@ describe('POST /api/resolve', () => {
   it('rejects a missing body with 401', async () => {
     const res = await SELF.fetch('https://example.com/api/resolve', { method: 'POST' });
     expect(res.status).toBe(401);
+  });
+});
+
+// resolveCrewRef is the crew SELECTOR over already-verified params. It tags each
+// source with its trust: a signed `chat.id` (attachment-menu launch) is an
+// authorization signal on its own (`trusted:true`); a signed `start_param`
+// (direct-link launch) is user-chosen, so it is `trusted:false` and the caller
+// MUST membership-verify it. `chat` wins when both are present.
+describe('resolveCrewRef — crew selection + trust (SECURITY)', () => {
+  const params = (fields: Record<string, string>): URLSearchParams =>
+    new URLSearchParams(fields);
+
+  it('valid chat.id → trusted crew ref (no membership check needed)', () => {
+    expect(
+      resolveCrewRef(params({ chat: JSON.stringify({ id: 900001, type: 'supergroup' }) })),
+    ).toEqual({ crewId: '900001', trusted: true });
+    // Negative ids (Telegram group ids are negative) still work.
+    expect(resolveCrewRef(params({ chat: JSON.stringify({ id: -1001234567890 }) }))).toEqual({
+      crewId: '-1001234567890',
+      trusted: true,
+    });
+  });
+
+  it('fractional chat.id → null (not a safe integer, no start_param fallback)', () => {
+    expect(resolveCrewRef(params({ chat: JSON.stringify({ id: 1.5 }) }))).toBeNull();
+  });
+
+  it('unsafe-integer chat.id → null (precision-losing, could alias another DO)', () => {
+    // MAX_SAFE_INTEGER + 2 is not representable exactly, so reject it.
+    expect(
+      resolveCrewRef(params({ chat: `{"id":${Number.MAX_SAFE_INTEGER + 2},"type":"supergroup"}` })),
+    ).toBeNull();
+  });
+
+  it('missing chat and no start_param → null', () => {
+    expect(resolveCrewRef(params({ query_id: 'AAF-example' }))).toBeNull();
+  });
+
+  it('malformed chat JSON → null (never throws; falls through to start_param)', () => {
+    expect(resolveCrewRef(params({ chat: 'not-json' }))).toBeNull();
+    expect(resolveCrewRef(params({ chat: '{"id":}' }))).toBeNull();
+  });
+
+  it('SECURITY: start_param alone → UNTRUSTED crew ref (membership-verified by caller)', () => {
+    // start_param is user-chosen; a signed value is NOT authorization on its own,
+    // so it is returned as trusted:false and the caller must verify membership.
+    expect(resolveCrewRef(params({ start_param: '900001' }))).toEqual({
+      crewId: '900001',
+      trusted: false,
+    });
+  });
+
+  it('non-integer start_param → null (never a chat id, so not a crew)', () => {
+    expect(resolveCrewRef(params({ start_param: 'crew-A', query_id: 'x' }))).toBeNull();
+    expect(resolveCrewRef(params({ start_param: '' }))).toBeNull();
+  });
+
+  it('signed chat.id WINS over a start_param, and stays trusted', () => {
+    expect(
+      resolveCrewRef(
+        params({ chat: JSON.stringify({ id: 111 }), start_param: '222' }),
+      ),
+    ).toEqual({ crewId: '111', trusted: true });
   });
 });
 
