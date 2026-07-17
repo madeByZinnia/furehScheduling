@@ -84,6 +84,9 @@ export class Crew extends DurableObject<Env> {
     this.ctx.storage.sql.exec(
       'UPDATE crew_config SET chat_id = NULL, pinned_message_id = NULL, is_admin = 0 WHERE id = 1',
     );
+    // Forget the dedupe ledger too, so a re-add in the same 5-min bucket isn't
+    // suppressed by a stale claim.
+    this.ctx.storage.sql.exec('DELETE FROM digest_posts');
   }
 
   /** Record whether the bot is a group admin (drives pin vs plain send). */

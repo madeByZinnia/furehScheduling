@@ -89,6 +89,17 @@ describe('Crew digest', () => {
     expect(count('sendMessage')).toBe(1);
   });
 
+  it('re-posts after being kicked and re-added in the same bucket', async () => {
+    const crew = env.CREW.getByName('crew-rejoin');
+    await crew.configure(1);
+    await crew.postDigest(CON_NOW); // send #1, claims the bucket
+    await crew.deactivate(); // kicked → ledger cleared
+    await crew.configure(1); // re-added
+    await crew.postDigest(CON_NOW); // same bucket, must NOT be suppressed
+
+    expect(count('sendMessage')).toBe(2);
+  });
+
   it('does nothing until the crew is attached to a chat', async () => {
     const crew = env.CREW.getByName('crew-unconfigured');
     await crew.postDigest(CON_NOW);
