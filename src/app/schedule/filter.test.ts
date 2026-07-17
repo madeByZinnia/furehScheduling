@@ -4,6 +4,7 @@ import type { ItemCode, OccurrenceId } from '../../data/ids';
 import {
   matchesSearch,
   filterOccurrences,
+  starredOccurrences,
   dayTabs,
   defaultDayIndex,
   groupByTime,
@@ -81,6 +82,23 @@ describe('dayTabs + defaultDayIndex', () => {
     expect(defaultDayIndex(tabs, new Date('2026-07-17T15:00:00-06:00'))).toBe(1);
     expect(defaultDayIndex(tabs, new Date('2026-07-10T00:00:00-06:00'))).toBe(0); // before
     expect(defaultDayIndex(tabs, new Date('2026-08-01T00:00:00-06:00'))).toBe(2); // after
+  });
+});
+
+describe('starredOccurrences', () => {
+  const a = occ({ start: '2026-07-16T10:00:00-06:00', day: '2026-07-16', title: 'A' });
+  const b = occ({ start: '2026-07-17T10:00:00-06:00', day: '2026-07-17', title: 'B' });
+  const c = occ({ start: '2026-07-18T10:00:00-06:00', day: '2026-07-18', title: 'C' });
+  const list = [a, b, c];
+
+  it('keeps only starred ids, spanning all days, preserving order', () => {
+    const ids = new Set<OccurrenceId>([c.id, a.id]);
+    expect(starredOccurrences(list, ids).map((o) => o.title)).toEqual(['A', 'C']);
+  });
+
+  it('empty set yields nothing; ids not in the list are ignored', () => {
+    expect(starredOccurrences(list, new Set())).toEqual([]);
+    expect(starredOccurrences(list, new Set(['nope@x' as OccurrenceId]))).toEqual([]);
   });
 });
 
