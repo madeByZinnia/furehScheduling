@@ -5,9 +5,14 @@ import { configureNow } from './now';
 import { initSettings } from './settings';
 import { startAutoSync } from './crewSync';
 import { startCrewAutoRefresh } from './crew';
+import { mockEnabled, installCrewMock } from './devMock';
 
 configureNow(); // apply ?now= override before anything reads "now"
 initSettings(); // apply persisted theme + text size to <html>
+
+// DEV-only: `?mock` seeds the crew store with fake data so the crew + events UI
+// can be exercised in a plain browser. Inert in production (see devMock.ts).
+if (mockEnabled()) installCrewMock();
 
 // Start crew auto-sync ONCE at boot. This also imports telegram-session eagerly
 // at entry, so the launch hash is captured before any later URL mutation. It's a

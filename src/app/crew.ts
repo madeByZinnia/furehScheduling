@@ -1,5 +1,5 @@
-import { useEffect, useState } from 'preact/hooks';
-import { createStore } from './store';
+import { useEffect } from 'preact/hooks';
+import { createStore, useStoreSelector } from './store';
 import { fetchRoster, subscribeSynced, type Roster, type RosterResult } from './crewSync';
 import { getTelegramSession } from './telegram-session';
 
@@ -87,15 +87,17 @@ export function startCrewAutoRefresh(): () => void {
   });
 }
 
-/** Reactive crew state; triggers the first load on mount. */
+/**
+ * Reactive crew state; triggers the first load on mount. Built on
+ * useStoreSelector (useSyncExternalStore) so it never misses an update that
+ * lands between the initial render and the subscription — e.g. a fast loader
+ * resolving in a microtask, which a plain useState+effect subscription would drop.
+ */
 export function useCrew(): CrewState {
-  const [state, setState] = useState(store.get());
   useEffect(() => {
-    const unsubscribe = store.subscribe(() => setState(store.get()));
     ensureCrewLoaded();
-    return unsubscribe;
   }, []);
-  return state;
+  return useStoreSelector(store, (s) => s);
 }
 
 /** Test-only: swap the roster loader. */

@@ -19,6 +19,8 @@ import {
   fetchRoster,
   startAutoSync,
   subscribeSynced,
+  suspendAutoSync,
+  __resetSyncSuspend,
   type Roster,
 } from './crewSync';
 import { toggleStar, __resetStars } from './stars';
@@ -41,6 +43,23 @@ const OCC_A = 'CZKVLN@2026-07-16T10:00:00-06:00' as OccurrenceId;
 function jsonResponse(data: unknown, ok = true): Response {
   return { ok, status: ok ? 200 : 500, json: () => Promise.resolve(data) } as unknown as Response;
 }
+
+describe('suspendAutoSync — leaving must stop re-adding the user', () => {
+  afterEach(() => __resetSyncSuspend());
+
+  it('postSync no-ops (no fetch) once suspended', async () => {
+    const fetchFn = vi.fn().mockResolvedValue(jsonResponse({}));
+    // Sanity: a normal push DOES fetch.
+    expect(await postSync(TG, false, ['a'], fetchFn)).toBe(true);
+    expect(fetchFn).toHaveBeenCalledTimes(1);
+
+    // After leaving, further pushes must not touch the network (which would
+    // re-create the crew-member row the leave just deleted).
+    suspendAutoSync();
+    expect(await postSync(TG, false, ['a', 'b'], fetchFn)).toBe(false);
+    expect(fetchFn).toHaveBeenCalledTimes(1); // unchanged
+  });
+});
 
 describe('buildSyncBody — pure, never leaks a chatId', () => {
   it('telegram session → body with initData + ghost + stars, NO chatId', () => {

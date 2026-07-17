@@ -7,9 +7,12 @@ import { GhostToggle } from './GhostToggle';
 import { MeExport } from './MeExport';
 import { MeImport } from './MeImport';
 import { CrewSection } from './CrewSection';
+import { EventsPanel } from './events/EventsPanel';
+import { LeaveCrew } from './LeaveCrew';
 import { ScheduleView } from './schedule/ScheduleView';
 import { BottomNav } from './nav/BottomNav';
 import type { Tab } from './nav/tabs';
+import { mockEnabled, mockEventsProps, mockLeaveProps } from './devMock';
 
 const schedule = scheduleJson as Schedule;
 
@@ -20,6 +23,9 @@ const schedule = scheduleJson as Schedule;
  */
 export function App() {
   const [tab, setTab] = useState<Tab>('schedule');
+  // DEV-only `?mock`: inject in-memory event/leave handlers so the Crew + Me UI
+  // works without Telegram. Inert (false) in production builds.
+  const mock = mockEnabled();
 
   return (
     <main class="app">
@@ -36,7 +42,12 @@ export function App() {
           <ScheduleView occurrences={schedule.occurrences} />
         ))}
 
-      {tab === 'crew' && <CrewSection />}
+      {tab === 'crew' && (
+        <>
+          <EventsPanel {...(mock ? mockEventsProps : {})} />
+          <CrewSection />
+        </>
+      )}
 
       {tab === 'me' && (
         <>
@@ -44,6 +55,7 @@ export function App() {
           <GhostToggle />
           <MeExport occurrences={schedule.occurrences} />
           <MeImport occurrences={schedule.occurrences} />
+          <LeaveCrew {...(mock ? mockLeaveProps : {})} />
         </>
       )}
 

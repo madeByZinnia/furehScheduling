@@ -79,12 +79,31 @@ export function buildSyncBody(
  * no-op (non-Telegram), a non-ok status, or ANY network error. Never throws.
  * Never logs initData.
  */
+/**
+ * Once the user LEAVES a crew, we must stop pushing local changes: a later star
+ * or ghost toggle would POST /api/sync and the Worker's `syncMember` upsert would
+ * re-create the deleted crew-member row, silently undoing the privacy action.
+ * Session-scoped (resets on reload — a relaunch re-authenticates into the crew).
+ */
+let autoSyncSuspended = false;
+
+/** Stop all further crew pushes for this session. Called after a successful leave. */
+export function suspendAutoSync(): void {
+  autoSyncSuspended = true;
+}
+
+/** Test-only: clear the suspend flag. */
+export function __resetSyncSuspend(): void {
+  autoSyncSuspended = false;
+}
+
 export async function postSync(
   session: TelegramSession,
   ghost: boolean,
   stars: string[],
   fetchFn: typeof fetch = fetch,
 ): Promise<boolean> {
+  if (autoSyncSuspended) return false;
   const body = buildSyncBody(session, ghost, stars);
   if (body === null) return false;
   try {
