@@ -26,6 +26,34 @@ describe('parseInline', () => {
     expect(unsafe.map((t) => t.text).join('')).toBe('[x](javascript:alert(1))');
   });
 
+  it('recovers the real url from a malformed nested link', () => {
+    // Real feed typo: a markdown link nested inside the url slot.
+    expect(
+      parseInline('[TwistedTailsEscape.com]([url](https://www.twistedtailsescape.com/))'),
+    ).toEqual([
+      { kind: 'link', text: 'TwistedTailsEscape.com', href: 'https://www.twistedtailsescape.com/' },
+    ]);
+  });
+
+  it('keeps balanced parens inside a link url (e.g. Wikipedia)', () => {
+    expect(parseInline('[Fox](https://en.wikipedia.org/wiki/Fox_(animal))')).toEqual([
+      { kind: 'link', text: 'Fox', href: 'https://en.wikipedia.org/wiki/Fox_(animal)' },
+    ]);
+  });
+
+  it('auto-links bare urls and returns trailing punctuation to the text', () => {
+    expect(parseInline('visit https://fur-eh.ca today')).toEqual([
+      { kind: 'text', text: 'visit ' },
+      { kind: 'link', text: 'https://fur-eh.ca', href: 'https://fur-eh.ca' },
+      { kind: 'text', text: ' today' },
+    ]);
+    expect(parseInline('see (https://fur-eh.ca).')).toEqual([
+      { kind: 'text', text: 'see (' },
+      { kind: 'link', text: 'https://fur-eh.ca', href: 'https://fur-eh.ca' },
+      { kind: 'text', text: ').' },
+    ]);
+  });
+
   it('leaves plain text untouched', () => {
     expect(parseInline('just words')).toEqual([{ kind: 'text', text: 'just words' }]);
   });
