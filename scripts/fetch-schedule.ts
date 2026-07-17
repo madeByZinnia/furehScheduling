@@ -256,7 +256,9 @@ async function main() {
   // for a genuinely smaller schedule.
   const MAX_SHRINK = 0.15;
   const prevCount = await previousOccurrenceCount();
-  if (prevCount > 0 && occurrences.length < Math.floor(prevCount * (1 - MAX_SHRINK))) {
+  // Compare against the exact float threshold (counts are integers) so the
+  // boundary isn't loosened by rounding.
+  if (prevCount > 0 && occurrences.length < prevCount * (1 - MAX_SHRINK)) {
     const msg = `occurrence count dropped from ${prevCount} to ${occurrences.length} (>${MAX_SHRINK * 100}%) — likely a truncated feed; set ALLOW_SHRINK=1 to override`;
     if (process.env.ALLOW_SHRINK === '1') {
       console.warn(`  WARN  shrink guard overridden: ${msg}`);
