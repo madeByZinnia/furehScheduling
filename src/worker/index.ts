@@ -67,6 +67,7 @@ type CrewBody = {
   initData?: string;
   ghost?: unknown;
   stars?: unknown;
+  displayName?: unknown;
   cancelOwnEvents?: unknown;
   eventId?: unknown;
   title?: unknown;
@@ -140,6 +141,25 @@ async function resolveCrew(
  * empties, and absurdly long entries; caps the count so one request can't store
  * an unbounded set. The DO enforces the cap again (defense in depth).
  */
+/**
+ * A CLIENT-CHOSEN display name, sanitized — or null to fall back to the verified
+ * Telegram name. This deliberately RELAXES the "never a client-supplied name"
+ * rule so members can pick their own crew name; the crew is a small trusted group.
+ * Safeguards: strip C0 control chars + DEL (no CR/LF/NUL smuggling), trim, and
+ * cap length. A blank result falls back to the Telegram-derived name.
+ */
+function sanitizeDisplayName(raw: unknown): string | null {
+  if (typeof raw !== 'string') return null;
+  // Strip C0 control chars + DEL (no CR/LF/NUL smuggling) without a control-char regex.
+  let cleaned = '';
+  for (const ch of raw) {
+    const code = ch.codePointAt(0) ?? 0;
+    if (code >= 0x20 && code !== 0x7f) cleaned += ch;
+  }
+  cleaned = cleaned.trim();
+  return cleaned.length === 0 ? null : cleaned.slice(0, 40);
+}
+
 function sanitizeStars(raw: unknown): string[] {
   if (!Array.isArray(raw)) return [];
   const out: string[] = [];
@@ -168,7 +188,11 @@ async function handleSync(request: Request, env: Env): Promise<Response> {
   // would silently WIPE an existing member's stars. Require an explicit array
   // (an empty [] is still valid: an intentional clear).
   if (!Array.isArray(body.stars)) return json({ error: 'stars must be an array' }, 400);
-  await crew.syncMember(user.id, displayNameFor(user), body.ghost, sanitizeStars(body.stars));
+  // A client may choose their own crew name; blank/absent falls back to the
+  // verified Telegram name. The user id still ALWAYS comes from initData, so a
+  // client can never sync on someone else's behalf.
+  const name = sanitizeDisplayName(body.displayName) ?? displayNameFor(user);
+  await crew.syncMember(user.id, name, body.ghost, sanitizeStars(body.stars));
   return json({ ok: true });
 }
 

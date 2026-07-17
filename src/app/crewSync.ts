@@ -2,6 +2,7 @@ import type { TelegramSession } from './telegram-session';
 import { getTelegramSession } from './telegram-session';
 import { subscribeStars, getStarsSnapshot } from './stars';
 import { subscribeGhost, getGhost } from './ghost';
+import { subscribeDisplayName, getDisplayName } from './profile';
 
 /**
  * Crew sync — the client half of the crew roster. It pushes THIS device's stars
@@ -58,20 +59,27 @@ export interface SyncBody {
   initData: string;
   ghost: boolean;
   stars: string[];
+  /** Custom crew name; omitted when blank so the Worker uses the Telegram name. */
+  displayName?: string;
 }
 
 /**
  * PURE: build the sync body from an explicit session + state. Returns null when
  * there is nothing to sync (plain web, or no signed initData) — the caller then
- * no-ops. Never includes a chatId.
+ * no-ops. Never includes a chatId. A blank `displayName` is omitted so the Worker
+ * falls back to the verified Telegram name.
  */
 export function buildSyncBody(
   session: TelegramSession,
   ghost: boolean,
   stars: string[],
+  displayName = '',
 ): SyncBody | null {
   if (!session.isTelegram || session.initData == null) return null;
-  return { initData: session.initData, ghost, stars };
+  const body: SyncBody = { initData: session.initData, ghost, stars };
+  const name = displayName.trim();
+  if (name !== '') body.displayName = name;
+  return body;
 }
 
 /**
@@ -79,13 +87,33 @@ export function buildSyncBody(
  * no-op (non-Telegram), a non-ok status, or ANY network error. Never throws.
  * Never logs initData.
  */
+/**
+ * Once the user LEAVES a crew, we must stop pushing local changes: a later star
+ * or ghost toggle would POST /api/sync and the Worker's `syncMember` upsert would
+ * re-create the deleted crew-member row, silently undoing the privacy action.
+ * Session-scoped (resets on reload — a relaunch re-authenticates into the crew).
+ */
+let autoSyncSuspended = false;
+
+/** Stop all further crew pushes for this session. Called after a successful leave. */
+export function suspendAutoSync(): void {
+  autoSyncSuspended = true;
+}
+
+/** Test-only: clear the suspend flag. */
+export function __resetSyncSuspend(): void {
+  autoSyncSuspended = false;
+}
+
 export async function postSync(
   session: TelegramSession,
   ghost: boolean,
   stars: string[],
   fetchFn: typeof fetch = fetch,
+  displayName = '',
 ): Promise<boolean> {
-  const body = buildSyncBody(session, ghost, stars);
+  if (autoSyncSuspended) return false;
+  const body = buildSyncBody(session, ghost, stars, displayName);
   if (body === null) return false;
   try {
     const res = await fetchFn('/api/sync', {
@@ -227,7 +255,7 @@ export function startAutoSync(opts: AutoSyncOptions = {}): () => void {
   const flush = (): void => {
     timer = null;
     // postSync never throws; the returned promise is intentionally not awaited.
-    void postSync(session, getGhost(), getStarsSnapshot(), fetchFn).then((ok) => {
+    void postSync(session, getGhost(), getStarsSnapshot(), fetchFn, getDisplayName()).then((ok) => {
       // Only a successful push (true) notifies; a no-op/failed push must not fire.
       if (ok) notifySynced();
     });
@@ -240,6 +268,7 @@ export function startAutoSync(opts: AutoSyncOptions = {}): () => void {
 
   const unsubStars = subscribeStars(schedule);
   const unsubGhost = subscribeGhost(schedule);
+  const unsubName = subscribeDisplayName(schedule);
 
   // Seed the crew with whatever is already local (also debounced).
   schedule();
@@ -247,6 +276,7 @@ export function startAutoSync(opts: AutoSyncOptions = {}): () => void {
   return () => {
     unsubStars();
     unsubGhost();
+    unsubName();
     if (timer !== null) {
       clearTimeout(timer);
       timer = null;

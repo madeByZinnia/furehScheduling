@@ -1,10 +1,69 @@
 /* Component styles — layered AFTER a11y.css (which owns tokens, sizing, focus).
  * Everything sizes in rem so the text-size control scales it from the root. */
 
+/* Nominal height of the fixed bottom nav bar's content (excludes the safe-area
+   inset, added separately). In REM so it scales with the text-size setting along
+   with the nav's label/icon — the bar grows to keep the labels readable rather
+   than pinning them tiny. The FAB offset and the .app bottom padding both derive
+   from this, so they scale in lockstep. */
+:root {
+  --bottom-nav-h: 3.75rem;
+}
+
 .app {
   max-width: 44rem;
   margin: 0 auto;
-  padding: 0 1rem 4rem;
+  /* Bottom space clears BOTH the fixed bottom nav bar and the jump-to-now FAB
+     that floats just above it, plus the safe-area inset — so the last event
+     row's star is never trapped under either. */
+  padding: 0 1rem calc(var(--bottom-nav-h) + 6rem + env(safe-area-inset-bottom, 0px));
+}
+
+/* ── Bottom navigation ───────────────────────────────────────────────────────*/
+.bottom-nav {
+  position: fixed;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  z-index: 30; /* above the FAB (z-index 20) */
+  display: flex;
+  background: var(--panel);
+  border-top: 2px solid var(--border);
+  /* Keep the tappable bar clear of the phone's home indicator. */
+  padding-bottom: env(safe-area-inset-bottom, 0px);
+}
+.bottom-nav-tab {
+  flex: 1;
+  /* min-height (not a fixed height) so the bar grows if larger text needs it. */
+  min-height: var(--bottom-nav-h);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 0.15rem;
+  padding: 0.35rem 0.25rem;
+  background: transparent;
+  border: none;
+  /* A top accent bar marks the active tab by SHAPE, not colour alone. */
+  border-top: 3px solid transparent;
+  color: var(--text-dim);
+  /* rem so the label honours the text-size setting. */
+  font-size: 0.8125rem;
+  font-weight: 500;
+  letter-spacing: 0.03em;
+}
+.bottom-nav-label {
+  text-align: center;
+}
+/* Icon kept modest (smaller than the old 20px) so the scalable label has room. */
+.bottom-nav-icon {
+  font-size: 1.15rem;
+  line-height: 1;
+}
+.bottom-nav-tab.is-active {
+  color: var(--gold);
+  font-weight: 700; /* bold weight = text-shape difference, not just colour */
+  border-top-color: var(--gold);
 }
 
 .app-head {
@@ -20,26 +79,6 @@
   font-size: 1.5rem;
 }
 
-/* ── View toggle (Schedule / Map) ───────────────────────────────────────────*/
-.view-toggle {
-  display: flex;
-  gap: 0.5rem;
-  margin: 0.5rem 0 1rem;
-}
-.view-tab {
-  padding: 0.5rem 1.1rem;
-  font-size: 1rem;
-  color: var(--text-dim);
-  background: var(--surface);
-  border: 1px solid var(--border);
-  border-radius: var(--radius);
-}
-.view-tab[aria-pressed='true'] {
-  color: var(--ink, var(--bg));
-  background: var(--gold);
-  border-color: var(--gold);
-}
-
 /* ── Search ─────────────────────────────────────────────────────────────────*/
 .search {
   width: 100%;
@@ -52,6 +91,81 @@
   border-radius: var(--radius);
 }
 .search::placeholder {
+  color: var(--text-dim);
+}
+
+/* ── Filter zone (search + favourites) ───────────────────────────────────────*/
+/* Sits between the search input and the browse-only day tabs, grouping the two
+   filters that compose (search narrows within favourites). */
+/* ── Whose-favourites picker ─────────────────────────────────────────────────*/
+.whose-faves {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  margin: 0 0 0.5rem;
+}
+.whose-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  min-height: 2.75rem; /* 44px tap target */
+  max-width: 100%;
+  padding: 0.35rem 0.8rem;
+  color: var(--text-dim);
+  background: var(--surface);
+  border: 2px solid var(--border);
+  border-radius: var(--radius);
+  font-weight: 600;
+}
+.whose-chip .whose-star {
+  color: var(--gold);
+}
+/* A crew member's name must never widen the chip past the row — clamp it. */
+.whose-chip .whose-name {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  max-width: 8rem;
+}
+/* Active state: bold weight (a text-shape cue) plus the gold fill, not colour
+   alone — and aria-pressed carries it for assistive tech. */
+.whose-chip[aria-pressed='true'] {
+  color: var(--ink, var(--bg));
+  background: var(--gold);
+  border-color: var(--gold);
+  font-weight: 700;
+}
+.whose-chip[aria-pressed='true'] .whose-star {
+  color: var(--ink, var(--bg));
+}
+
+/* ── Avatar (initial badge) ──────────────────────────────────────────────────*/
+/* Background colour is set inline (a stable per-user palette). Text is fixed dark
+   ink — the palette colours are light enough for it to read in both themes. */
+.avatar {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex: none;
+  border-radius: 50%;
+  color: #14110c;
+  font-weight: 700;
+  line-height: 1;
+}
+.avatar-sm {
+  width: 1.25rem;
+  height: 1.25rem;
+  font-size: 0.7rem;
+}
+.avatar-md {
+  width: 2.125rem;
+  height: 2.125rem;
+  font-size: 0.95rem;
+}
+
+.filter-status {
+  margin: 0 0 1rem;
+  font-size: 0.8125rem;
   color: var(--text-dim);
 }
 
@@ -141,6 +255,49 @@
 }
 .event-row .track {
   color: var(--green);
+}
+
+/* "Also going" — crew (minus you) who starred this session. Sits BELOW the
+   title/description as its own row with real spacing, so it can never collide
+   with the room/meta line. Chips wrap; long names clamp rather than overflow. */
+.going {
+  display: flex;
+  align-items: baseline;
+  flex-wrap: wrap;
+  gap: 0.3rem 0.5rem;
+  margin-top: 0.5rem;
+}
+.going-label {
+  font-size: 0.6875rem;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  color: var(--text-dim);
+}
+.going-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.3rem;
+  min-width: 0;
+}
+.going-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.3rem;
+  max-width: 100%;
+  padding: 0.1rem 0.5rem 0.1rem 0.15rem;
+  background: var(--surface-2);
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  font-size: 0.8125rem;
+}
+.going-name {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  max-width: 7rem;
 }
 
 /* Disclosure: the title/meta area doubles as an expand toggle when there's a
@@ -456,9 +613,23 @@
   border: 1px solid var(--border);
   border-radius: var(--radius);
 }
+.crew-head {
+  align-self: stretch;
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 0.5rem;
+  flex-wrap: wrap;
+}
 .crew-section h2 {
   margin: 0;
   font-size: 1rem;
+}
+.crew-count-label {
+  font-size: 0.6875rem;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  color: var(--text-dim);
 }
 .crew-status {
   margin: 0;
@@ -486,31 +657,385 @@
   gap: 0.6rem;
 }
 .crew-member {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
   padding: 0.6rem 0.75rem;
   background: var(--panel);
   border: 1px solid var(--border);
   border-radius: var(--radius);
 }
+.crew-member-main {
+  flex: 1 1 auto;
+  min-width: 0;
+}
 .crew-member-name {
   display: block;
   font-weight: 600;
+  overflow-wrap: anywhere;
 }
 .crew-member-note {
-  margin: 0.25rem 0 0;
+  margin: 0.15rem 0 0;
   font-size: 0.8125rem;
   color: var(--text-dim);
 }
-.crew-member-plans {
-  margin: 0.25rem 0 0;
-  padding-left: 1.25rem;
+.crew-member-count {
+  flex: none;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  line-height: 1.1;
+  font-weight: 700;
+  color: var(--text);
+}
+.crew-member-count small {
+  font-size: 0.7rem;
+  font-weight: 500;
+  color: var(--text-dim);
+}
+
+/* ── Custom crew events ──────────────────────────────────────────────────────*/
+.events-section {
+  display: flex;
+  flex-direction: column;
+  gap: 0.6rem;
+  padding: 1rem;
+  margin-bottom: 1rem;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+}
+.events-title {
+  margin: 0;
+  font-size: 1rem;
+}
+.events-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.5rem;
+  flex-wrap: wrap;
+}
+.events-head h3,
+.events-subhead {
+  margin: 0;
   font-size: 0.9375rem;
 }
-.crew-member-plans li {
-  margin: 0.1rem 0;
+.events-subhead {
+  margin-top: 0.4rem;
+  color: var(--text-dim);
+}
+.events-status,
+.events-empty {
+  margin: 0;
+  font-size: 0.9375rem;
+  color: var(--text-dim);
+}
+.events-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+/* Event card: content column + star, like .event-row. Custom events carry a
+   violet left accent (a fixed colour that reads in both themes). */
+.event-card {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.75rem;
+  padding: 0.75rem;
+  background: var(--panel);
+  border: 1px solid var(--border);
+  border-left: 3px solid #b3a6e0;
+  border-radius: var(--radius);
+}
+.event-card.is-cancelled {
+  opacity: 0.6;
+  border-left-color: var(--border-hi);
+}
+.event-card-body {
+  flex: 1 1 auto;
+  min-width: 0;
+}
+.event-card-title {
+  font-weight: 600;
+  overflow-wrap: anywhere;
+}
+.event-cancelled-tag {
+  font-weight: 700;
+  color: var(--rose);
+}
+.event-card-when,
+.event-card-loc,
+.event-card-notes {
+  font-size: 0.8125rem;
+  color: var(--text-dim);
+  margin-top: 0.15rem;
+  overflow-wrap: anywhere;
+}
+.event-edit {
+  margin-top: 0.5rem;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.3rem;
+  padding: 0.35rem 0.7rem;
+  color: var(--text);
+  background: var(--surface);
+  border: 1px solid var(--border-hi);
+  border-radius: var(--radius);
+  font-size: 0.8125rem;
+  font-weight: 600;
+}
+.event-star {
+  flex: none;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.1rem;
+  padding: 0.25rem 0.4rem;
+  color: var(--text-dim);
+  background: transparent;
+  border: 2px solid transparent;
+  border-radius: var(--radius);
+  font-size: 1.25rem;
+  line-height: 1;
+}
+.event-star[aria-pressed='true'] {
+  color: var(--gold);
+  border-color: var(--gold);
+}
+.event-star-count {
+  font-size: 0.75rem;
+  font-weight: 700;
+}
+.event-new,
+.event-retry {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.3rem;
+  padding: 0.4rem 0.8rem;
+  color: var(--text);
+  background: var(--panel);
+  border: 1px solid var(--border-hi);
+  border-radius: var(--radius);
+  font-weight: 600;
+}
+
+/* Create / edit form */
+.event-form {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+.event-form-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.5rem;
+}
+.event-form-head h3 {
+  margin: 0;
+  font-size: 1rem;
+}
+.event-back {
+  padding: 0.35rem 0.7rem;
+  color: var(--blue);
+  background: transparent;
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  font-weight: 600;
+}
+.event-error {
+  margin: 0;
+  padding: 0.5rem 0.7rem;
+  font-size: 0.875rem;
+  color: var(--rose);
+  border: 1px solid var(--rose);
+  border-radius: var(--radius);
+}
+.field {
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+}
+.field-label {
+  font-size: 0.8125rem;
+  font-weight: 600;
+  color: var(--text-dim);
+}
+.field-opt {
+  font-weight: 400;
+  opacity: 0.8;
+}
+.field-input {
+  width: 100%;
+  padding: 0.6rem 0.7rem;
+  color: var(--text);
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  font-size: 1rem;
+}
+.field-textarea {
+  min-height: 4rem;
+  resize: vertical;
+}
+.field-when {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  flex-wrap: wrap;
+}
+.field-when .field-input {
+  width: auto;
+  flex: 1 1 6rem;
+  min-width: 0;
+}
+.field-when-sep {
+  color: var(--text-dim);
+}
+
+.btn-primary {
+  padding: 0.7rem 1rem;
+  color: var(--ink, var(--bg));
+  background: var(--green);
+  border: 2px solid var(--green);
+  border-radius: var(--radius);
+  font-weight: 700;
+}
+.btn-danger {
+  padding: 0.6rem 1rem;
+  color: var(--rose);
+  background: transparent;
+  border: 2px solid var(--rose);
+  border-radius: var(--radius);
+  font-weight: 700;
+}
+.btn-primary:disabled,
+.btn-danger:disabled {
+  opacity: 0.5;
+}
+
+.event-cancel {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  margin-top: 0.5rem;
+  padding-top: 0.75rem;
+  border-top: 1px solid var(--border);
+}
+.event-note {
+  margin: 0;
+  font-size: 0.8125rem;
+  color: var(--text-dim);
+}
+.check {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  min-height: 2.75rem;
+  font-size: 0.9375rem;
+}
+
+.leave-section {
+  display: flex;
+  flex-direction: column;
+  gap: 0.6rem;
+  padding: 1rem;
+  margin-bottom: 1rem;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+}
+.leave-confirm {
+  display: flex;
+  flex-direction: column;
+  gap: 0.6rem;
+}
+.leave-actions {
+  display: flex;
+  gap: 0.5rem;
+  flex-wrap: wrap;
+}
+
+/* ── Me: display name + about ────────────────────────────────────────────────*/
+.me-section {
+  display: flex;
+  flex-direction: column;
+  gap: 0.6rem;
+  padding: 1rem;
+  margin-bottom: 1rem;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+}
+.me-section h2 {
+  margin: 0;
+  font-size: 1rem;
+}
+.me-note {
+  margin: 0;
+  font-size: 0.8125rem;
+  color: var(--text-dim);
+}
+
+/* "About the dev" — a quiet, collapsed disclosure at the very bottom. */
+.about-dev {
+  margin: 1.5rem 0 0.5rem;
+  color: var(--text-dim);
+  font-size: 0.875rem;
+}
+.about-dev > summary {
+  cursor: pointer;
+  min-height: 2.75rem;
+  display: flex;
+  align-items: center;
+  color: var(--text-dim);
+}
+.about-dev-body {
+  padding: 0.25rem 0 0.5rem;
+}
+.about-dev-links {
+  margin: 0.5rem 0 0;
+  padding-left: 1.1rem;
+  line-height: 1.9;
+}
+.about-dev-links a {
+  color: var(--blue);
 }
 
 .empty {
   color: var(--text-dim);
   padding: 2rem 0;
   text-align: center;
+}
+
+/* ── Jump-to-now FAB ─────────────────────────────────────────────────────────*/
+/* Floating bottom-right on the schedule page; scrolls to the "now" separator.
+   A labelled pill (not an icon) so its purpose is unambiguous. Clamped to the
+   centred content column so it hugs the schedule rather than the viewport edge.
+   Sizing is in px, not rem, so the control stays a stable size regardless of
+   the text-size setting. */
+.fab {
+  position: fixed;
+  z-index: 20;
+  /* Float 1rem above the fixed bottom nav bar (which owns the safe-area inset). */
+  bottom: calc(1rem + var(--bottom-nav-h) + env(safe-area-inset-bottom, 0px));
+  right: max(1rem, calc(50vw - 22rem + 1rem));
+  min-height: 44px; /* tap target */
+  padding: 0 18px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  white-space: nowrap;
+  font-size: 15px;
+  font-weight: 700;
+  color: var(--ink, var(--bg));
+  background: var(--gold);
+  border: 2px solid var(--border-hi);
+  border-radius: 999px;
+  box-shadow: 0 8px 20px -6px rgba(0, 0, 0, 0.5);
 }

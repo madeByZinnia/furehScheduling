@@ -4,10 +4,12 @@ import { render } from 'preact';
 import { act } from 'preact/test-utils';
 import type { Roster, RosterResult } from './crewSync';
 import { CrewSection } from './CrewSection';
+import { __setCrewLoader, __resetCrew } from './crew';
 
 let container: HTMLElement;
 
 beforeEach(() => {
+  __resetCrew();
   container = document.createElement('div');
   document.body.appendChild(container);
 });
@@ -15,57 +17,57 @@ beforeEach(() => {
 afterEach(() => {
   render(null, container); // unmount
   container.remove();
+  __resetCrew();
 });
 
-// A crew with one visible member (1 plan) and one ghost member (no plans in the
-// payload — a ghost entry is redacted server-side).
+// One visible member with 2 stars and one ghost member (redacted server-side).
 const fakeRoster: Roster = [
   {
     userId: 1,
     displayName: 'Alice',
     ghost: false,
-    plans: [{ occurrenceId: 'occ-1', title: 'Opening Ceremonies', start: '10:00' }],
+    plans: [{ occurrenceId: 'occ-1', title: 'Opening Ceremonies' }, { occurrenceId: 'occ-2' }],
   },
   { userId: 2, displayName: 'Bob', ghost: true, plans: [] },
 ];
 
-/** Render and flush the mount effect + its resolved/rejected load promise. */
-async function mount(load: () => Promise<RosterResult>): Promise<void> {
+/** Swap the store loader, render, and flush the mount load + its re-render. */
+async function mount(loader: () => Promise<RosterResult>): Promise<void> {
+  __setCrewLoader(loader);
   await act(async () => {
-    render(<CrewSection load={load} />, container);
+    render(<CrewSection />, container);
     await Promise.resolve();
   });
-  // A second microtask turn lets the .then() setState re-render settle.
   await act(async () => {
     await Promise.resolve();
   });
 }
 
 describe('CrewSection — roster states, no dead-ends', () => {
-  it('ok + members: visible member shows a plan, ghost shows "no plans listed"', async () => {
+  it('ok + members: shows name + star count; ghost shows "Ghost mode" with NO count', async () => {
     await mount(() => Promise.resolve({ kind: 'ok', roster: fakeRoster }));
 
     const text = container.textContent;
-    // Visible member's plan title renders.
+    expect(text).toContain('2 members');
     expect(text).toContain('Alice');
-    expect(text).toContain('Opening Ceremonies');
-    // Ghost member is present-but-redacted.
     expect(text).toContain('Bob');
-    expect(text).toContain('no plans listed');
+    expect(text).toContain('Ghost mode');
 
-    // The ghost member's row shows the redaction text, not a plans list.
     const rows = container.querySelectorAll('.crew-member');
     expect(rows.length).toBe(2);
+
+    // Alice: a star count badge showing 2.
+    const aliceRow = [...rows].find((r) => r.textContent.includes('Alice'))!;
+    expect(aliceRow.querySelector('.crew-member-count')!.textContent).toContain('2');
+
+    // Bob (ghost): "Ghost mode" note, and NO count badge (never reveal it).
     const bobRow = [...rows].find((r) => r.textContent.includes('Bob'))!;
-    expect(bobRow.querySelector('.crew-member-note')!.textContent).toContain(
-      'no plans listed',
-    );
-    expect(bobRow.querySelector('.crew-member-plans')).toBeNull();
+    expect(bobRow.querySelector('.crew-member-note')!.textContent).toContain('Ghost mode');
+    expect(bobRow.querySelector('.crew-member-count')).toBeNull();
   });
 
-  // CRITICAL: redaction must be enforced CLIENT-SIDE, not merely trusted from the
-  // server. A hostile/hypothetical payload where a ghost member carries a NON-empty
-  // plans array must still render "no plans listed" and MUST NOT leak any plan.
+  // CRITICAL: redaction is enforced CLIENT-SIDE. A ghost with a smuggled non-empty
+  // plans array must never leak a plan title, and must show no star count.
   it('ok + ghost member with smuggled plans → still redacted client-side', async () => {
     const hostileRoster: Roster = [
       {
@@ -78,16 +80,12 @@ describe('CrewSection — roster states, no dead-ends', () => {
     await mount(() => Promise.resolve({ kind: 'ok', roster: hostileRoster }));
 
     expect(container.textContent).toContain('Mallory');
-    expect(container.textContent).toContain('no plans listed');
-    // The smuggled plan title must NOT appear anywhere in the DOM.
+    expect(container.textContent).toContain('Ghost mode');
     expect(container.textContent).not.toContain('Secret');
 
     const rows = container.querySelectorAll('.crew-member');
     const malloryRow = [...rows].find((r) => r.textContent.includes('Mallory'))!;
-    expect(malloryRow.querySelector('.crew-member-plans')).toBeNull();
-    expect(malloryRow.querySelector('.crew-member-note')!.textContent).toContain(
-      'no plans listed',
-    );
+    expect(malloryRow.querySelector('.crew-member-count')).toBeNull();
   });
 
   it('non-telegram → the "Open in Telegram" nudge, not an error, no Retry', async () => {
@@ -103,14 +101,14 @@ describe('CrewSection — roster states, no dead-ends', () => {
     expect(container.querySelector('.crew-retry')).toBeNull();
   });
 
-  it('error result → error state with a Retry button that re-invokes load', async () => {
+  it('error result → error state with a Retry button that re-invokes the loader', async () => {
     let calls = 0;
-    const load = (): Promise<RosterResult> => {
+    const loader = (): Promise<RosterResult> => {
       calls += 1;
       return Promise.resolve({ kind: 'error' });
     };
 
-    await mount(load);
+    await mount(loader);
     expect(calls).toBe(1);
     expect(container.textContent).toContain('Couldn’t load the crew right now.');
 
@@ -125,108 +123,34 @@ describe('CrewSection — roster states, no dead-ends', () => {
       await Promise.resolve();
     });
 
-    // Retry re-invoked the loader.
     expect(calls).toBe(2);
-    // Still not a dead-end: error + retry remain available.
     expect(container.querySelector('.crew-retry')).not.toBeNull();
   });
 
-  it('rejecting load (defensive) → error state + Retry', async () => {
+  it('rejecting loader (defensive) → error state + Retry', async () => {
     let calls = 0;
-    const load = (): Promise<RosterResult> => {
+    const loader = (): Promise<RosterResult> => {
       calls += 1;
       return Promise.reject(new Error('boom'));
     };
 
-    await mount(load);
+    await mount(loader);
     expect(calls).toBe(1);
     expect(container.textContent).toContain('Couldn’t load the crew right now.');
     expect(container.querySelector('.crew-retry')).not.toBeNull();
   });
-});
 
-describe('CrewSection — sync re-fetch + Refresh (the race fix)', () => {
-  /** Mount with an injected onSynced whose callback is captured for the test. */
-  async function mountWith(
-    load: () => Promise<RosterResult>,
-    onSynced: (cb: () => void) => () => void,
-  ): Promise<void> {
-    await act(async () => {
-      render(<CrewSection load={load} onSynced={onSynced} />, container);
-      await Promise.resolve();
-    });
-    await act(async () => {
-      await Promise.resolve();
-    });
-  }
-
-  it('a landed sync re-fetches: EMPTY first, member on the second load', async () => {
+  it('Refresh in the ready (member list) state re-invokes the loader', async () => {
     let calls = 0;
-    const load = (): Promise<RosterResult> => {
-      calls += 1;
-      return calls === 1
-        ? Promise.resolve({ kind: 'ok', roster: [] })
-        : Promise.resolve({ kind: 'ok', roster: fakeRoster });
-    };
-
-    let fireSynced: () => void = () => {};
-    const onSynced = (cb: () => void): (() => void) => {
-      fireSynced = cb;
-      return () => {};
-    };
-
-    await mountWith(load, onSynced);
-    // First load → empty state, member NOT yet visible.
-    expect(calls).toBe(1);
-    expect(container.textContent).toContain('No crew members yet.');
-    expect(container.textContent).not.toContain('Alice');
-
-    // A sync lands → the component re-fetches and the member now renders.
-    await act(async () => {
-      fireSynced();
-      await Promise.resolve();
-    });
-    await act(async () => {
-      await Promise.resolve();
-    });
-
-    expect(calls).toBe(2);
-    expect(container.textContent).toContain('Alice');
-    expect(container.textContent).not.toContain('No crew members yet.');
-  });
-
-  it('Refresh in the empty state re-invokes load', async () => {
-    let calls = 0;
-    const load = (): Promise<RosterResult> => {
-      calls += 1;
-      return Promise.resolve({ kind: 'ok', roster: [] });
-    };
-
-    await mount(load); // default onSynced (never fires here)
-    expect(calls).toBe(1);
-    const refresh = container.querySelector<HTMLButtonElement>('.crew-refresh');
-    expect(refresh).not.toBeNull();
-
-    await act(async () => {
-      refresh!.click();
-      await Promise.resolve();
-    });
-    await act(async () => {
-      await Promise.resolve();
-    });
-    expect(calls).toBe(2);
-  });
-
-  it('Refresh in the ready (member list) state re-invokes load', async () => {
-    let calls = 0;
-    const load = (): Promise<RosterResult> => {
+    const loader = (): Promise<RosterResult> => {
       calls += 1;
       return Promise.resolve({ kind: 'ok', roster: fakeRoster });
     };
 
-    await mount(load);
+    await mount(loader);
     expect(calls).toBe(1);
     expect(container.textContent).toContain('Alice');
+
     const refresh = container.querySelector<HTMLButtonElement>('.crew-refresh');
     expect(refresh).not.toBeNull();
 
@@ -238,22 +162,5 @@ describe('CrewSection — sync re-fetch + Refresh (the race fix)', () => {
       await Promise.resolve();
     });
     expect(calls).toBe(2);
-  });
-
-  it('unsubscribes onSynced on unmount', async () => {
-    let unsubscribed = false;
-    const onSynced = (): (() => void) => () => {
-      unsubscribed = true;
-    };
-
-    await mountWith(
-      () => Promise.resolve({ kind: 'ok', roster: fakeRoster }),
-      onSynced,
-    );
-    await act(async () => {
-      render(null, container);
-      await Promise.resolve();
-    });
-    expect(unsubscribed).toBe(true);
   });
 });

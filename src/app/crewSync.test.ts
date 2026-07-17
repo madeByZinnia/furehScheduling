@@ -19,6 +19,8 @@ import {
   fetchRoster,
   startAutoSync,
   subscribeSynced,
+  suspendAutoSync,
+  __resetSyncSuspend,
   type Roster,
 } from './crewSync';
 import { toggleStar, __resetStars } from './stars';
@@ -42,6 +44,23 @@ function jsonResponse(data: unknown, ok = true): Response {
   return { ok, status: ok ? 200 : 500, json: () => Promise.resolve(data) } as unknown as Response;
 }
 
+describe('suspendAutoSync — leaving must stop re-adding the user', () => {
+  afterEach(() => __resetSyncSuspend());
+
+  it('postSync no-ops (no fetch) once suspended', async () => {
+    const fetchFn = vi.fn().mockResolvedValue(jsonResponse({}));
+    // Sanity: a normal push DOES fetch.
+    expect(await postSync(TG, false, ['a'], fetchFn)).toBe(true);
+    expect(fetchFn).toHaveBeenCalledTimes(1);
+
+    // After leaving, further pushes must not touch the network (which would
+    // re-create the crew-member row the leave just deleted).
+    suspendAutoSync();
+    expect(await postSync(TG, false, ['a', 'b'], fetchFn)).toBe(false);
+    expect(fetchFn).toHaveBeenCalledTimes(1); // unchanged
+  });
+});
+
 describe('buildSyncBody — pure, never leaks a chatId', () => {
   it('telegram session → body with initData + ghost + stars, NO chatId', () => {
     const body = buildSyncBody(TG, true, ['a', 'b']);
@@ -55,6 +74,20 @@ describe('buildSyncBody — pure, never leaks a chatId', () => {
 
   it('telegram session with null initData → null', () => {
     expect(buildSyncBody(tgSession(null), false, [])).toBeNull();
+  });
+
+  it('includes a trimmed displayName when provided', () => {
+    expect(buildSyncBody(TG, false, ['a'], '  Zinnia  ')).toEqual({
+      initData: TG.initData,
+      ghost: false,
+      stars: ['a'],
+      displayName: 'Zinnia',
+    });
+  });
+
+  it('omits displayName when blank (Worker falls back to the Telegram name)', () => {
+    const body = buildSyncBody(TG, false, [], '   ');
+    expect(body !== null && 'displayName' in body).toBe(false);
   });
 });
 
@@ -77,6 +110,15 @@ describe('postSync', () => {
     const fetchFn = vi.fn();
     expect(await postSync(WEB, false, [], fetchFn as unknown as typeof fetch)).toBe(false);
     expect(fetchFn).not.toHaveBeenCalled();
+  });
+
+  it('sends a custom displayName in the body when set', async () => {
+    const fetchFn = vi.fn().mockResolvedValue(jsonResponse({}));
+    await postSync(TG, false, [], fetchFn, 'Zinnia');
+    const body = JSON.parse((fetchFn.mock.calls[0]![1] as RequestInit).body as string) as {
+      displayName?: string;
+    };
+    expect(body.displayName).toBe('Zinnia');
   });
 
   it('non-ok status → returns false', async () => {

@@ -3,21 +3,32 @@ import { useState } from 'preact/hooks';
 import scheduleJson from '../data/schedule.json';
 import type { Schedule } from '../data/expand';
 import { DisplaySettings } from './DisplaySettings';
+import { DisplayNameSetting } from './DisplayNameSetting';
 import { GhostToggle } from './GhostToggle';
 import { MeExport } from './MeExport';
 import { MeImport } from './MeImport';
+import { AboutDev } from './AboutDev';
 import { CrewSection } from './CrewSection';
+import { EventsPanel } from './events/EventsPanel';
+import { LeaveCrew } from './LeaveCrew';
 import { ScheduleView } from './schedule/ScheduleView';
 import { MapView } from './map/MapView';
+import { BottomNav } from './nav/BottomNav';
+import type { Tab } from './nav/tabs';
+import { mockEnabled, mockEventsProps, mockLeaveProps } from './devMock';
 
 const schedule = scheduleJson as Schedule;
 
-type View = 'schedule' | 'map';
-
+/**
+ * Top-level views behind a bottom nav. Only the active view is mounted: this
+ * keeps the schedule-local "jump to now" FAB (position:fixed) from bleeding onto
+ * other tabs, and lets each view own its ephemeral state without a router.
+ */
 export function App() {
-  // Map is an experimental peer view (M4 spike) — isolated behind this toggle so
-  // it never touches the schedule path and can be dropped without a trace.
-  const [view, setView] = useState<View>('schedule');
+  const [tab, setTab] = useState<Tab>('schedule');
+  // DEV-only `?mock`: inject in-memory event/leave handlers so the Crew + Me UI
+  // works without Telegram. Inert (false) in production builds.
+  const mock = mockEnabled();
 
   return (
     <main class="app">
@@ -25,48 +36,37 @@ export function App() {
         <h1>Fur-Eh 2026</h1>
       </header>
 
-      <DisplaySettings />
+      {tab === 'schedule' &&
+        (schedule.occurrences.length === 0 ? (
+          <p class="empty">
+            No schedule data. Run <code>npm run schedule</code>.
+          </p>
+        ) : (
+          <ScheduleView occurrences={schedule.occurrences} />
+        ))}
 
-      <div class="view-toggle" role="group" aria-label="Choose a view">
-        <button
-          type="button"
-          class="view-tab"
-          aria-pressed={view === 'schedule'}
-          onClick={() => setView('schedule')}
-        >
-          Schedule
-        </button>
-        <button
-          type="button"
-          class="view-tab"
-          aria-pressed={view === 'map'}
-          onClick={() => setView('map')}
-        >
-          Map
-        </button>
-      </div>
+      {tab === 'map' && <MapView />}
 
-      {view === 'map' ? (
-        <MapView />
-      ) : (
+      {tab === 'crew' && (
         <>
-          <GhostToggle />
-
-          <MeExport occurrences={schedule.occurrences} />
-
-          <MeImport occurrences={schedule.occurrences} />
-
+          <EventsPanel {...(mock ? mockEventsProps : {})} />
           <CrewSection />
-
-          {schedule.occurrences.length === 0 ? (
-            <p class="empty">
-              No schedule data. Run <code>npm run schedule</code>.
-            </p>
-          ) : (
-            <ScheduleView occurrences={schedule.occurrences} />
-          )}
         </>
       )}
+
+      {tab === 'me' && (
+        <>
+          <DisplayNameSetting />
+          <DisplaySettings />
+          <GhostToggle />
+          <MeExport occurrences={schedule.occurrences} />
+          <MeImport occurrences={schedule.occurrences} />
+          <LeaveCrew {...(mock ? mockLeaveProps : {})} />
+          <AboutDev />
+        </>
+      )}
+
+      <BottomNav active={tab} onSelect={setTab} />
     </main>
   );
 }

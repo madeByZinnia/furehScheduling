@@ -1,5 +1,6 @@
 import type { Occurrence } from '../../data/expand';
 import { conDay } from '../../data/expand';
+import type { OccurrenceId } from '../../data/ids';
 
 /**
  * Pure schedule logic for the Schedule tab: search, day buckets, time grouping,
@@ -24,6 +25,18 @@ export function matchesSearch(occ: Occurrence, query: string): boolean {
 
 export function filterOccurrences(occurrences: Occurrence[], query: string): Occurrence[] {
   return query.trim() ? occurrences.filter((o) => matchesSearch(o, query)) : occurrences;
+}
+
+/**
+ * Keep only occurrences whose id is starred. The favourites-only filter — like
+ * search — spans all days, so this is applied before day-bucketing, never per
+ * day. Preserves input order; the caller re-buckets by day/time.
+ */
+export function starredOccurrences(
+  occurrences: Occurrence[],
+  ids: Set<OccurrenceId>,
+): Occurrence[] {
+  return occurrences.filter((o) => ids.has(o.id));
 }
 
 export interface DayTab {
