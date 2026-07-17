@@ -19,40 +19,33 @@ afterEach(() => {
   setTextSize('m');
 });
 
-const range = () => container.querySelector<HTMLInputElement>('input.size-range');
+// The Text-size control is a segmented group of discrete labelled buttons (a
+// slider was tried and reverted — the mid-drag reflow stuttered and the fixed
+// stops read more clearly). Each stop is a button with aria-pressed.
+const sizeButtons = () =>
+  Array.from(
+    container.querySelectorAll<HTMLButtonElement>('[aria-label="Text size"] button'),
+  );
+const pressed = () => sizeButtons().find((b) => b.getAttribute('aria-pressed') === 'true');
 
-describe('DisplaySettings — text-size discrete slider', () => {
-  it('renders a 5-stop range initialized from the current size', () => {
+describe('DisplaySettings — text-size segmented buttons', () => {
+  it('renders the 5 discrete stops with the current size pressed', () => {
     render(<DisplaySettings />, container);
-    const r = range();
-    expect(r).not.toBeNull();
-    expect(r!.type).toBe('range');
-    expect(r!.min).toBe('0');
-    expect(r!.max).toBe('4');
-    expect(r!.step).toBe('1');
-    expect(r!.value).toBe('1'); // 'm' is index 1
+    const buttons = sizeButtons();
+    expect(buttons.map((b) => b.textContent)).toEqual(['S', 'M', 'L', 'XL', 'XXL']);
+    expect(pressed()!.textContent).toBe('M'); // 'm' is the default
   });
 
-  it('announces the spoken size name via aria-valuetext, not the index', () => {
-    render(<DisplaySettings />, container);
-    expect(range()!.getAttribute('aria-valuetext')).toBe('Medium');
-    expect(range()!.getAttribute('aria-label')).toBe('Text size');
-  });
-
-  it('moving the slider updates the text size (store + document + aria-valuetext)', () => {
+  it('clicking a stop updates the text size (store + document) and moves aria-pressed', () => {
     void act(() => {
       render(<DisplaySettings />, container);
     });
-    const r = range()!;
+    const xl = sizeButtons().find((b) => b.textContent === 'XL')!;
     void act(() => {
-      r.value = '3';
-      r.dispatchEvent(new Event('input', { bubbles: true }));
+      xl.dispatchEvent(new MouseEvent('click', { bubbles: true }));
     });
 
     expect(document.documentElement.getAttribute('data-text-size')).toBe('xl');
-    // The control re-renders from the store, so the slider reflects the new stop.
-    expect(range()!.value).toBe('3');
-    expect(range()!.getAttribute('aria-valuetext')).toBe('Extra large');
-    expect(container.querySelector('.size-value')!.textContent).toBe('XL');
+    expect(pressed()!.textContent).toBe('XL');
   });
 });
