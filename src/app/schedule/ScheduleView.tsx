@@ -19,11 +19,15 @@ export function ScheduleView({ occurrences }: { occurrences: Occurrence[] }) {
   const tabs = useMemo(() => dayTabs(occurrences), [occurrences]);
   const [dayIndex, setDayIndex] = useState(() => defaultDayIndex(tabs, nowDate));
 
+  // Search is its own MODE: an active query spans all days (grouped by day),
+  // so a match on another day is never silently hidden. The day tabs — a
+  // browse-only affordance — step aside while searching.
+  const searching = query.trim().length > 0;
   const activeTab = tabs[dayIndex] ?? tabs[0];
   const filtered = useMemo(() => filterOccurrences(occurrences, query), [occurrences, query]);
   const groups = useMemo(
-    () => (activeTab ? groupByTime(filtered, activeTab.day) : []),
-    [filtered, activeTab],
+    () => (activeTab && !searching ? groupByTime(occurrences, activeTab.day) : []),
+    [occurrences, activeTab, searching],
   );
 
   // The "now" separator only makes sense on the day that actually contains now.
@@ -41,15 +45,21 @@ export function ScheduleView({ occurrences }: { occurrences: Occurrence[] }) {
         onInput={(e) => setQuery((e.target as HTMLInputElement).value)}
       />
 
-      <nav class="day-tabs" role="tablist" aria-label="Schedule day">
+      <nav
+        class={`day-tabs${searching ? ' dimmed' : ''}`}
+        role="tablist"
+        aria-label="Schedule day"
+        aria-hidden={searching}
+      >
         {tabs.map((tab, i) => (
           <button
             key={tab.day}
             type="button"
             role="tab"
             class="day-tab"
-            aria-selected={i === dayIndex}
+            aria-selected={!searching && i === dayIndex}
             aria-label={formatWeekdayLong(tab.startISO)}
+            disabled={searching}
             onClick={() => setDayIndex(i)}
           >
             <span>{formatWeekdayShort(tab.startISO)}</span>
@@ -58,21 +68,54 @@ export function ScheduleView({ occurrences }: { occurrences: Occurrence[] }) {
         ))}
       </nav>
 
-      <section aria-label={activeTab ? formatWeekdayLong(activeTab.startISO) : 'Schedule'}>
-        {sepIndex === 0 && <NowSeparator nowDate={nowDate} />}
-        {groups.length === 0 && <p class="empty">No sessions match “{query}”.</p>}
-        {groups.map((group, i) => (
-          <Fragment key={group.startISO}>
-            <div class="time-group">
-              <h2>{formatTime(group.startISO)}</h2>
+      {searching ? (
+        <SearchResults occurrences={filtered} query={query} />
+      ) : (
+        <section aria-label={activeTab ? formatWeekdayLong(activeTab.startISO) : 'Schedule'}>
+          {sepIndex === 0 && <NowSeparator nowDate={nowDate} />}
+          {groups.map((group, i) => (
+            <Fragment key={group.startISO}>
+              <div class="time-group">
+                <h2 class="time-head">{formatTime(group.startISO)}</h2>
+                {group.items.map((occ) => (
+                  <EventRow key={occ.id} occ={occ} />
+                ))}
+              </div>
+              {sepIndex === i + 1 && <NowSeparator nowDate={nowDate} />}
+            </Fragment>
+          ))}
+        </section>
+      )}
+    </>
+  );
+}
+
+function SearchResults({ occurrences, query }: { occurrences: Occurrence[]; query: string }) {
+  const days = dayTabs(occurrences); // only days that have matches, ascending
+  const n = occurrences.length;
+
+  return (
+    <>
+      <p class="results-summary" role="status">
+        {n === 0
+          ? `No sessions match “${query}”`
+          : `${n} ${n === 1 ? 'match' : 'matches'} · ${days.length} ${days.length === 1 ? 'day' : 'days'}`}
+      </p>
+      {days.map((d) => (
+        <section key={d.day} class="result-day" aria-label={formatWeekdayLong(d.startISO)}>
+          <h2 class="day-header">
+            {formatWeekdayLong(d.startISO)} · {formatDayNum(d.startISO)}
+          </h2>
+          {groupByTime(occurrences, d.day).map((group) => (
+            <div class="time-group" key={group.startISO}>
+              <h3 class="time-head">{formatTime(group.startISO)}</h3>
               {group.items.map((occ) => (
                 <EventRow key={occ.id} occ={occ} />
               ))}
             </div>
-            {sepIndex === i + 1 && <NowSeparator nowDate={nowDate} />}
-          </Fragment>
-        ))}
-      </section>
+          ))}
+        </section>
+      ))}
     </>
   );
 }

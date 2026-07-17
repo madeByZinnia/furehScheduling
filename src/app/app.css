@@ -71,12 +71,33 @@
 .time-group {
   margin-bottom: 1.25rem;
 }
-.time-group > h2 {
+.time-head {
   font-size: 0.9375rem;
   color: var(--text-dim);
   margin: 0 0 0.5rem;
   padding-bottom: 0.25rem;
   border-bottom: 1px solid var(--border);
+}
+
+/* Search results: day tabs step aside; results grouped under day headers. */
+.day-tabs.dimmed {
+  opacity: 0.4;
+}
+.day-tab:disabled {
+  cursor: default;
+}
+.results-summary {
+  font-size: 0.8125rem;
+  color: var(--text-dim);
+  margin: 0 0 1rem;
+}
+.result-day {
+  margin-bottom: 1.5rem;
+}
+.day-header {
+  font-size: 1.0625rem;
+  color: var(--gold);
+  margin: 0 0 0.75rem;
 }
 
 .event-row {
