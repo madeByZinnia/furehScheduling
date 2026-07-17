@@ -39,6 +39,16 @@ interface EventsPanelProps {
   onStar?: Star;
 }
 
+// Module-level defaults so their identity is STABLE across renders. The load
+// effect depends on `load`; an inline default (recreated each render) would make
+// the effect re-fire on every completed fetch — an infinite request loop. The
+// boot session is memoized, so reading it lazily inside each call is fine.
+const defaultLoad: Load = () => listEvents(getTelegramSession());
+const defaultCreate: Create = (input) => createEvent(getTelegramSession(), input);
+const defaultEdit: Edit = (id, input) => editEvent(getTelegramSession(), id, input);
+const defaultCancel: Cancel = (id) => cancelEvent(getTelegramSession(), id);
+const defaultStar: Star = (id, starred) => starEvent(getTelegramSession(), id, starred);
+
 type ListState = EventListResult | { kind: 'loading' };
 type Mode = { kind: 'list' } | { kind: 'form'; editing: EventView | null };
 
@@ -56,11 +66,11 @@ function messageFor(res: Extract<MutationResult, { ok: false }>): string {
 }
 
 export function EventsPanel({
-  load = () => listEvents(getTelegramSession()),
-  onCreate = (input) => createEvent(getTelegramSession(), input),
-  onEdit = (id, input) => editEvent(getTelegramSession(), id, input),
-  onCancel = (id) => cancelEvent(getTelegramSession(), id),
-  onStar = (id, starred) => starEvent(getTelegramSession(), id, starred),
+  load = defaultLoad,
+  onCreate = defaultCreate,
+  onEdit = defaultEdit,
+  onCancel = defaultCancel,
+  onStar = defaultStar,
 }: EventsPanelProps) {
   const [state, setState] = useState<ListState>({ kind: 'loading' });
   const [mode, setMode] = useState<Mode>({ kind: 'list' });
