@@ -126,14 +126,159 @@ async function handleRoster(request: Request, env: Env): Promise<Response> {
 
 /** POST /api/leave — remove the acting (verified) user from a crew. */
 async function handleLeave(request: Request, env: Env): Promise<Response> {
-  const body = await request.json<{ initData?: string; chatId?: unknown }>().catch(() => null);
+  const body = await request
+    .json<{ initData?: string; chatId?: unknown; cancelOwnEvents?: unknown }>()
+    .catch(() => null);
   const result = await verifyInitData(body?.initData ?? '', env.BOT_TOKEN);
   if (!result.ok || result.user === null) return json({ error: 'invalid initData' }, 401);
   const chatId = parseChatId(body?.chatId);
   if (chatId === null) return json({ error: 'invalid chatId' }, 400);
+  // The bgx.1 flag: default OFF. Leaving is pure privacy unless the user EXPLICITLY
+  // opts to also cancel the events they own (still soft — shown as "[CANCELLED]").
+  const cancelOwnEvents = body?.cancelOwnEvents === true;
   const crew = env.CREW.getByName(String(chatId));
-  await crew.leaveCrew(result.user.id);
+  await crew.leaveCrew(result.user.id, { cancelOwnEvents });
   return json({ ok: true });
+}
+
+/** Pull the free-text custom-event fields out of a request body (never coords). */
+type EventInput = {
+  title?: string;
+  day?: string | null;
+  startIso?: string | null;
+  endIso?: string | null;
+  location?: string | null;
+  notes?: string | null;
+};
+
+function eventInputFrom(body: {
+  title?: unknown;
+  day?: unknown;
+  startIso?: unknown;
+  endIso?: unknown;
+  location?: unknown;
+  notes?: unknown;
+}): EventInput {
+  const out: EventInput = {};
+  if (typeof body.title === 'string') out.title = body.title;
+  // For the rest: an ABSENT key stays absent (edit keeps existing); a present key
+  // (string or otherwise) is passed through — the DO coerces non-strings to null.
+  // Location is free text only — there is no map/coordinate field anywhere.
+  const pass = (v: unknown): string | null => (typeof v === 'string' ? v : null);
+  if (body.day !== undefined) out.day = pass(body.day);
+  if (body.startIso !== undefined) out.startIso = pass(body.startIso);
+  if (body.endIso !== undefined) out.endIso = pass(body.endIso);
+  if (body.location !== undefined) out.location = pass(body.location);
+  if (body.notes !== undefined) out.notes = pass(body.notes);
+  return out;
+}
+
+/** True if an RPC throw was the owner-only guard (→ maps to HTTP 403). */
+function isOwnerMismatch(err: unknown): boolean {
+  return err instanceof Error && err.message === 'not owner';
+}
+
+type EventBody = {
+  initData?: string;
+  chatId?: unknown;
+  eventId?: unknown;
+  title?: unknown;
+  day?: unknown;
+  startIso?: unknown;
+  endIso?: unknown;
+  location?: unknown;
+  notes?: unknown;
+  starred?: unknown;
+};
+
+/**
+ * Resolve initData + chatId shared by every /api/events/* handler. Returns the
+ * verified user id and the bound crew stub, or a ready-made error Response.
+ */
+async function eventContext(
+  request: Request,
+  env: Env,
+): Promise<
+  | { ok: true; body: EventBody; userId: number; crew: ReturnType<Env['CREW']['getByName']> }
+  | { ok: false; res: Response }
+> {
+  const body = await request.json<EventBody>().catch(() => null);
+  if (body === null) return { ok: false, res: json({ error: 'invalid body' }, 400) };
+  const result = await verifyInitData(body.initData ?? '', env.BOT_TOKEN);
+  if (!result.ok || result.user === null) {
+    return { ok: false, res: json({ error: 'invalid initData' }, 401) };
+  }
+  const chatId = parseChatId(body.chatId);
+  if (chatId === null) return { ok: false, res: json({ error: 'invalid chatId' }, 400) };
+  return { ok: true, body, userId: result.user.id, crew: env.CREW.getByName(String(chatId)) };
+}
+
+/** POST /api/events/create — create a custom event owned by the verified user. */
+async function handleEventCreate(request: Request, env: Env): Promise<Response> {
+  const ctx = await eventContext(request, env);
+  if (!ctx.ok) return ctx.res;
+  const input = eventInputFrom(ctx.body);
+  if (input.title === undefined || input.title.trim() === '') {
+    return json({ error: 'title required' }, 400);
+  }
+  const event = await ctx.crew.createEvent(ctx.userId, input);
+  return json({ event });
+}
+
+/** POST /api/events/edit — owner-only edit; owner mismatch → 403. */
+async function handleEventEdit(request: Request, env: Env): Promise<Response> {
+  const ctx = await eventContext(request, env);
+  if (!ctx.ok) return ctx.res;
+  const eventId = ctx.body.eventId;
+  if (typeof eventId !== 'string' || eventId === '') return json({ error: 'invalid eventId' }, 400);
+  try {
+    const event = await ctx.crew.editEvent(ctx.userId, eventId, eventInputFrom(ctx.body));
+    return json({ event });
+  } catch (err) {
+    if (isOwnerMismatch(err)) return json({ error: 'not owner' }, 403);
+    return json({ error: err instanceof Error ? err.message : 'edit failed' }, 400);
+  }
+}
+
+/** POST /api/events/cancel — owner-only soft cancel; owner mismatch → 403. */
+async function handleEventCancel(request: Request, env: Env): Promise<Response> {
+  const ctx = await eventContext(request, env);
+  if (!ctx.ok) return ctx.res;
+  const eventId = ctx.body.eventId;
+  if (typeof eventId !== 'string' || eventId === '') return json({ error: 'invalid eventId' }, 400);
+  try {
+    await ctx.crew.cancelEvent(ctx.userId, eventId);
+    return json({ ok: true });
+  } catch (err) {
+    if (isOwnerMismatch(err)) return json({ error: 'not owner' }, 403);
+    return json({ error: err instanceof Error ? err.message : 'cancel failed' }, 400);
+  }
+}
+
+/** POST /api/events/star — star/unstar an event as the verified user. */
+async function handleEventStar(request: Request, env: Env): Promise<Response> {
+  const ctx = await eventContext(request, env);
+  if (!ctx.ok) return ctx.res;
+  const eventId = ctx.body.eventId;
+  if (typeof eventId !== 'string' || eventId === '') return json({ error: 'invalid eventId' }, 400);
+  if (typeof ctx.body.starred !== 'boolean') return json({ error: 'starred must be a boolean' }, 400);
+  try {
+    if (ctx.body.starred) {
+      await ctx.crew.starEvent(ctx.userId, eventId);
+    } else {
+      await ctx.crew.unstarEvent(ctx.userId, eventId);
+    }
+    return json({ ok: true });
+  } catch (err) {
+    return json({ error: err instanceof Error ? err.message : 'star failed' }, 400);
+  }
+}
+
+/** POST /api/events/list — all custom events, with the viewer's star/owner view. */
+async function handleEventList(request: Request, env: Env): Promise<Response> {
+  const ctx = await eventContext(request, env);
+  if (!ctx.ok) return ctx.res;
+  return json({ events: await ctx.crew.listEvents(ctx.userId) });
 }
 
 // A tiny diagnostic page: opened as a Mini App, it reads the real
@@ -327,6 +472,11 @@ export default {
     if (pathname === '/api/sync' && post) return handleSync(request, env);
     if (pathname === '/api/roster' && post) return handleRoster(request, env);
     if (pathname === '/api/leave' && post) return handleLeave(request, env);
+    if (pathname === '/api/events/create' && post) return handleEventCreate(request, env);
+    if (pathname === '/api/events/edit' && post) return handleEventEdit(request, env);
+    if (pathname === '/api/events/cancel' && post) return handleEventCancel(request, env);
+    if (pathname === '/api/events/star' && post) return handleEventStar(request, env);
+    if (pathname === '/api/events/list' && post) return handleEventList(request, env);
     if (pathname === '/telegram/webhook' && post) return handleWebhook(request, env, ctx);
     if (pathname === '/telegram/setup' && post) return handleSetup(request, url, env);
     if (pathname === '/telegram/trigger' && post) return handleTrigger(request, url, env);

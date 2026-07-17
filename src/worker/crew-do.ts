@@ -70,6 +70,87 @@ interface MemberStarRow {
   occurrence_id: string;
 }
 
+/**
+ * A custom (unofficial) event — a room party, dinner, anything the official
+ * schedule never carries. It is a STANDALONE record keyed by `eventId`, NOT
+ * nested inside a member: that is what makes "leave the crew" (pure privacy)
+ * different from "cancel this event" (owner-only). Leaving must never destroy an
+ * event other members starred.
+ *
+ * `location` is FREE-TEXT ONLY (e.g. "Rm 1412"). There is deliberately NO map,
+ * pin, coordinate, lat/lng, or live-location field — a hard product constraint.
+ */
+export interface CustomEvent {
+  eventId: string;
+  ownerId: number;
+  title: string;
+  day: string | null;
+  startIso: string | null;
+  endIso: string | null;
+  /** Plain free-text location string only — never coordinates/map data. */
+  location: string | null;
+  notes: string | null;
+  cancelled: boolean;
+  createdAt: number;
+  updatedAt: number;
+}
+
+/**
+ * A custom event as seen by a viewer via listEvents. Adds the derived star count
+ * and, when a viewerId is supplied, whether the viewer starred it / owns it.
+ * Cancelled events are still returned (with `cancelled: true`) so the UI can
+ * render "[CANCELLED]" rather than have the event silently vanish.
+ */
+export interface CustomEventView extends CustomEvent {
+  starCount: number;
+  viewerStarred?: boolean;
+  isOwner?: boolean;
+}
+
+/** Mutable fields accepted by createEvent/editEvent. `location` is free text. */
+export interface CustomEventInput {
+  title?: string;
+  day?: string | null;
+  startIso?: string | null;
+  endIso?: string | null;
+  location?: string | null;
+  notes?: string | null;
+}
+
+interface CustomEventRow {
+  [column: string]: number | string | null;
+  event_id: string;
+  owner_id: number;
+  title: string;
+  day: string | null;
+  start_iso: string | null;
+  end_iso: string | null;
+  location: string | null;
+  notes: string | null;
+  cancelled: number;
+  created_at: number;
+  updated_at: number;
+}
+
+interface CountRow {
+  [column: string]: number;
+  n: number;
+}
+
+/** Upper bound on a stored free-text field, so a hostile client can't blow up storage. */
+const MAX_TEXT = 2000;
+
+/**
+ * Normalize an optional free-text field: non-strings and blank strings become
+ * NULL; anything else is trimmed and length-capped. Used for day/start/end/
+ * location/notes — none of which are ever coordinates.
+ */
+function normText(raw: unknown): string | null {
+  if (typeof raw !== 'string') return null;
+  const trimmed = raw.trim();
+  return trimmed === '' ? null : trimmed.slice(0, MAX_TEXT);
+}
+
 const DIGEST_INTERVAL_MS = 5 * 60 * 1000;
 
 /** Defensive cap on stored stars per member — a hostile client can't blow up storage. */
@@ -120,6 +201,35 @@ export class Crew extends DurableObject<Env> {
          user_id INTEGER NOT NULL,
          occurrence_id TEXT NOT NULL,
          PRIMARY KEY(user_id, occurrence_id)
+       )`,
+    );
+    // Custom (unofficial) events: standalone records keyed by event_id, owned by
+    // whoever created them. `cancelled` is a SOFT flag (never DELETE) so a
+    // cancelled room party still renders "[CANCELLED]" to everyone who starred it.
+    // `location` is free text ONLY — there is intentionally no coordinate column.
+    this.ctx.storage.sql.exec(
+      `CREATE TABLE IF NOT EXISTS custom_event (
+         event_id TEXT PRIMARY KEY,
+         owner_id INTEGER NOT NULL,
+         title TEXT NOT NULL,
+         day TEXT,
+         start_iso TEXT,
+         end_iso TEXT,
+         location TEXT,
+         notes TEXT,
+         cancelled INTEGER NOT NULL DEFAULT 0,
+         created_at INTEGER NOT NULL,
+         updated_at INTEGER NOT NULL
+       )`,
+    );
+    // Anyone may star ANY custom event; composite PK keeps stars idempotent and
+    // per-user. Leaving the crew clears the leaver's rows here but NOT the events
+    // they own (other people's stars survive).
+    this.ctx.storage.sql.exec(
+      `CREATE TABLE IF NOT EXISTS custom_event_star (
+         event_id TEXT NOT NULL,
+         user_id INTEGER NOT NULL,
+         PRIMARY KEY(event_id, user_id)
        )`,
     );
   }
@@ -340,16 +450,216 @@ export class Crew extends DurableObject<Env> {
   }
 
   /**
-   * Remove a member entirely: their roster row AND their stars (pure privacy).
-   * Touches ONLY this member — no other member's data is affected.
+   * Remove a member entirely: their roster row, their occurrence stars, and their
+   * stars on custom events (pure privacy). Touches ONLY this member's own rows.
    *
-   * NOTE: leave != cancel. Cancelling any custom event this member created is a
-   * SEPARATE future concern and is deliberately NOT done here.
+   * leave != cancel. By DEFAULT leaving does NOT touch custom_event rows the member
+   * OWNS — a room party other people starred must survive the owner leaving. ONLY
+   * when `opts.cancelOwnEvents === true` does leaving additionally SOFT-cancel the
+   * events they own (set cancelled=1, still visible as "[CANCELLED]"). That flag is
+   * OFF by default. The whole thing runs in one transaction.
    */
-  leaveCrew(userId: number): void {
+  leaveCrew(userId: number, opts?: { cancelOwnEvents?: boolean }): void {
     if (!Number.isFinite(userId)) return;
-    this.ctx.storage.sql.exec('DELETE FROM member_star WHERE user_id = ?', userId);
-    this.ctx.storage.sql.exec('DELETE FROM crew_member WHERE user_id = ?', userId);
+    this.ctx.storage.transactionSync(() => {
+      this.ctx.storage.sql.exec('DELETE FROM member_star WHERE user_id = ?', userId);
+      this.ctx.storage.sql.exec('DELETE FROM crew_member WHERE user_id = ?', userId);
+      // Drop the leaver's OWN stars only — never other members' stars, and never
+      // the events the leaver owns (those belong to everyone who starred them).
+      this.ctx.storage.sql.exec('DELETE FROM custom_event_star WHERE user_id = ?', userId);
+      if (opts?.cancelOwnEvents === true) {
+        this.ctx.storage.sql.exec(
+          'UPDATE custom_event SET cancelled = 1, updated_at = ? WHERE owner_id = ? AND cancelled = 0',
+          Date.now(),
+          userId,
+        );
+      }
+    });
+  }
+
+  // ── Custom events (unofficial room parties, dinners, …) ────────────────────
+
+  /** Fetch a single custom event row, or null if the id is unknown. */
+  private eventRow(eventId: string): CustomEventRow | null {
+    if (typeof eventId !== 'string' || eventId === '') return null;
+    const rows = this.ctx.storage.sql
+      .exec<CustomEventRow>('SELECT * FROM custom_event WHERE event_id = ?', eventId)
+      .toArray();
+    return rows[0] ?? null;
+  }
+
+  private static rowToEvent(row: CustomEventRow): CustomEvent {
+    return {
+      eventId: row.event_id,
+      ownerId: row.owner_id,
+      title: row.title,
+      day: row.day,
+      startIso: row.start_iso,
+      endIso: row.end_iso,
+      location: row.location,
+      notes: row.notes,
+      cancelled: row.cancelled === 1,
+      createdAt: row.created_at,
+      updatedAt: row.updated_at,
+    };
+  }
+
+  /**
+   * Create a custom event owned by `ownerId`. `title` is required (non-empty after
+   * trim) — throws otherwise. All other fields are optional free text. Returns the
+   * created event.
+   */
+  createEvent(ownerId: number, input: CustomEventInput): CustomEvent {
+    if (!Number.isFinite(ownerId)) throw new Error('invalid ownerId');
+    const title = typeof input.title === 'string' ? input.title.trim() : '';
+    if (title === '') throw new Error('title required');
+    const now = Date.now();
+    const eventId = crypto.randomUUID();
+    this.ctx.storage.sql.exec(
+      `INSERT INTO custom_event
+         (event_id, owner_id, title, day, start_iso, end_iso, location, notes, cancelled, created_at, updated_at)
+       VALUES (?, ?, ?, ?, ?, ?, ?, ?, 0, ?, ?)`,
+      eventId,
+      ownerId,
+      title.slice(0, MAX_TEXT),
+      normText(input.day),
+      normText(input.startIso),
+      normText(input.endIso),
+      normText(input.location),
+      normText(input.notes),
+      now,
+      now,
+    );
+    const row = this.eventRow(eventId);
+    if (row === null) throw new Error('createEvent failed');
+    return Crew.rowToEvent(row);
+  }
+
+  /**
+   * Edit a custom event. OWNER-ONLY: throws if the caller is not the owner (the
+   * row is left untouched). Editing a cancelled event is refused — keep it simple,
+   * a cancel is terminal. Only fields present in `input` change; a present value of
+   * null clears that field. Returns the updated event.
+   */
+  editEvent(ownerId: number, eventId: string, input: CustomEventInput): CustomEvent {
+    const row = this.eventRow(eventId);
+    if (row === null) throw new Error('event not found');
+    if (row.owner_id !== ownerId) throw new Error('not owner');
+    if (row.cancelled === 1) throw new Error('cannot edit a cancelled event');
+
+    // Title: if supplied it must remain non-empty; if omitted keep the existing one.
+    const title =
+      input.title === undefined
+        ? row.title
+        : typeof input.title === 'string'
+          ? input.title.trim()
+          : '';
+    if (title === '') throw new Error('title required');
+    // For the rest: undefined = keep existing; a present value = set (null clears).
+    const day = input.day === undefined ? row.day : normText(input.day);
+    const startIso = input.startIso === undefined ? row.start_iso : normText(input.startIso);
+    const endIso = input.endIso === undefined ? row.end_iso : normText(input.endIso);
+    const location = input.location === undefined ? row.location : normText(input.location);
+    const notes = input.notes === undefined ? row.notes : normText(input.notes);
+
+    this.ctx.storage.sql.exec(
+      `UPDATE custom_event
+         SET title = ?, day = ?, start_iso = ?, end_iso = ?, location = ?, notes = ?, updated_at = ?
+       WHERE event_id = ?`,
+      title.slice(0, MAX_TEXT),
+      day,
+      startIso,
+      endIso,
+      location,
+      notes,
+      Date.now(),
+      eventId,
+    );
+    const updated = this.eventRow(eventId);
+    if (updated === null) throw new Error('editEvent failed');
+    return Crew.rowToEvent(updated);
+  }
+
+  /**
+   * SOFT-cancel a custom event. OWNER-ONLY (throws otherwise). Sets cancelled=1 —
+   * the row is NEVER deleted, so starrers keep seeing it as "[CANCELLED]".
+   * Idempotent: cancelling an already-cancelled event is a harmless no-op.
+   */
+  cancelEvent(ownerId: number, eventId: string): void {
+    const row = this.eventRow(eventId);
+    if (row === null) throw new Error('event not found');
+    if (row.owner_id !== ownerId) throw new Error('not owner');
+    this.ctx.storage.sql.exec(
+      'UPDATE custom_event SET cancelled = 1, updated_at = ? WHERE event_id = ?',
+      Date.now(),
+      eventId,
+    );
+  }
+
+  /**
+   * Star a custom event. ANYONE may star ANY event (INSERT OR IGNORE, so repeat
+   * stars are no-ops). Throws only if the event id is unknown.
+   */
+  starEvent(userId: number, eventId: string): void {
+    if (!Number.isFinite(userId)) throw new Error('invalid userId');
+    if (this.eventRow(eventId) === null) throw new Error('event not found');
+    this.ctx.storage.sql.exec(
+      'INSERT OR IGNORE INTO custom_event_star (event_id, user_id) VALUES (?, ?)',
+      eventId,
+      userId,
+    );
+  }
+
+  /** Remove the caller's star from an event. Idempotent; no error if not starred. */
+  unstarEvent(userId: number, eventId: string): void {
+    if (!Number.isFinite(userId)) return;
+    this.ctx.storage.sql.exec(
+      'DELETE FROM custom_event_star WHERE event_id = ? AND user_id = ?',
+      eventId,
+      userId,
+    );
+  }
+
+  /**
+   * List ALL custom events (including cancelled — the UI renders "[CANCELLED]"
+   * rather than hiding them). Each carries a live `starCount`; when a viewerId is
+   * given, also `viewerStarred` and `isOwner`. Sorted by start_iso (undated last)
+   * then title.
+   */
+  listEvents(viewerId?: number): CustomEventView[] {
+    const rows = this.ctx.storage.sql
+      .exec<CustomEventRow>('SELECT * FROM custom_event')
+      .toArray();
+    const views: CustomEventView[] = rows.map((row) => {
+      const countRows = this.ctx.storage.sql
+        .exec<CountRow>('SELECT COUNT(*) AS n FROM custom_event_star WHERE event_id = ?', row.event_id)
+        .toArray();
+      const view: CustomEventView = {
+        ...Crew.rowToEvent(row),
+        starCount: countRows[0]?.n ?? 0,
+      };
+      if (viewerId !== undefined) {
+        const starred = this.ctx.storage.sql
+          .exec('SELECT 1 FROM custom_event_star WHERE event_id = ? AND user_id = ?', row.event_id, viewerId)
+          .toArray();
+        view.viewerStarred = starred.length > 0;
+        view.isOwner = row.owner_id === viewerId;
+      }
+      return view;
+    });
+    // Sort by start_iso (undated sorts last), then title, then eventId for stability.
+    views.sort((a, b) => {
+      if (a.startIso !== null && b.startIso !== null) {
+        if (a.startIso !== b.startIso) return a.startIso < b.startIso ? -1 : 1;
+      } else if (a.startIso === null && b.startIso !== null) {
+        return 1;
+      } else if (a.startIso !== null && b.startIso === null) {
+        return -1;
+      }
+      if (a.title !== b.title) return a.title < b.title ? -1 : 1;
+      return a.eventId < b.eventId ? -1 : a.eventId > b.eventId ? 1 : 0;
+    });
+    return views;
   }
 
   private config(): CrewConfigRow | null {
