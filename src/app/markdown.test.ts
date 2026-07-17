@@ -52,6 +52,22 @@ describe('parseInline', () => {
       { kind: 'link', text: 'https://fur-eh.ca', href: 'https://fur-eh.ca' },
       { kind: 'text', text: ').' },
     ]);
+    // A balanced ')' inside a BARE url is kept; only trailing punctuation is split.
+    expect(parseInline('at https://en.wikipedia.org/wiki/Fox_(animal).')).toEqual([
+      { kind: 'text', text: 'at ' },
+      {
+        kind: 'link',
+        text: 'https://en.wikipedia.org/wiki/Fox_(animal)',
+        href: 'https://en.wikipedia.org/wiki/Fox_(animal)',
+      },
+      { kind: 'text', text: '.' },
+    ]);
+  });
+
+  it('bails to plain text on pathological over-length input (ReDoS guard)', () => {
+    const huge = '['.repeat(5000);
+    const out = parseInline(huge);
+    expect(out).toEqual([{ kind: 'text', text: huge }]);
   });
 
   it('leaves plain text untouched', () => {

@@ -44,15 +44,39 @@ export function extractHref(target: string): string | null {
   return bare ? safeHref(bare[0]) : null;
 }
 
-/** Split a bare url off its trailing sentence punctuation (`.`, `)`, `,`, …). */
+/**
+ * Split a bare url off its trailing sentence punctuation (`.`, `,`, `)` …). A
+ * closing paren is only trailing punctuation when it is UNBALANCED — a `)` that
+ * closes a `(` inside the url (e.g. `…/Fox_(animal)`) is kept.
+ */
 function splitTrailingPunct(url: string): { url: string; trailing: string } {
-  const m = /[.,;:!?)\]}'"]+$/.exec(url);
-  if (!m) return { url, trailing: '' };
-  return { url: url.slice(0, m.index), trailing: m[0] };
+  const opens = (url.match(/\(/g) ?? []).length;
+  let end = url.length;
+  for (;;) {
+    const ch = url[end - 1];
+    if (ch === ')') {
+      const closes = (url.slice(0, end).match(/\)/g) ?? []).length;
+      if (closes <= opens) break; // balances an opening paren → part of the url
+      end -= 1;
+    } else if (ch !== undefined && '.,;:!?'.includes(ch)) {
+      end -= 1;
+    } else {
+      break;
+    }
+  }
+  return { url: url.slice(0, end), trailing: url.slice(end) };
 }
+
+// The combined regex scans each position and `[^\]]+` etc. can rescan the tail,
+// so cost is ~O(n^2) on adversarial input (e.g. thousands of unmatched `[`).
+// Abstracts are host-authored, so cap the length: a pathological line renders as
+// plain text rather than blocking the tab of whoever expands that card. Real
+// lines are well under this.
+const MAX_INLINE = 3000;
 
 /** Parse one line into inline tokens (bold / italic / link / text). */
 export function parseInline(text: string): InlineToken[] {
+  if (text.length > MAX_INLINE) return [{ kind: 'text', text }];
   const tokens: InlineToken[] = [];
   let last = 0;
   INLINE_RE.lastIndex = 0;
