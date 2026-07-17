@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'preact/hooks';
+import { useEffect, useRef, useState } from 'preact/hooks';
 import { useSyncExternalStore } from 'preact/compat';
 
 /**
@@ -52,9 +52,24 @@ export function useStore<T>(store: Store<T>): T {
  *
  * Built on useSyncExternalStore so getSnapshot always uses the LATEST selector
  * closure — passing an inline `(v) => v.has(id)` is safe even if `id` changes.
- * The snapshot must be a primitive (or a stable reference); returning a fresh
- * object each call would loop.
+ *
+ * The snapshot is memoized by `isEqual` (Object.is by default), so an equal
+ * result returns the SAME reference — that keeps primitive selectors provably
+ * loop-free and lets object/array selectors opt in by passing a structural
+ * equality (otherwise a fresh reference each call would re-render endlessly).
  */
-export function useStoreSelector<T, S>(store: Store<T>, selector: (value: T) => S): S {
-  return useSyncExternalStore(store.subscribe, () => selector(store.get()));
+export function useStoreSelector<T, S>(
+  store: Store<T>,
+  selector: (value: T) => S,
+  isEqual: (a: S, b: S) => boolean = Object.is,
+): S {
+  const cache = useRef<{ value: S } | null>(null);
+  const getSnapshot = (): S => {
+    const next = selector(store.get());
+    const prev = cache.current;
+    if (prev && isEqual(prev.value, next)) return prev.value; // stable reference
+    cache.current = { value: next };
+    return next;
+  };
+  return useSyncExternalStore(store.subscribe, getSnapshot);
 }
