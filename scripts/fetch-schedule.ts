@@ -147,7 +147,9 @@ async function loadInput(): Promise<{ slots: RawSlot[]; talks: RawTalk[] }> {
 
   const talksUrl = process.env.PRETALX_TALKS_URL;
   if (talksUrl) {
-    const raw = (await (await fetch(talksUrl)).json()) as { results?: RawTalk[] } | RawTalk[];
+    const talksRes = await fetch(talksUrl);
+    if (!talksRes.ok) throw new Error(`GET ${talksUrl} → HTTP ${talksRes.status}`);
+    const raw = (await talksRes.json()) as { results?: RawTalk[] } | RawTalk[];
     const list = Array.isArray(raw) ? raw : (raw.results ?? []);
     const byCode = new Map(adapted.talks.map((t) => [t.code, t]));
     for (const t of list) if (t.code) byCode.set(t.code, { ...byCode.get(t.code), ...t });
@@ -159,43 +161,68 @@ async function loadInput(): Promise<{ slots: RawSlot[]; talks: RawTalk[] }> {
 // ── assertions ──────────────────────────────────────────────────────────────
 
 interface Expectations {
-  slots: number;
-  codes: number;
   days: number;
-  /** Expected occurrence count keyed by either a submission code or a title. */
+  /** Exact occurrence count keyed by either a submission code or a title. */
   perItem: Record<string, number>;
+  /** Sanity band for absolute totals — the feed is edited daily pre-con. */
+  slotBand: [number, number];
+  codeBand: [number, number];
 }
 
-// Known-good facts, verified against the live Fur-Eh 2026 feed
-// (events.fureh.ca/2026/schedule/export/schedule.json) on 2026-07-15. These
-// gate the write. The master plan quoted 208/178 with 4 code-less Overflow
-// entries; the feed has since drifted to 207 slots / 177 codes / 0 code-less,
-// while Registration->5 and CZKVLN->4 still hold exactly. Update these if the
-// feed changes materially.
+// The convention schedule is a LIVE, daily-edited pretalx feed, so exact slot /
+// code totals are a moving target (208/178 in the master plan → 207/177 on
+// 2026-07-15 → 205/176 on 2026-07-16). Gating on an exact count would soon
+// refuse to regenerate at all. So:
+//   - Structural canaries stay EXACT — these encode the real invariants and
+//     have held across every feed revision: 4 days, Registration → 5
+//     occurrences (code 9JBJJY), CZKVLN → 4 (Wyndham Headless Lounge).
+//   - Totals get a wide sanity BAND (catches a catastrophic parse/expansion
+//     failure — 0 slots, or codes == slots meaning no expansion) without
+//     breaking on routine edits.
 const EXPECT: Expectations = {
-  slots: 207,
-  codes: 177,
   days: 4,
-  // Registration is matched by title (its code is 9JBJJY); CZKVLN by code.
   perItem: { Registration: 5, CZKVLN: 4 },
+  slotBand: [150, 260],
+  codeBand: [140, 230],
 };
 
 function assertInvariants(schedule: Schedule): string[] {
   const { occurrences } = schedule;
   const failures: string[] = [];
 
-  const check = (name: string, actual: number, expected: number) => {
+  const checkEq = (name: string, actual: number, expected: number) => {
     const ok = actual === expected;
     console.log(`  ${ok ? 'PASS' : 'FAIL'}  ${name}: ${actual} (expected ${expected})`);
     if (!ok) failures.push(`${name}: got ${actual}, expected ${expected}`);
   };
+  const checkTrue = (name: string, ok: boolean, detail: string) => {
+    console.log(`  ${ok ? 'PASS' : 'FAIL'}  ${name}: ${detail}`);
+    if (!ok) failures.push(`${name}: ${detail}`);
+  };
 
-  check('slots', occurrences.length, EXPECT.slots);
-  check('unique codes', uniqueCodes(occurrences).size, EXPECT.codes);
-  check('days', uniqueDays(occurrences).length, EXPECT.days);
+  const slots = occurrences.length;
+  const codes = uniqueCodes(occurrences).size;
+  const ids = new Set(occurrences.map((o) => o.id)).size;
+
+  // Expansion invariant: every slot is its own occurrence, ids are unique, and
+  // codes genuinely collapsed (submissions repeat across slots).
+  checkTrue('unique occurrence ids', ids === slots, `${ids} ids / ${slots} slots`);
+  checkTrue('expansion happened (codes < slots)', codes < slots, `${codes} codes < ${slots} slots`);
+  checkTrue(
+    'slot count in band',
+    slots >= EXPECT.slotBand[0] && slots <= EXPECT.slotBand[1],
+    `${slots} in [${EXPECT.slotBand.join(', ')}]`,
+  );
+  checkTrue(
+    'code count in band',
+    codes >= EXPECT.codeBand[0] && codes <= EXPECT.codeBand[1],
+    `${codes} in [${EXPECT.codeBand.join(', ')}]`,
+  );
+
+  checkEq('days', uniqueDays(occurrences).length, EXPECT.days);
   for (const [key, n] of Object.entries(EXPECT.perItem)) {
     const count = occurrences.filter((o) => o.code === key || o.title === key).length;
-    check(`${key} occurrences`, count, n);
+    checkEq(`${key} occurrences`, count, n);
   }
   return failures;
 }
@@ -212,14 +239,17 @@ async function main() {
   console.log('Assertions:');
   const failures = assertInvariants(schedule);
 
-  await writeFile(OUT, JSON.stringify(schedule, null, 2) + '\n', 'utf8');
-  console.log(`Wrote ${occurrences.length} occurrences → ${OUT}`);
-
+  // Do NOT write on failure — a changed/incomplete upstream feed must never
+  // clobber the last known-good committed schedule.json just because the run
+  // exited unsuccessfully. Only the validated schedule reaches disk.
   if (failures.length) {
-    console.error(`\n${failures.length} assertion(s) failed:`);
+    console.error(`\n${failures.length} assertion(s) failed — schedule.json left unchanged:`);
     for (const f of failures) console.error(`  - ${f}`);
     process.exit(1);
   }
+
+  await writeFile(OUT, JSON.stringify(schedule, null, 2) + '\n', 'utf8');
+  console.log(`Wrote ${occurrences.length} occurrences → ${OUT}`);
 }
 
 main().catch((err) => {

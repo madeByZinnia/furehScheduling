@@ -1,5 +1,5 @@
 {
-  "generatedAt": "2026-07-15T21:41:43.364Z",
+  "generatedAt": "2026-07-17T02:31:16.438Z",
   "occurrences": [
     {
       "id": "GGATRR@2026-07-16T17:00:00-06:00",
@@ -189,17 +189,6 @@
       "day": "2026-07-16"
     },
     {
-      "id": "QLJZRG@2026-07-16T17:00:00-06:00",
-      "code": "QLJZRG",
-      "title": "HIV Edmonton Testing",
-      "abstract": "_Hosted by HIV Edmonton_",
-      "track": "Charity & Outreach",
-      "room": "Wyndham - Gallery 3",
-      "start": "2026-07-16T17:00:00-06:00",
-      "end": "2026-07-17T03:00:00.000Z",
-      "day": "2026-07-16"
-    },
-    {
       "id": "83BYSD@2026-07-16T10:00:00-06:00",
       "code": "83BYSD",
       "title": "Brasil FurFest Portal",
@@ -222,13 +211,13 @@
       "day": "2026-07-16"
     },
     {
-      "id": "RZMU7F@2026-07-16T10:00:00-06:00",
+      "id": "RZMU7F@2026-07-16T14:00:00-06:00",
       "code": "RZMU7F",
       "title": "Dealer's Den Setup",
       "abstract": "Setup for Dealer's Den Vendors",
       "track": "Convention Event",
       "room": "Delta - Dealers Den",
-      "start": "2026-07-16T10:00:00-06:00",
+      "start": "2026-07-16T14:00:00-06:00",
       "end": "2026-07-17T03:00:00.000Z",
       "day": "2026-07-16"
     },
@@ -343,6 +332,17 @@
       "day": "2026-07-16"
     },
     {
+      "id": "NZGB3C@2026-07-16T20:15:00-06:00",
+      "code": "NZGB3C",
+      "title": "Polyamory 101",
+      "abstract": "_Hosted by Winterpeg_\r\nCurious about Polyamory? Come and chat about common terminologies and the dos and don'ts about plural love and the poly lifestyle.",
+      "track": "Community & Identity",
+      "room": "Delta - Red Deer Room",
+      "start": "2026-07-16T20:15:00-06:00",
+      "end": "2026-07-17T03:15:00.000Z",
+      "day": "2026-07-16"
+    },
+    {
       "id": "NKC9AE@2026-07-16T21:15:00-06:00",
       "code": "NKC9AE",
       "title": "Recreational Casting: Return of the Cast",
@@ -351,17 +351,6 @@
       "room": "Delta - Red Deer Room",
       "start": "2026-07-16T21:15:00-06:00",
       "end": "2026-07-17T04:15:00.000Z",
-      "day": "2026-07-16"
-    },
-    {
-      "id": "NZGB3C@2026-07-16T22:30:00-06:00",
-      "code": "NZGB3C",
-      "title": "Polyamory 101",
-      "abstract": "_Hosted by Winterpeg_\r\nCurious about Polyamory? Come and chat about common terminologies and the dos and don'ts about plural love and the poly lifestyle.",
-      "track": "Community & Identity",
-      "room": "Delta - Red Deer Room",
-      "start": "2026-07-16T22:30:00-06:00",
-      "end": "2026-07-17T05:30:00.000Z",
       "day": "2026-07-16"
     },
     {
@@ -680,17 +669,6 @@
       "track": "Charity & Outreach",
       "room": "Wyndham - Gallery 3",
       "start": "2026-07-17T16:00:00-06:00",
-      "end": "2026-07-18T03:00:00.000Z",
-      "day": "2026-07-17"
-    },
-    {
-      "id": "QLJZRG@2026-07-17T17:00:00-06:00",
-      "code": "QLJZRG",
-      "title": "HIV Edmonton Testing",
-      "abstract": "_Hosted by HIV Edmonton_",
-      "track": "Charity & Outreach",
-      "room": "Wyndham - Gallery 3",
-      "start": "2026-07-17T17:00:00-06:00",
       "end": "2026-07-18T03:00:00.000Z",
       "day": "2026-07-17"
     },
@@ -1927,13 +1905,13 @@
       "day": "2026-07-19"
     },
     {
-      "id": "VJZGAY@2026-07-19T20:00:00-06:00",
+      "id": "VJZGAY@2026-07-19T19:00:00-06:00",
       "code": "VJZGAY",
       "title": "Sunday Night After Party",
       "abstract": "We go now into the West beyond the closing ceremony to frolic and be merry one last time this year.\r\n7 - TekTonic (Funky House)\r\n8 - rave cat (Electro-Swing)\r\n9 - LoneWo1fy (Electronic, EuroDance, Happy-hardcore, Bootleg, Bounce)\r\n10 - XaiuFox (Bass House, ElectroBreaks)\r\n11 - DJ GiR (Happy Hardcore)",
       "track": "Music & Performance Arts",
       "room": "Wyndham - Imperial",
-      "start": "2026-07-19T20:00:00-06:00",
+      "start": "2026-07-19T19:00:00-06:00",
       "end": "2026-07-20T05:59:00.000Z",
       "day": "2026-07-19"
     },

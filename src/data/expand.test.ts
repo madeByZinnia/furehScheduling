@@ -67,10 +67,10 @@ describe('expandOccurrences — expansion counts (property)', () => {
       fc.property(slotsArb, (slots) => {
         const occ = expandOccurrences(slots);
         expect(occ.length).toBe(slots.length);
+        const syntheticCode = (s: RawSlot) =>
+          s.code ?? `id:${s.start}${s.room ? `#${String(s.room)}` : ''}`;
         for (const code of uniqueCodes(occ)) {
-          const fromSlots = slots.filter(
-            (s) => (s.code ?? `id:${s.start}`) === code,
-          ).length;
+          const fromSlots = slots.filter((s) => syntheticCode(s) === code).length;
           expect(occ.filter((o) => o.code === code).length).toBe(fromSlots);
         }
       }),
@@ -86,6 +86,20 @@ describe('expandOccurrences — expansion counts (property)', () => {
     const b = expandOccurrences([...slots].reverse());
     expect(new Set(a.map((o) => o.id)).size).toBe(2);
     expect(new Map(a.map((o) => [o.start, o.id]))).toEqual(new Map(b.map((o) => [o.start, o.id])));
+  });
+
+  it('two code-less slots at the same instant in different rooms do not collide', () => {
+    const slots: RawSlot[] = [
+      { code: null, title: 'Overflow', room: 'Wyndham - Gallery 1', start: '2026-07-17T10:00:00-06:00', end: '2026-07-17T11:00:00-06:00' },
+      { code: null, title: 'Overflow', room: 'Delta - Gallery 2', start: '2026-07-17T10:00:00-06:00', end: '2026-07-17T11:00:00-06:00' },
+    ];
+    const occ = expandOccurrences(slots);
+    expect(new Set(occ.map((o) => o.id)).size).toBe(2);
+    // ...and still stable across a reorder.
+    const reversed = expandOccurrences([...slots].reverse());
+    expect(new Map(occ.map((o) => [o.room, o.id]))).toEqual(
+      new Map(reversed.map((o) => [o.room, o.id])),
+    );
   });
 });
 

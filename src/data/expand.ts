@@ -85,21 +85,25 @@ export function conDay(startISO: string): string {
  *
  * Ids are keyed on `code + start` — never on index — so removing or reordering
  * slots leaves every surviving occurrence's id unchanged. Code-less slots get a
- * synthetic, start-derived code so they too are stable and distinct.
+ * synthetic code derived from start AND room, so two code-less slots at the same
+ * instant in different rooms stay distinct (and still stable across runs).
  */
 export function expandOccurrences(slots: RawSlot[], talks: RawTalk[] = []): Occurrence[] {
   const byCode = new Map<string, RawTalk>();
   for (const t of talks) byCode.set(t.code, t);
 
   return slots.map((slot) => {
-    const rawCode = slot.code ?? `id:${slot.start}`;
-    const code = itemCode(rawCode);
     const talk = slot.code != null ? byCode.get(slot.code) : undefined;
 
     const title = normalizeString(slot.title) || normalizeString(talk?.title);
     const abstract = normalizeString(talk?.abstract);
     const track = normalizeString(talk?.track) || null;
     const room = normalizeString(slot.room) || null;
+
+    // Code-less "Overflow Seating" slots: fold room in so same-instant slots in
+    // different rooms don't share an id. Stable because it derives only from
+    // fields the feed already fixes (start, room), never from position.
+    const code = itemCode(slot.code ?? `id:${slot.start}${room ? `#${room}` : ''}`);
 
     return {
       id: occurrenceId(code, slot.start),
