@@ -5,6 +5,7 @@ import { conDay } from '../../data/expand';
 import { now } from '../now';
 import { formatTime, formatWeekdayShort, formatWeekdayLong, formatDayNum } from '../datetime';
 import { useIsStarred, toggleStar } from '../stars';
+import { Markdown } from '../markdown';
 import {
   filterOccurrences,
   dayTabs,
@@ -171,7 +172,7 @@ function EventRow({ occ }: { occ: Occurrence }) {
         )}
         {open && hasDesc && (
           <div id={panelId} class="desc">
-            {occ.abstract}
+            <Markdown text={occ.abstract} />
           </div>
         )}
       </div>

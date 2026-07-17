@@ -157,7 +157,20 @@
   border-top: 1px solid var(--border);
   font-size: 0.9375rem;
   color: var(--text);
-  white-space: pre-wrap; /* preserve pretalx paragraph breaks */
+}
+.event-row .desc .md-p {
+  margin: 0 0 0.5rem;
+}
+.event-row .desc .md-p:last-child {
+  margin-bottom: 0;
+}
+/* Italics render dimmer to set apart host/aside lines, still AAA on the panel. */
+.event-row .desc em {
+  font-style: italic;
+  color: var(--text-dim);
+}
+.event-row .desc a {
+  color: var(--blue);
 }
 .event-row.is-open {
   border-color: var(--border-hi);
@@ -216,6 +229,7 @@
   border: none;
   margin: 0;
   padding: 0;
+  min-width: 0; /* allow the fieldset to shrink so its buttons can wrap */
 }
 .display-settings legend {
   font-size: 0.8125rem;
@@ -224,7 +238,8 @@
   margin-bottom: 0.4rem;
 }
 .seg {
-  display: inline-flex;
+  display: flex;
+  flex-wrap: wrap; /* buttons wrap instead of overflowing at large text sizes */
   gap: 0.25rem;
 }
 .seg button {
