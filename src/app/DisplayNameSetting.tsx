@@ -9,8 +9,9 @@ import { useDisplayName, setDisplayName } from './profile';
 export function DisplayNameSetting() {
   const name = useDisplayName();
   const user = getTelegramSession().user;
-  const tgName =
-    user !== null ? [user.firstName, user.lastName].filter((p) => p).join(' ') : '';
+  // Match the Worker's fallback (displayNameFor → first_name only), so the name
+  // advertised here is exactly what the crew sees when this is left blank.
+  const tgName = user !== null ? user.firstName : '';
   const fallback = tgName !== '' ? tgName : 'your Telegram name';
 
   return (

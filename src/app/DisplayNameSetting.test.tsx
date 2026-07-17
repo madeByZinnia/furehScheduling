@@ -7,7 +7,7 @@ import type { TelegramSession } from './telegram-session';
 const session: TelegramSession = {
   initData: 'x',
   startParam: null,
-  user: { id: 1, firstName: 'Robin' },
+  user: { id: 1, firstName: 'Robin', lastName: 'Smith' },
   authDate: null,
   isTelegram: true,
 };
@@ -30,12 +30,15 @@ afterEach(() => {
 });
 
 describe('DisplayNameSetting', () => {
-  it('uses the Telegram name as the placeholder', () => {
+  it('uses the Telegram FIRST name as the placeholder (matches the Worker fallback)', () => {
     void act(() => {
       render(<DisplayNameSetting />, container);
     });
     const input = container.querySelector<HTMLInputElement>('input.field-input')!;
-    expect(input.placeholder).toContain('Robin');
+    // First name only — the Worker falls back to first_name, so advertising the
+    // full name here would over-promise what the crew actually sees.
+    expect(input.placeholder).toBe('Robin');
+    expect(input.placeholder).not.toContain('Smith');
   });
 
   it('writes typed input to the display-name store', () => {
