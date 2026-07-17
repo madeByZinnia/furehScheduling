@@ -18,6 +18,7 @@ import {
   postSync,
   fetchRoster,
   startAutoSync,
+  subscribeSynced,
   type Roster,
 } from './crewSync';
 import { toggleStar, __resetStars } from './stars';
@@ -221,6 +222,95 @@ describe('startAutoSync — debounced push', () => {
     setGhost(true);
     await vi.advanceTimersByTimeAsync(2000);
     expect(fetchFn).not.toHaveBeenCalled();
+    stop();
+  });
+});
+
+describe('subscribeSynced — fires only on a successful push', () => {
+  beforeEach(() => {
+    __resetStars();
+    __resetGhost();
+    vi.useFakeTimers();
+  });
+  afterEach(() => {
+    vi.useRealTimers();
+    sessionRef.current = null;
+  });
+
+  it('notifies listeners after a successful startAutoSync push', async () => {
+    sessionRef.current = TG;
+    const fetchFn = vi.fn().mockResolvedValue(jsonResponse({}));
+    const listener = vi.fn();
+    const unsub = subscribeSynced(listener);
+    const stop = startAutoSync({ debounceMs: 800, fetchFn: fetchFn as unknown as typeof fetch });
+
+    toggleStar(OCC_A);
+    expect(listener).not.toHaveBeenCalled(); // still inside the debounce window
+
+    await vi.advanceTimersByTimeAsync(800);
+    // postSync resolves true; let its .then(notifySynced) microtask settle.
+    await Promise.resolve();
+    expect(fetchFn).toHaveBeenCalledTimes(1);
+    expect(listener).toHaveBeenCalledTimes(1);
+
+    unsub();
+    stop();
+  });
+
+  it('does NOT notify when the push fails (non-ok status)', async () => {
+    sessionRef.current = TG;
+    const fetchFn = vi.fn().mockResolvedValue(jsonResponse({}, false));
+    const listener = vi.fn();
+    const unsub = subscribeSynced(listener);
+    const stop = startAutoSync({ debounceMs: 800, fetchFn: fetchFn as unknown as typeof fetch });
+
+    toggleStar(OCC_A);
+    await vi.advanceTimersByTimeAsync(800);
+    await Promise.resolve();
+    expect(fetchFn).toHaveBeenCalledTimes(1);
+    expect(listener).not.toHaveBeenCalled();
+
+    unsub();
+    stop();
+  });
+
+  it('does NOT notify when the push rejects (network error)', async () => {
+    sessionRef.current = TG;
+    const fetchFn = vi.fn().mockRejectedValue(new Error('offline'));
+    const listener = vi.fn();
+    const unsub = subscribeSynced(listener);
+    const stop = startAutoSync({ debounceMs: 800, fetchFn: fetchFn as unknown as typeof fetch });
+
+    toggleStar(OCC_A);
+    await vi.advanceTimersByTimeAsync(800);
+    await Promise.resolve();
+    expect(fetchFn).toHaveBeenCalledTimes(1);
+    expect(listener).not.toHaveBeenCalled();
+
+    unsub();
+    stop();
+  });
+
+  it('unsubscribe stops further notifications', async () => {
+    sessionRef.current = TG;
+    const fetchFn = vi.fn().mockResolvedValue(jsonResponse({}));
+    const listener = vi.fn();
+    const unsub = subscribeSynced(listener);
+    const stop = startAutoSync({ debounceMs: 800, fetchFn: fetchFn as unknown as typeof fetch });
+
+    toggleStar(OCC_A);
+    await vi.advanceTimersByTimeAsync(800);
+    await Promise.resolve();
+    expect(listener).toHaveBeenCalledTimes(1);
+
+    unsub();
+    // A second push must NOT reach the unsubscribed listener.
+    toggleStar(OCC_A);
+    await vi.advanceTimersByTimeAsync(800);
+    await Promise.resolve();
+    expect(fetchFn).toHaveBeenCalledTimes(2);
+    expect(listener).toHaveBeenCalledTimes(1);
+
     stop();
   });
 });

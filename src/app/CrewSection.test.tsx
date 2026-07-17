@@ -144,3 +144,116 @@ describe('CrewSection — roster states, no dead-ends', () => {
     expect(container.querySelector('.crew-retry')).not.toBeNull();
   });
 });
+
+describe('CrewSection — sync re-fetch + Refresh (the race fix)', () => {
+  /** Mount with an injected onSynced whose callback is captured for the test. */
+  async function mountWith(
+    load: () => Promise<RosterResult>,
+    onSynced: (cb: () => void) => () => void,
+  ): Promise<void> {
+    await act(async () => {
+      render(<CrewSection load={load} onSynced={onSynced} />, container);
+      await Promise.resolve();
+    });
+    await act(async () => {
+      await Promise.resolve();
+    });
+  }
+
+  it('a landed sync re-fetches: EMPTY first, member on the second load', async () => {
+    let calls = 0;
+    const load = (): Promise<RosterResult> => {
+      calls += 1;
+      return calls === 1
+        ? Promise.resolve({ kind: 'ok', roster: [] })
+        : Promise.resolve({ kind: 'ok', roster: fakeRoster });
+    };
+
+    let fireSynced: () => void = () => {};
+    const onSynced = (cb: () => void): (() => void) => {
+      fireSynced = cb;
+      return () => {};
+    };
+
+    await mountWith(load, onSynced);
+    // First load → empty state, member NOT yet visible.
+    expect(calls).toBe(1);
+    expect(container.textContent).toContain('No crew members yet.');
+    expect(container.textContent).not.toContain('Alice');
+
+    // A sync lands → the component re-fetches and the member now renders.
+    await act(async () => {
+      fireSynced();
+      await Promise.resolve();
+    });
+    await act(async () => {
+      await Promise.resolve();
+    });
+
+    expect(calls).toBe(2);
+    expect(container.textContent).toContain('Alice');
+    expect(container.textContent).not.toContain('No crew members yet.');
+  });
+
+  it('Refresh in the empty state re-invokes load', async () => {
+    let calls = 0;
+    const load = (): Promise<RosterResult> => {
+      calls += 1;
+      return Promise.resolve({ kind: 'ok', roster: [] });
+    };
+
+    await mount(load); // default onSynced (never fires here)
+    expect(calls).toBe(1);
+    const refresh = container.querySelector<HTMLButtonElement>('.crew-refresh');
+    expect(refresh).not.toBeNull();
+
+    await act(async () => {
+      refresh!.click();
+      await Promise.resolve();
+    });
+    await act(async () => {
+      await Promise.resolve();
+    });
+    expect(calls).toBe(2);
+  });
+
+  it('Refresh in the ready (member list) state re-invokes load', async () => {
+    let calls = 0;
+    const load = (): Promise<RosterResult> => {
+      calls += 1;
+      return Promise.resolve({ kind: 'ok', roster: fakeRoster });
+    };
+
+    await mount(load);
+    expect(calls).toBe(1);
+    expect(container.textContent).toContain('Alice');
+    const refresh = container.querySelector<HTMLButtonElement>('.crew-refresh');
+    expect(refresh).not.toBeNull();
+
+    await act(async () => {
+      refresh!.click();
+      await Promise.resolve();
+    });
+    await act(async () => {
+      await Promise.resolve();
+    });
+    expect(calls).toBe(2);
+  });
+
+  it('unsubscribes onSynced on unmount', async () => {
+    let unsubscribed = false;
+    const onSynced = (): (() => void) => () => {
+      unsubscribed = true;
+    };
+
+    await mountWith(
+      () => Promise.resolve({ kind: 'ok', roster: fakeRoster }),
+      onSynced,
+    );
+    await act(async () => {
+      render(null, container);
+      await Promise.resolve();
+    });
+    expect(unsubscribed).toBe(true);
+  });
+});

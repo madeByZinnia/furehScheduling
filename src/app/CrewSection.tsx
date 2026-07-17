@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'preact/hooks';
 import {
   fetchRoster,
+  subscribeSynced,
   type Roster,
   type RosterResult,
   type RosterEntry,
@@ -26,6 +27,7 @@ import { getTelegramSession } from './telegram-session';
  * Telegram session.
  */
 type LoadFn = () => Promise<RosterResult>;
+type OnSyncedFn = (cb: () => void) => () => void;
 
 const defaultLoad: LoadFn = () => fetchRoster(getTelegramSession());
 
@@ -74,10 +76,19 @@ function CrewList({ roster }: { roster: Roster }) {
   );
 }
 
-export function CrewSection({ load = defaultLoad }: { load?: LoadFn }) {
+export function CrewSection({
+  load = defaultLoad,
+  onSynced = subscribeSynced,
+}: {
+  load?: LoadFn;
+  onSynced?: OnSyncedFn;
+}) {
   const [state, setState] = useState<State>({ kind: 'loading' });
   const [attempt, setAttempt] = useState(0);
 
+  // Fetch on mount and on every attempt bump (Retry, Refresh, or a landed sync).
+  // The `active` guard makes the LATEST load win: a slower in-flight load whose
+  // attempt has been superseded (or that resolves after unmount) never setState.
   useEffect(() => {
     let active = true;
     setState({ kind: 'loading' });
@@ -103,6 +114,19 @@ export function CrewSection({ load = defaultLoad }: { load?: LoadFn }) {
     };
   }, [load, attempt]);
 
+  // Re-fetch whenever THIS device's sync lands — fixes the mount race where the
+  // roster loaded ~1s before the first push, so the member never saw themselves.
+  // Bumping `attempt` re-runs the load effect above. Synced events are already
+  // throttled by the ~800ms push debounce, so one re-fetch per event is fine.
+  useEffect(() => {
+    const unsubscribe = onSynced(() => {
+      setAttempt((n) => n + 1);
+    });
+    return unsubscribe;
+  }, [onSynced]);
+
+  const refresh = () => setAttempt((n) => n + 1);
+
   return (
     <section class="crew-section" aria-labelledby="crew-section-heading">
       <h2 id="crew-section-heading">Your crew</h2>
@@ -114,7 +138,12 @@ export function CrewSection({ load = defaultLoad }: { load?: LoadFn }) {
       )}
 
       {state.kind === 'empty' && (
-        <p class="crew-status">No crew members yet.</p>
+        <>
+          <p class="crew-status">No crew members yet.</p>
+          <button type="button" class="crew-refresh" onClick={refresh}>
+            Refresh
+          </button>
+        </>
       )}
 
       {state.kind === 'error' && (
@@ -130,7 +159,14 @@ export function CrewSection({ load = defaultLoad }: { load?: LoadFn }) {
         </>
       )}
 
-      {state.kind === 'ready' && <CrewList roster={state.roster} />}
+      {state.kind === 'ready' && (
+        <>
+          <CrewList roster={state.roster} />
+          <button type="button" class="crew-refresh" onClick={refresh}>
+            Refresh
+          </button>
+        </>
+      )}
     </section>
   );
 }

@@ -168,6 +168,37 @@ export async function fetchRoster(
   }
 }
 
+/**
+ * Synced-notification bus. A successful push (postSync → true) fires every
+ * subscribed listener so views (e.g. the crew roster) can RE-FETCH after their
+ * own device's sync lands — fixing the mount race where the roster loads before
+ * the first push. Listeners are module-level so any startAutoSync push reaches
+ * every subscriber. A FAILED push never notifies.
+ */
+const syncedListeners = new Set<() => void>();
+
+/**
+ * Subscribe to successful-push notifications. Returns an unsubscribe that removes
+ * exactly this listener. Safe to call the unsubscribe more than once.
+ */
+export function subscribeSynced(cb: () => void): () => void {
+  syncedListeners.add(cb);
+  return () => {
+    syncedListeners.delete(cb);
+  };
+}
+
+/** Notify all synced-listeners. A throwing listener never blocks the others. */
+function notifySynced(): void {
+  for (const cb of [...syncedListeners]) {
+    try {
+      cb();
+    } catch {
+      // A listener's failure must not break the sync loop or sibling listeners.
+    }
+  }
+}
+
 export interface AutoSyncOptions {
   /** Debounce window in ms before a change triggers a push. Default 800. */
   debounceMs?: number;
@@ -196,7 +227,10 @@ export function startAutoSync(opts: AutoSyncOptions = {}): () => void {
   const flush = (): void => {
     timer = null;
     // postSync never throws; the returned promise is intentionally not awaited.
-    void postSync(session, getGhost(), getStarsSnapshot(), fetchFn);
+    void postSync(session, getGhost(), getStarsSnapshot(), fetchFn).then((ok) => {
+      // Only a successful push (true) notifies; a no-op/failed push must not fire.
+      if (ok) notifySynced();
+    });
   };
 
   const schedule = (): void => {
