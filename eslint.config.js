@@ -8,7 +8,14 @@ import globals from 'globals';
 // WARN (never gate). Prettier owns formatting; eslint-config-prettier is last.
 export default tseslint.config(
   {
-    ignores: ['dist/', 'coverage/', 'node_modules/', '.worktrees/', 'src/data/schedule.json'],
+    ignores: [
+      'dist/',
+      'coverage/',
+      'node_modules/',
+      '.worktrees/',
+      '.wrangler/',
+      'src/data/schedule.json',
+    ],
   },
   js.configs.recommended,
   ...tseslint.configs.recommendedTypeChecked,

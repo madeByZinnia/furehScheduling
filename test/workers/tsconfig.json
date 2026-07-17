@@ -1,0 +1,11 @@
+{
+  // Worker-pool tests run in workerd too: DOM-less, workers-types + the pool's
+  // own types for the `cloudflare:test` module.
+  "extends": "../../tsconfig.json",
+  "compilerOptions": {
+    "lib": ["ES2022"],
+    "types": ["@cloudflare/workers-types", "@cloudflare/vitest-pool-workers"]
+  },
+  "include": ["."],
+  "exclude": []
+}

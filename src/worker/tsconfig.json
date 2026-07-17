@@ -1,0 +1,12 @@
+{
+  // Worker code runs in workerd, NOT a browser. Drop the DOM lib and vite/node
+  // types (they collide with @cloudflare/workers-types' fetch/Request/Response),
+  // and keep every strict flag from the root config.
+  "extends": "../../tsconfig.json",
+  "compilerOptions": {
+    "lib": ["ES2022"],
+    "types": ["@cloudflare/workers-types"]
+  },
+  "include": ["."],
+  "exclude": []
+}

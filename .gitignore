@@ -12,5 +12,8 @@ dist/
 .wrangler/
 coverage/
 
+# Local Worker secrets for `wrangler dev` — never commit
+.dev.vars
+
 # Git worktrees live here (inside the repo, ignored)
 .worktrees/
