@@ -229,6 +229,16 @@ function assertInvariants(schedule: Schedule): string[] {
 
 // ── main ────────────────────────────────────────────────────────────────────
 
+/** Occurrence count in the currently committed schedule.json, or 0 if absent. */
+async function previousOccurrenceCount(): Promise<number> {
+  try {
+    const prev = JSON.parse(await readFile(OUT, 'utf8')) as Partial<Schedule>;
+    return Array.isArray(prev.occurrences) ? prev.occurrences.length : 0;
+  } catch {
+    return 0; // no prior file (or unreadable) → nothing to protect
+  }
+}
+
 async function main() {
   const { slots, talks } = await loadInput();
   console.log(`Loaded ${slots.length} slots, ${talks.length} talks.`);
@@ -238,6 +248,23 @@ async function main() {
 
   console.log('Assertions:');
   const failures = assertInvariants(schedule);
+
+  // Regression guard against truncation: the sanity band alone would admit a
+  // structurally-plausible-but-truncated feed (e.g. a partial fetch). Compare
+  // against the currently committed schedule and refuse a large drop. Self-
+  // calibrating as the real schedule grows/shrinks; ALLOW_SHRINK=1 overrides
+  // for a genuinely smaller schedule.
+  const MAX_SHRINK = 0.15;
+  const prevCount = await previousOccurrenceCount();
+  if (prevCount > 0 && occurrences.length < Math.floor(prevCount * (1 - MAX_SHRINK))) {
+    const msg = `occurrence count dropped from ${prevCount} to ${occurrences.length} (>${MAX_SHRINK * 100}%) — likely a truncated feed; set ALLOW_SHRINK=1 to override`;
+    if (process.env.ALLOW_SHRINK === '1') {
+      console.warn(`  WARN  shrink guard overridden: ${msg}`);
+    } else {
+      console.log(`  FAIL  shrink guard: ${msg}`);
+      failures.push(`shrink guard: ${msg}`);
+    }
+  }
 
   // Do NOT write on failure — a changed/incomplete upstream feed must never
   // clobber the last known-good committed schedule.json just because the run

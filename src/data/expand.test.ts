@@ -67,8 +67,11 @@ describe('expandOccurrences — expansion counts (property)', () => {
       fc.property(slotsArb, (slots) => {
         const occ = expandOccurrences(slots);
         expect(occ.length).toBe(slots.length);
-        const syntheticCode = (s: RawSlot) =>
-          s.code ?? `id:${s.start}${s.room ? `#${String(s.room)}` : ''}`;
+        // Mirror production exactly: the synthetic code uses the NORMALIZED room.
+        const syntheticCode = (s: RawSlot) => {
+          const room = normalizeString(s.room);
+          return s.code ?? `id:${s.start}${room ? `#${room}` : ''}`;
+        };
         for (const code of uniqueCodes(occ)) {
           const fromSlots = slots.filter((s) => syntheticCode(s) === code).length;
           expect(occ.filter((o) => o.code === code).length).toBe(fromSlots);
