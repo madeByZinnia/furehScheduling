@@ -109,12 +109,14 @@ export const CONS: Record<ConId, ConConfig> = {
       shape: 'canfurence-day-grouped',
       activitiesUrl: 'https://canfurence.ca/backend/schedule/panels',
     },
-    // Placeholder bands — Tic 2 (real ingest against the live feed) will tighten
-    // these to observed slot/code totals and add per-item canaries.
+    // Tightened Tic 2 against the live feed (2026-07-23): 133 slots, 108 codes,
+    // 4 distinct days (08-06 THURSDAY pre-event + 08-07..08-09). Bands are the
+    // observed totals ±~15% to catch a catastrophic parse/fetch failure without
+    // breaking on routine pre-con edits.
     expectations: {
       days: 4,
-      slotBand: [100, 400],
-      codeBand: [100, 400],
+      slotBand: [113, 153],
+      codeBand: [91, 125],
       expectExpansion: false,
     },
   },
@@ -142,12 +144,13 @@ export const CONS: Record<ConId, ConConfig> = {
       activitiesUrl: 'https://tailsofsummer.com/tos-schedule/api_proxy.php?target=activities',
       resourcesUrl: 'https://tailsofsummer.com/tos-schedule/api_proxy.php?target=resources',
     },
-    // Placeholder bands — Tic 2 (real ingest against the live feed) will tighten
-    // these to observed slot/code totals and add per-item canaries.
+    // Tightened Tic 2 against the live feed (2026-07-23): 83 slots, 83 codes
+    // (1:1, no repeated sessions), 3 distinct days (08-08, 08-09, plus one
+    // after-midnight activity bucketed to 08-10). Bands are observed ±~15%.
     expectations: {
-      days: 2,
-      slotBand: [50, 300],
-      codeBand: [50, 300],
+      days: 3,
+      slotBand: [70, 96],
+      codeBand: [70, 96],
       expectExpansion: false,
     },
   },
