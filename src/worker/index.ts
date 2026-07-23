@@ -14,6 +14,7 @@ import {
   getChatMember,
   getUpdates,
   isActiveMember,
+  isChatAdmin,
   resolveCrewRef,
   setWebhook,
   verifyInitData,
@@ -37,6 +38,18 @@ function json(data: unknown, status = 200): Response {
 
 function isGroupChat(chat: TelegramChat): boolean {
   return chat.type === 'group' || chat.type === 'supergroup';
+}
+
+/**
+ * Parse a `/setcon <id>` or `/con <id>` group command into the con id token, or
+ * null if the text is not such a command. Tolerates the bot-username suffix
+ * (`/setcon@FurEhBot tos`) and leading whitespace. Validation of the id against
+ * the con registry is the caller's job — this only extracts the token.
+ */
+export function parseSetCon(text: string | undefined): string | null {
+  if (typeof text !== 'string') return null;
+  const m = /^\s*\/(?:setcon|con)(?:@\w+)?\s+(\S+)/i.exec(text);
+  return m === null ? null : m[1]!;
 }
 
 /** Bearer check for the admin endpoints. Fails CLOSED when the key is absent. */
@@ -427,7 +440,7 @@ function handleResolveCheck(): Response {
 }
 
 /** Attach a crew to a group chat (and record admin status) from one update. */
-async function applyUpdate(update: TelegramUpdate, env: Env): Promise<void> {
+export async function applyUpdate(update: TelegramUpdate, env: Env): Promise<void> {
   const mcm = update.my_chat_member;
   if (mcm !== undefined && isGroupChat(mcm.chat)) {
     const chatId = mcm.chat.id;
@@ -453,7 +466,25 @@ async function applyUpdate(update: TelegramUpdate, env: Env): Promise<void> {
   const msg = update.message;
   if (msg !== undefined && isGroupChat(msg.chat)) {
     console.log(`message chat=${msg.chat.id}`);
-    await env.CREW.getByName(String(msg.chat.id)).configure(msg.chat.id);
+    const crew = env.CREW.getByName(String(msg.chat.id));
+    await crew.configure(msg.chat.id);
+    // A `/setcon <id>` (or `/con <id>`) command switches which con this crew
+    // serves. This is PRIVILEGED — it changes crew config — so it is gated on the
+    // SENDER being a chat admin (creator/administrator), verified live via
+    // getChatMember. A non-admin command, a command with no known sender, an
+    // unknown con id, or any getChatMember error is IGNORED (fail closed): no
+    // con change, no confirmation digest.
+    const conId = parseSetCon(msg.text);
+    if (conId !== null && getCon(conId) !== null && msg.from !== undefined) {
+      const sender = await getChatMember(env.BOT_TOKEN, msg.chat.id, msg.from.id);
+      if (isChatAdmin(sender)) {
+        console.log(`setcon chat=${msg.chat.id} con=${conId} by admin=${msg.from.id}`);
+        await crew.setCon(conId);
+        await crew.postDigest(Date.now());
+      } else {
+        console.log(`setcon DENIED chat=${msg.chat.id} user=${msg.from.id} status=${sender.status}`);
+      }
+    }
   }
 }
 
@@ -499,6 +530,9 @@ async function handleSetup(request: Request, url: URL, env: Env): Promise<Respon
   if (webhookSecret === undefined || webhookSecret === '') {
     return json({ error: 'WEBHOOK_SECRET not configured' }, 503);
   }
+  // Optional ?con=<id>: an admin bootstrap can set which con the discovered crews
+  // serve. An unknown/absent con leaves each crew's existing con_id untouched.
+  const con = getCon(url.searchParams.get('con') ?? '');
 
   // getUpdates is the ONLY expected failure here (Telegram disables it once a
   // webhook is active); surface anything else instead of masking a real problem.
@@ -535,7 +569,7 @@ async function handleSetup(request: Request, url: URL, env: Env): Promise<Respon
       continue;
     }
     const admin = status === 'administrator';
-    await crew.configure(chatId);
+    await crew.configure(chatId, con?.id);
     await crew.setAdmin(admin);
     configured.push({ chatId, admin });
   }

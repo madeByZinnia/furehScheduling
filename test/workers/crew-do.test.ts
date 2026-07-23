@@ -106,10 +106,10 @@ describe('Crew digest', () => {
     expect(calls.length).toBe(0);
   });
 
-  it('attaches the Mini App launch button (startapp=<chat_id>) when MINIAPP_URL is set', async () => {
+  it('attaches the Mini App launch button (startapp=<conId>__<chat_id>) when MINIAPP_URL is set', async () => {
     const chatId = -1001234567890;
     const crew = env.CREW.getByName('crew-miniapp');
-    await crew.configure(chatId);
+    await crew.configure(chatId); // default con → 'fureh'
     // The DO holds its own `this.env` (distinct from the test's imported env), so
     // set MINIAPP_URL on the live instance, drive both digest paths, then restore.
     try {
@@ -125,7 +125,7 @@ describe('Crew digest', () => {
       const sendBtn = (
         send?.body.reply_markup as { inline_keyboard: { text: string; url: string }[][] }
       ).inline_keyboard[0]?.[0];
-      expect(sendBtn?.url).toBe(`https://t.me/testbot/app?startapp=${chatId}`);
+      expect(sendBtn?.url).toBe(`https://t.me/testbot/app?startapp=fureh__${chatId}`);
       expect((sendBtn?.text ?? '').length).toBeGreaterThan(0);
 
       const edit = calls.find((c) => c.method === 'editMessageText');
@@ -133,7 +133,7 @@ describe('Crew digest', () => {
       const editBtn = (
         edit?.body.reply_markup as { inline_keyboard: { text: string; url: string }[][] }
       ).inline_keyboard[0]?.[0];
-      expect(editBtn?.url).toBe(`https://t.me/testbot/app?startapp=${chatId}`);
+      expect(editBtn?.url).toBe(`https://t.me/testbot/app?startapp=fureh__${chatId}`);
     } finally {
       // Restore the default (unset) so a shared env can't leak into later tests.
       await runInDurableObject(crew, (instance) => {
@@ -143,23 +143,36 @@ describe('Crew digest', () => {
   });
 
   it('omits reply_markup entirely when MINIAPP_URL is unset', async () => {
-    // MINIAPP_URL is unset in the pool bindings, so no button should be sent.
+    // wrangler.jsonc `vars` sets MINIAPP_URL, and the pool injects vars into the DO
+    // env, so the "unset" case must be created by clearing it on the live instance
+    // (mirroring the set-case test above, in reverse). With no MINIAPP_URL the
+    // launchMarkup guard returns undefined → no reply_markup on send OR edit.
     const crew = env.CREW.getByName('crew-no-miniapp');
     await crew.configure(1);
-    await crew.postDigest(CON_NOW); // first post → sendMessage
-    await crew.postDigest(CON_NOW); // steady state → editMessageText
+    try {
+      await runInDurableObject(crew, async (instance) => {
+        delete (instance as unknown as { env: { MINIAPP_URL?: string } }).env.MINIAPP_URL;
+        await instance.postDigest(CON_NOW); // first post → sendMessage
+        await instance.postDigest(CON_NOW); // steady state → editMessageText
+      });
 
-    const send = calls.find((c) => c.method === 'sendMessage');
-    expect(send).toBeDefined();
-    expect('reply_markup' in (send?.body ?? {})).toBe(false);
+      const send = calls.find((c) => c.method === 'sendMessage');
+      expect(send).toBeDefined();
+      expect('reply_markup' in (send?.body ?? {})).toBe(false);
 
-    const edit = calls.find((c) => c.method === 'editMessageText');
-    expect(edit).toBeDefined();
-    expect('reply_markup' in (edit?.body ?? {})).toBe(false);
+      const edit = calls.find((c) => c.method === 'editMessageText');
+      expect(edit).toBeDefined();
+      expect('reply_markup' in (edit?.body ?? {})).toBe(false);
 
-    // Existing behavior intact: one send, one edit, still posts + edits as before.
-    expect(count('sendMessage')).toBe(1);
-    expect(count('editMessageText')).toBe(1);
+      // Existing behavior intact: one send, one edit, still posts + edits as before.
+      expect(count('sendMessage')).toBe(1);
+      expect(count('editMessageText')).toBe(1);
+    } finally {
+      await runInDurableObject(crew, (instance) => {
+        (instance as unknown as { env: { MINIAPP_URL?: string } }).env.MINIAPP_URL =
+          'https://t.me/fureh_schedule_bot/schedule';
+      });
+    }
   });
 });
 

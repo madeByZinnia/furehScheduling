@@ -7,7 +7,7 @@ import {
   sendMessage,
   type InlineKeyboardMarkup,
 } from './telegram';
-import scheduleData from '../data/schedule.json';
+import { CONS, DEFAULT_CON, getCon } from '../data/cons';
 
 /**
  * Crew — one Durable Object per group chat. For this de-risk slice it owns just
@@ -26,11 +26,8 @@ import scheduleData from '../data/schedule.json';
  *     notification), which is safe to repeat.
  */
 
-/** Baked schedule occurrences the digest reads from (the SPA's expanded data). */
-const OCCURRENCES = scheduleData.occurrences as DigestOccurrence[];
-
 /**
- * A roster plan is one starred occurrence, resolved against the baked schedule.
+ * A roster plan is one starred occurrence, resolved against the con's schedule.
  * `title`/`start`/`room` are present when the id is known; an unknown id (stale
  * or client-fabricated) degrades to just `{ occurrenceId }` rather than throwing.
  */
@@ -49,7 +46,7 @@ export interface RosterEntry {
   plans: RosterPlan[];
 }
 
-/** The subset of a baked occurrence the roster resolves a star id against. */
+/** The subset of a con occurrence the roster resolves a star id against. */
 interface OccurrenceLookup {
   id: string;
   title: string;
@@ -57,10 +54,40 @@ interface OccurrenceLookup {
   room: string | null;
 }
 
-/** id → occurrence, so getRoster can enrich a star id in O(1) with no scan. */
-const OCCURRENCE_BY_ID = new Map<string, OccurrenceLookup>();
-for (const o of scheduleData.occurrences as OccurrenceLookup[]) {
-  OCCURRENCE_BY_ID.set(o.id, o);
+/** The raw occurrence shape in a con's schedule JSON (only the fields we read). */
+interface RawOccurrence {
+  id: string;
+  title: string;
+  room: string | null;
+  start: string;
+  end: string;
+}
+
+/** A parsed, con-specific schedule: the digest list + the id→occurrence lookup. */
+interface LoadedSchedule {
+  list: DigestOccurrence[];
+  byId: Map<string, OccurrenceLookup>;
+}
+
+/**
+ * How long a loaded per-con schedule stays cached in the DO before the next read
+ * re-fetches from KV/asset. The alarm fires every 5 min, so a value just under
+ * that means a live KV edit surfaces within one digest cycle while a burst of
+ * calls in the same tick reuses the parse.
+ */
+const SCHEDULE_CACHE_TTL_MS = 4 * 60 * 1000;
+
+/**
+ * Thrown by loadSchedule when NEITHER KV nor the asset yields a valid schedule for
+ * a con. Distinct from an empty-but-valid schedule: this means "we could not load
+ * anything", so postDigest skips (keeping the last good pin) and getRoster degrades
+ * rather than either silently posting an empty "Nothing scheduled" digest.
+ */
+class ScheduleLoadError extends Error {
+  constructor(conId: string) {
+    super(`schedule load failed for con=${conId} (no valid KV value or asset)`);
+    this.name = 'ScheduleLoadError';
+  }
 }
 
 interface CrewMemberRow {
@@ -163,13 +190,27 @@ const MAX_STARS = 1000;
 
 interface CrewConfigRow {
   // Index signature so the row type satisfies sql.exec<T>'s Record constraint.
-  [column: string]: number | null;
+  [column: string]: number | string | null;
   chat_id: number | null;
   pinned_message_id: number | null;
   is_admin: number;
+  con_id: string;
+}
+
+/** PRAGMA table_info row shape (only the column name is read). */
+interface TableInfoRow {
+  [column: string]: number | string | null;
+  name: string;
 }
 
 export class Crew extends DurableObject<Env> {
+  /**
+   * Per-instance cache of the con's parsed schedule. Keyed by con id so a con
+   * change (setCon) forces a reload; TTL-refreshed so a live KV edit surfaces
+   * within one alarm cycle. `null` until the first loadSchedule.
+   */
+  private scheduleCache: { conId: string; loadedAt: number; data: LoadedSchedule } | null = null;
+
   constructor(ctx: DurableObjectState, env: Env) {
     super(ctx, env);
     // Schema setup is synchronous SQL, so it runs directly in the constructor —
@@ -182,6 +223,11 @@ export class Crew extends DurableObject<Env> {
          is_admin INTEGER NOT NULL DEFAULT 0
        )`,
     );
+    // Multi-con migration: give each crew a con_id. ALTER TABLE has no
+    // IF NOT EXISTS, so guard with a PRAGMA check — a pre-Tic-5 DB (the column
+    // absent) gets it added with DEFAULT 'fureh', which BACKFILLS the existing
+    // live-crew row to 'fureh' (NOT NULL DEFAULT applies to existing rows).
+    this.ensureConColumn();
     this.ctx.storage.sql.exec(
       `CREATE TABLE IF NOT EXISTS digest_posts (
          dedupe_key TEXT PRIMARY KEY,
@@ -239,14 +285,135 @@ export class Crew extends DurableObject<Env> {
     );
   }
 
-  /** Attach this crew to a Telegram chat and arm the first digest alarm. */
-  async configure(chatId: number): Promise<void> {
+  /**
+   * Idempotently add the crew_config.con_id column when it is missing. Split out
+   * of the constructor so it is exercisable in isolation (a test can drop to the
+   * pre-Tic-5 schema and re-run just this guard).
+   */
+  private ensureConColumn(): void {
+    const cols = this.ctx.storage.sql
+      .exec<TableInfoRow>('PRAGMA table_info(crew_config)')
+      .toArray();
+    if (!cols.some((c) => c.name === 'con_id')) {
+      this.ctx.storage.sql.exec(
+        "ALTER TABLE crew_config ADD COLUMN con_id TEXT NOT NULL DEFAULT 'fureh'",
+      );
+    }
+  }
+
+  /**
+   * Load the given con's schedule (KV-first, asset fallback — the same sharp edge
+   * as GET /api/schedule), parsed into the digest list + id→occurrence lookup.
+   *
+   * KV WINS so a live edit overrides the baked asset with no redeploy — BUT a KV
+   * value that fails to parse is treated as a MISS and we fall through to the
+   * asset, so a corrupt live override never shadows a valid baked file. On the
+   * asset path, the single-page-application binding resolves a MISSING file to
+   * index.html at HTTP 200, so we guard on a JSON content-type.
+   *
+   * THROWS `ScheduleLoadError` when BOTH KV and asset yield nothing valid — a
+   * genuinely-empty-but-valid schedule (`{occurrences:[]}`) is NOT a failure and
+   * returns an empty result. Callers decide how to handle the throw: postDigest
+   * skips (preserving the last good pin), getRoster degrades to un-enriched plans.
+   *
+   * Only a SUCCESSFUL load is cached (per con id, short TTL): repeated calls in one
+   * alarm tick reuse the parse, a con change reloads immediately, and a live KV
+   * edit surfaces within a cycle. `this.env` (SCHEDULES + ASSETS) comes from the
+   * DurableObject base.
+   */
+  private async loadSchedule(conId: string): Promise<LoadedSchedule> {
+    const cached = this.scheduleCache;
+    if (
+      cached !== null &&
+      cached.conId === conId &&
+      Date.now() - cached.loadedAt < SCHEDULE_CACHE_TTL_MS
+    ) {
+      return cached.data;
+    }
+
+    const data = await this.fetchSchedule(conId);
+    if (data === null) throw new ScheduleLoadError(conId);
+    this.scheduleCache = { conId, loadedAt: Date.now(), data };
+    return data;
+  }
+
+  /**
+   * KV-first, asset-fallback resolution of a con's parsed schedule, or `null` when
+   * NOTHING valid is available. A KV value that is present but unparseable is
+   * logged and treated as a miss (fall through to the asset).
+   */
+  private async fetchSchedule(conId: string): Promise<LoadedSchedule | null> {
+    const fromKv = await this.env.SCHEDULES.get(conId);
+    if (fromKv !== null) {
+      const parsed = Crew.parseSchedule(fromKv);
+      if (parsed !== null) return parsed;
+      // Corrupt live override: do NOT let it shadow a valid asset — fall through.
+      console.warn(`crew: KV schedule for con=${conId} is unparseable — falling back to asset`);
+    }
+
+    const assetRes = await this.env.ASSETS.fetch(
+      new URL(`/data/${conId}.json`, 'https://assets.local'),
+    );
+    const contentType = assetRes.headers.get('content-type') ?? '';
+    if (!assetRes.ok || !contentType.includes('json')) return null;
+    return Crew.parseSchedule(await assetRes.text());
+  }
+
+  /**
+   * Parse raw schedule JSON into the digest list + id lookup. Returns `null` for
+   * ANY malformed input — unparseable text, a non-object top level (including a
+   * literal JSON `null`), a missing/non-array `occurrences`, OR an array in which
+   * ANY entry is not an object carrying a string `id` and string `start` (the
+   * fields the DO actually reads). Rejecting the WHOLE payload on a single garbage
+   * entry is deliberate: a corrupt KV override must fall through to the valid
+   * asset, never shadow it with junk. A legitimately EMPTY-but-valid schedule
+   * (`{occurrences:[]}`) is NOT malformed → returns an empty, non-null result.
+   * The entire body is wrapped in try/catch so a hostile shape can never throw
+   * past the malformed-KV fallthrough.
+   */
+  private static parseSchedule(raw: string): LoadedSchedule | null {
+    try {
+      const parsed: unknown = JSON.parse(raw);
+      if (parsed === null || typeof parsed !== 'object') return null;
+      const occ = (parsed as { occurrences?: unknown }).occurrences;
+      if (!Array.isArray(occ)) return null;
+
+      const list: DigestOccurrence[] = [];
+      const byId = new Map<string, OccurrenceLookup>();
+      for (const item of occ) {
+        if (item === null || typeof item !== 'object') return null;
+        const o = item as Partial<RawOccurrence>;
+        // Hard requirement: the identity + time fields the DO reads must be strings.
+        if (typeof o.id !== 'string' || typeof o.start !== 'string') return null;
+        // Display fields are soft: default rather than reject, so a real feed that
+        // omits an optional title/room/end still loads well-formed.
+        const title = typeof o.title === 'string' ? o.title : '';
+        const end = typeof o.end === 'string' ? o.end : o.start;
+        const room = typeof o.room === 'string' ? o.room : null;
+        list.push({ title, room, start: o.start, end });
+        byId.set(o.id, { id: o.id, title, start: o.start, room });
+      }
+      return { list, byId };
+    } catch {
+      return null;
+    }
+  }
+
+  /**
+   * Attach this crew to a Telegram chat and arm the first digest alarm. When
+   * `conId` is a known con it is persisted; an unknown/absent con leaves the
+   * existing con_id untouched (a live crew keeps serving its con).
+   */
+  async configure(chatId: number, conId?: string): Promise<void> {
     const prev = this.config();
     this.ctx.storage.sql.exec(
       `INSERT INTO crew_config (id, chat_id, is_admin) VALUES (1, ?, 0)
        ON CONFLICT(id) DO UPDATE SET chat_id = excluded.chat_id`,
       chatId,
     );
+    if (conId !== undefined && getCon(conId) !== null) {
+      this.ctx.storage.sql.exec('UPDATE crew_config SET con_id = ? WHERE id = 1', conId);
+    }
     // Rebinding to a different chat invalidates the old pinned message id AND the
     // dedupe ledger (else a same-bucket claim would suppress the new chat's first
     // post).
@@ -282,6 +449,27 @@ export class Crew extends DurableObject<Env> {
     );
   }
 
+  /**
+   * Switch which con this crew serves. Validates via getCon and REJECTS an unknown
+   * id (returns false, leaving con_id unchanged) so a typo can't strand a crew on a
+   * con with no data. On success the next digest/roster reflects the new con — the
+   * schedule cache is keyed by con id, so it reloads on the very next read.
+   */
+  setCon(conId: string): boolean {
+    if (getCon(conId) === null) return false;
+    this.ctx.storage.sql.exec(
+      `INSERT INTO crew_config (id, con_id) VALUES (1, ?)
+       ON CONFLICT(id) DO UPDATE SET con_id = excluded.con_id`,
+      conId,
+    );
+    return true;
+  }
+
+  /** The con id this crew serves (defaults to Fureh if somehow unset). */
+  con(): string {
+    return this.config()?.con_id ?? DEFAULT_CON;
+  }
+
   override async alarm(): Promise<void> {
     // If the crew was deactivated (bot removed), stop — do NOT re-arm, or a
     // queued/racing alarm would resurrect an orphan that wakes forever.
@@ -300,17 +488,46 @@ export class Crew extends DurableObject<Env> {
     const cfg = this.config();
     if (cfg?.chat_id == null) return; // not attached to a chat yet
     const token = this.env.BOT_TOKEN;
-    const text = buildDigest(OCCURRENCES, new Date(nowMs));
+    // Serve THIS crew's con: load its schedule (KV→asset) and render times in the
+    // con's own timezone. This is what removed the last baked schedule import.
+    const con = getCon(cfg.con_id) ?? CONS[DEFAULT_CON];
 
-    const markup = this.launchMarkup(cfg.chat_id);
+    // Load failure must NOT clobber the last good pinned digest with an empty
+    // "Nothing scheduled" one — skip this post entirely and let the (already
+    // re-armed) alarm retry next cycle.
+    let sched: LoadedSchedule;
+    try {
+      sched = await this.loadSchedule(con.id);
+    } catch (err) {
+      console.warn('digest skipped:', err instanceof Error ? err.message : err);
+      return;
+    }
+
+    // Post-load stale-con guard: loadSchedule awaited, and a concurrent setCon may
+    // have changed the con in the meantime. If it changed, abort — the setCon path
+    // / next alarm will post the correct con rather than editing the pin back to
+    // this now-stale con's data.
+    if (this.con() !== con.id) return;
+
+    const text = buildDigest(sched.list, new Date(nowMs), con.tz);
+
+    const markup = this.launchMarkup(cfg.chat_id, con.id);
+
+    // Re-read the con IMMEDIATELY BEFORE each outbound Telegram call (edit/send AND
+    // the pin): a setCon can interleave during any awaited call above, so a single
+    // early guard is not enough. The ONLY residual window is the con changing
+    // DURING the send()/edit() HTTP round-trip itself — accepted, because the next
+    // 5-minute alarm re-posts in the correct con and self-heals it.
 
     // Steady state: a pinned message exists → quiet edit in place, no dedupe
     // needed because edits fire no notification and are idempotent to repeat.
     if (cfg.pinned_message_id !== null) {
+      if (this.con() !== con.id) return;
       await editMessageText(token, cfg.chat_id, cfg.pinned_message_id, text, markup);
       // Retry the pin every tick: if the initial pin failed (missing rights) it
       // self-heals the moment the admin right is granted; re-pinning an already
       // pinned message is a harmless no-op.
+      if (this.con() !== con.id) return;
       await this.tryPin(token, cfg.chat_id, cfg.pinned_message_id, cfg.is_admin);
       return;
     }
@@ -326,6 +543,7 @@ export class Crew extends DurableObject<Env> {
     );
     if (claim.rowsWritten === 0) return;
 
+    if (this.con() !== con.id) return;
     const messageId = await sendMessage(token, cfg.chat_id, text, markup);
     // Persist the message id BEFORE pinning: if the pin call throws, a retry
     // finds a pinned_message_id and edits instead of sending a duplicate.
@@ -333,6 +551,7 @@ export class Crew extends DurableObject<Env> {
       'UPDATE crew_config SET pinned_message_id = ? WHERE id = 1',
       messageId,
     );
+    if (this.con() !== con.id) return;
     await this.tryPin(token, cfg.chat_id, messageId, cfg.is_admin);
   }
 
@@ -359,16 +578,26 @@ export class Crew extends DurableObject<Env> {
    * The inline-keyboard "launch the Mini App" button for the pinned digest, or
    * undefined when no Mini App url is configured (→ the digest posts with no
    * button, byte-identical to before). The button is a Direct Link Mini App:
-   * `${MINIAPP_URL}?startapp=<chat_id>` carries the crew's own chat id so the
-   * Worker can membership-verify the launch. The negative supergroup id is a
-   * valid startapp value ('-' is allowed).
+   * `${MINIAPP_URL}?startapp=<conId>__<chat_id>` carries BOTH the crew's con (a
+   * display-only hint) and its own chat id (the membership-verified selector), so
+   * the client opens straight into the right con. The chat id is everything after
+   * the first `__`; a negative supergroup id is a valid startapp value.
+   *
+   * Pinned buttons are rebuilt every digest and the message is edited in place, so
+   * a pre-Tic-5 bare `?startapp=<chatId>` button upgrades to the con-tagged form on
+   * the next alarm with no migration.
    */
-  private launchMarkup(chatId: number): InlineKeyboardMarkup | undefined {
+  private launchMarkup(chatId: number, conId: string): InlineKeyboardMarkup | undefined {
     const base = this.env.MINIAPP_URL;
     if (typeof base !== 'string' || base === '') return undefined;
     return {
       inline_keyboard: [
-        [{ text: '🗓 Open the crew schedule', url: `${base}?startapp=${String(chatId)}` }],
+        [
+          {
+            text: '🗓 Open the crew schedule',
+            url: `${base}?startapp=${conId}__${String(chatId)}`,
+          },
+        ],
       ],
     };
   }
@@ -424,9 +653,20 @@ export class Crew extends DurableObject<Env> {
    * The crew roster — one entry per member. A ghost member STILL appears (so the
    * crew knows they're aboard) but their `plans` is redacted to `[]` here, on the
    * server, before anything hits the wire. A non-ghost member's stars are
-   * resolved against the baked schedule (unknown ids degrade to `{ occurrenceId }`).
+   * resolved against the con's schedule (unknown ids degrade to `{ occurrenceId }`).
    */
-  getRoster(): RosterEntry[] {
+  async getRoster(): Promise<RosterEntry[]> {
+    // Resolve star ids against THIS crew's con schedule (KV→asset), not a baked map.
+    // On a load failure, DEGRADE gracefully: an empty lookup means plans carry only
+    // their occurrenceId (no title/start/room enrichment) — the roster API still
+    // works rather than 500ing when a schedule is momentarily unavailable.
+    let byId: Map<string, OccurrenceLookup>;
+    try {
+      byId = (await this.loadSchedule(this.con())).byId;
+    } catch (err) {
+      console.warn('roster: schedule enrichment unavailable:', err instanceof Error ? err.message : err);
+      byId = new Map();
+    }
     const members = this.ctx.storage.sql
       .exec<CrewMemberRow>('SELECT user_id, display_name, ghost FROM crew_member')
       .toArray();
@@ -442,7 +682,7 @@ export class Crew extends DurableObject<Env> {
         .exec<MemberStarRow>('SELECT occurrence_id FROM member_star WHERE user_id = ?', m.user_id)
         .toArray();
       const plans: RosterPlan[] = stars.map((s) => {
-        const occ = OCCURRENCE_BY_ID.get(s.occurrence_id);
+        const occ = byId.get(s.occurrence_id);
         return occ === undefined
           ? { occurrenceId: s.occurrence_id }
           : {
@@ -690,7 +930,7 @@ export class Crew extends DurableObject<Env> {
   private config(): CrewConfigRow | null {
     const rows = this.ctx.storage.sql
       .exec<CrewConfigRow>(
-        'SELECT chat_id, pinned_message_id, is_admin FROM crew_config WHERE id = 1',
+        'SELECT chat_id, pinned_message_id, is_admin, con_id FROM crew_config WHERE id = 1',
       )
       .toArray();
     return rows[0] ?? null;

@@ -16,17 +16,29 @@ export interface DigestOccurrence {
   end: string; // ISO 8601 with offset
 }
 
-const CON_TZ = 'America/Edmonton';
-const timeFormatter = new Intl.DateTimeFormat('en-CA', {
-  timeZone: CON_TZ,
-  hour: '2-digit',
-  minute: '2-digit',
-  hour12: false,
-});
+// Building an Intl.DateTimeFormat is not free, and the digest formats several
+// lines per call, so memoize one formatter per IANA timezone. The map is keyed on
+// the timezone string, so a multi-con Worker (Edmonton, Vancouver, Toronto, …)
+// keeps a tiny bounded cache instead of rebuilding a formatter per occurrence.
+const timeFormatters = new Map<string, Intl.DateTimeFormat>();
 
-/** HH:MM in con-local time, regardless of server timezone. */
-function conTime(iso: string): string {
-  return timeFormatter.format(new Date(iso));
+function formatterFor(timezone: string): Intl.DateTimeFormat {
+  let fmt = timeFormatters.get(timezone);
+  if (fmt === undefined) {
+    fmt = new Intl.DateTimeFormat('en-CA', {
+      timeZone: timezone,
+      hour: '2-digit',
+      minute: '2-digit',
+      hour12: false,
+    });
+    timeFormatters.set(timezone, fmt);
+  }
+  return fmt;
+}
+
+/** HH:MM in the con's local time, regardless of server timezone. */
+function conTime(iso: string, timezone: string): string {
+  return formatterFor(timezone).format(new Date(iso));
 }
 
 /** Escape the three characters Telegram's HTML parser treats specially. */
@@ -42,8 +54,12 @@ function line(prefix: string, o: DigestOccurrence): string {
   return `• ${prefix}${escapeHtml(o.title)}${room}`;
 }
 
-/** Build the digest text for the instant `now`, from the given occurrences. */
-export function buildDigest(occurrences: DigestOccurrence[], now: Date): string {
+/**
+ * Build the digest text for the instant `now`, from the given occurrences,
+ * rendering coming-up times in `timezone` (the con's IANA tz). Each Crew DO
+ * passes its own con's timezone, so one Worker serves multiple cons correctly.
+ */
+export function buildDigest(occurrences: DigestOccurrence[], now: Date, timezone: string): string {
   const t = now.getTime();
   const happening = occurrences
     .filter((o) => Date.parse(o.start) <= t && t < Date.parse(o.end))
@@ -61,7 +77,8 @@ export function buildDigest(occurrences: DigestOccurrence[], now: Date): string 
 
   if (upcoming.length > 0) {
     lines.push('', '<b>Coming up</b>');
-    for (const o of upcoming.slice(0, MAX_NEXT)) lines.push(line(`${escapeHtml(conTime(o.start))} `, o));
+    for (const o of upcoming.slice(0, MAX_NEXT))
+      lines.push(line(`${escapeHtml(conTime(o.start, timezone))} `, o));
   }
 
   return lines.join('\n');
