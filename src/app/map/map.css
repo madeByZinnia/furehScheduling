@@ -1,0 +1,333 @@
+/* M4 map — vector SVG floor plans. Colours come from the a11y.css token set so
+ * the map tracks light/dark like the rest of the app. Strokes use
+ * vector-effect:non-scaling-stroke so lines stay crisp and visible at any zoom
+ * (the whole point: a near-max-magnification user must never lose the lines);
+ * room labels are sized in metres so they scale up as you zoom into a floor. */
+
+.map-wrap {
+  margin: 1rem 0 2rem;
+}
+
+/* ── selector (shared building/floor control) ─────────────────────────────── */
+.map-selector {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  margin-bottom: 0.75rem;
+}
+.sel-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+}
+.sel-floors {
+  padding-left: 0.5rem;
+  border-left: 2px solid var(--border);
+}
+.sel-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  padding: 0.4rem 0.9rem;
+  font-size: 0.95rem;
+  color: var(--text-dim);
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+}
+.sel-pill[aria-pressed='true'] {
+  color: var(--ink, var(--bg));
+  background: var(--gold);
+  border-color: var(--gold);
+}
+.sel-tag {
+  font-size: 0.7rem;
+  opacity: 0.8;
+  padding: 0.05rem 0.35rem;
+  border: 1px solid currentColor;
+  border-radius: 999px;
+}
+.sel-stars {
+  font-size: 0.75rem;
+  font-weight: 700;
+  color: var(--gold);
+  background: color-mix(in srgb, var(--gold) 18%, transparent);
+  padding: 0.05rem 0.4rem;
+  border-radius: 999px;
+}
+.sel-pill[aria-pressed='true'] .sel-stars {
+  color: var(--ink, var(--bg));
+  background: color-mix(in srgb, var(--bg) 25%, transparent);
+}
+
+/* ── stage + svg ──────────────────────────────────────────────────────────── */
+.map-stage {
+  position: relative;
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  overflow: hidden;
+  background: var(--bg);
+}
+.map-svg {
+  display: block;
+  width: 100%;
+  height: min(70vh, 40rem);
+  touch-action: none; /* we handle pan/zoom ourselves */
+  cursor: grab;
+}
+.map-svg:active {
+  cursor: grabbing;
+}
+
+/* ── basemap features ─────────────────────────────────────────────────────── */
+.feat {
+  fill: none;
+  vector-effect: non-scaling-stroke;
+}
+.feat-road {
+  stroke: var(--border-hi);
+  stroke-width: 3;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+.feat-path {
+  stroke: var(--border);
+  stroke-width: 1.25;
+  stroke-dasharray: 3 3;
+}
+.feat-rail {
+  stroke: var(--text-dim);
+  stroke-width: 1.5;
+  stroke-dasharray: 6 4;
+}
+.feat-water {
+  stroke: var(--blue);
+  stroke-width: 2;
+}
+.feat-parking {
+  fill: var(--surface);
+  fill-opacity: 0.4;
+  stroke: var(--border);
+  stroke-width: 1;
+  stroke-dasharray: 2 3;
+}
+.feat-building {
+  fill: var(--surface-2);
+  fill-opacity: 0.55;
+  stroke: var(--border);
+  stroke-width: 1;
+}
+.feat-hotel {
+  fill: var(--panel);
+  stroke: var(--gold);
+  stroke-width: 2.5;
+  stroke-linejoin: round;
+}
+
+/* ── street names + POIs (outdoor context) ────────────────────────────────── */
+.street-label {
+  font-size: 4px;
+  font-style: italic;
+  fill: var(--text-dim);
+  paint-order: stroke;
+  stroke: var(--bg);
+  stroke-width: 0.5px;
+  vector-effect: non-scaling-stroke;
+  pointer-events: none;
+}
+.poi circle {
+  stroke: var(--bg);
+  stroke-width: 0.4;
+}
+.poi-label {
+  font-size: 2.6px;
+  fill: var(--text-dim);
+  paint-order: stroke;
+  stroke: var(--bg);
+  stroke-width: 0.5px;
+  vector-effect: non-scaling-stroke;
+  pointer-events: none;
+}
+.poi-restaurant circle,
+.poi-fast_food circle {
+  fill: var(--rose);
+}
+.poi-cafe circle {
+  fill: var(--gold);
+}
+.poi-bar circle {
+  fill: var(--blue);
+}
+.poi-shop circle,
+.poi-service circle {
+  fill: var(--text-dim);
+}
+
+/* ── drawn floor ──────────────────────────────────────────────────────────── */
+/* Room FILLS carry the kind colour (no stroke — walls are drawn separately). */
+.room-fill {
+  stroke: none;
+}
+.room-panel {
+  fill: var(--gold);
+  fill-opacity: 0.28;
+}
+/* your-stars overlay — a starred room glows brighter */
+.room-starred {
+  fill: var(--gold);
+  fill-opacity: 0.55;
+}
+.label-starred {
+  fill: var(--gold);
+  font-weight: 700;
+}
+.room-amenity {
+  fill: var(--surface-2);
+  fill-opacity: 0.7;
+}
+.room-desk {
+  fill: var(--blue);
+  fill-opacity: 0.25;
+}
+.room-entrance {
+  fill: var(--green);
+  fill-opacity: 0.55;
+}
+.room-washroom,
+.room-elevator,
+.room-stairs {
+  fill: var(--text-dim);
+  fill-opacity: 0.5;
+}
+/* inaccessible structural blocks — diagonal hatch (the QRG's brown/grey stripes) */
+.room-structure {
+  fill: url(#hatch);
+}
+.hatch-bg {
+  fill: var(--surface-2);
+  fill-opacity: 0.55;
+}
+.hatch-line {
+  stroke: var(--border-hi);
+  stroke-width: 0.6;
+}
+
+/* WALLS: room outlines (with door gaps) + interior partitions, drawn as lines. */
+.room-outline,
+.interior-wall {
+  fill: none;
+  stroke: var(--text-dim);
+  vector-effect: non-scaling-stroke;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+.room-outline {
+  stroke-width: 2;
+}
+.interior-wall {
+  stroke-width: 1.4;
+}
+.outline-starred {
+  stroke: var(--gold);
+  stroke-width: 2.6;
+}
+
+/* facility glyphs inherit `color` as their stroke/fill (currentColor) */
+.facility-icon {
+  color: var(--text);
+}
+
+/* ── legend ───────────────────────────────────────────────────────────────── */
+.map-legend {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.4rem 1rem;
+  margin-top: 0.6rem;
+  padding: 0.6rem 0.8rem;
+  font-size: 0.85rem;
+  color: var(--text-dim);
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+}
+.legend-item {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+}
+.legend-swatch {
+  width: 1rem;
+  height: 1rem;
+  border-radius: 0.25rem;
+  border: 1px solid var(--border-hi);
+  flex: none;
+}
+.legend-swatch.room-panel {
+  background: color-mix(in srgb, var(--gold) 40%, transparent);
+  border-color: var(--gold);
+}
+.legend-swatch.room-starred {
+  background: var(--gold);
+  border-color: var(--gold);
+}
+.legend-swatch.room-amenity {
+  background: var(--surface-2);
+}
+.legend-swatch.room-entrance {
+  background: color-mix(in srgb, var(--green) 65%, transparent);
+  border-color: var(--green);
+}
+.legend-swatch.swatch-hotel {
+  background: var(--panel);
+  border-color: var(--gold);
+}
+.legend-icon {
+  color: var(--text);
+  flex: none;
+}
+
+/* ── labels (sized in metres → scale with zoom, always vector-crisp) ──────── */
+.room-label {
+  font-size: 3px; /* 3 metres in the world; grows as you zoom into a floor */
+  font-weight: 600;
+  fill: var(--text);
+  paint-order: stroke;
+  stroke: var(--bg);
+  stroke-width: 0.6px;
+  vector-effect: non-scaling-stroke;
+  pointer-events: none;
+}
+.label-panel {
+  fill: var(--text);
+}
+.room-sub {
+  font-size: 0.72em; /* relative to the room label, which is sized per-room */
+  font-weight: 400;
+  fill: var(--text-dim);
+}
+
+/* ── captions ─────────────────────────────────────────────────────────────── */
+.map-attribution {
+  position: absolute;
+  right: 0.5rem;
+  bottom: 0.4rem;
+  margin: 0;
+  font-size: 0.7rem;
+  color: var(--text-dim);
+  background: color-mix(in srgb, var(--bg) 70%, transparent);
+  padding: 0.1rem 0.4rem;
+  border-radius: 0.4rem;
+  pointer-events: none;
+}
+.map-provisional {
+  position: absolute;
+  left: 0.5rem;
+  top: 0.5rem;
+  margin: 0;
+  font-size: 0.72rem;
+  color: var(--text-dim);
+  background: color-mix(in srgb, var(--bg) 75%, transparent);
+  padding: 0.15rem 0.5rem;
+  border-radius: 0.4rem;
+  pointer-events: none;
+}

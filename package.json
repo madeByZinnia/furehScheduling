@@ -15,6 +15,7 @@
     "test:workers": "vitest run --config vitest.workers.config.ts",
     "deploy": "wrangler deploy",
     "schedule": "tsx scripts/fetch-schedule.ts",
+    "basemap": "tsx scripts/build-basemap.ts",
     "lint": "eslint .",
     "format": "prettier --write .",
     "format:check": "prettier --check ."

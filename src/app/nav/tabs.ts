@@ -1,5 +1,5 @@
-/** The three top-level views the bottom nav switches between. */
-export type Tab = 'schedule' | 'crew' | 'me';
+/** The top-level views the bottom nav switches between. */
+export type Tab = 'schedule' | 'map' | 'crew' | 'me';
 
 export interface TabDef {
   id: Tab;
@@ -11,6 +11,7 @@ export interface TabDef {
 
 export const TABS: readonly TabDef[] = [
   { id: 'schedule', label: 'Schedule', icon: '📜' },
+  { id: 'map', label: 'Map', icon: '🗺️' },
   { id: 'crew', label: 'Crew', icon: '🐾' },
   { id: 'me', label: 'Me', icon: '👤' },
 ];

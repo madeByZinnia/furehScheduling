@@ -16,11 +16,12 @@ describe('BottomNav', () => {
     container.remove();
   });
 
-  it('renders three tabs, each with a visible text label', () => {
+  it('renders four tabs, each with a visible text label', () => {
     render(<BottomNav active="schedule" onSelect={() => {}} />, container);
     const tabs = container.querySelectorAll('.bottom-nav-tab');
-    expect(tabs.length).toBe(3);
+    expect(tabs.length).toBe(4);
     expect(container.textContent).toContain('Schedule');
+    expect(container.textContent).toContain('Map');
     expect(container.textContent).toContain('Crew');
     expect(container.textContent).toContain('Me');
   });

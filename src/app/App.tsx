@@ -12,6 +12,7 @@ import { CrewSection } from './CrewSection';
 import { EventsPanel } from './events/EventsPanel';
 import { LeaveCrew } from './LeaveCrew';
 import { ScheduleView } from './schedule/ScheduleView';
+import { MapView } from './map/MapView';
 import { BottomNav } from './nav/BottomNav';
 import type { Tab } from './nav/tabs';
 import { mockEnabled, mockEventsProps, mockLeaveProps } from './devMock';
@@ -19,9 +20,9 @@ import { mockEnabled, mockEventsProps, mockLeaveProps } from './devMock';
 const schedule = scheduleJson as Schedule;
 
 /**
- * Three top-level views behind a bottom nav. Only the active view is mounted:
- * this keeps the schedule-local "jump to now" FAB (position:fixed) from bleeding
- * onto other tabs, and lets each view own its ephemeral state without a router.
+ * Top-level views behind a bottom nav. Only the active view is mounted: this
+ * keeps the schedule-local "jump to now" FAB (position:fixed) from bleeding onto
+ * other tabs, and lets each view own its ephemeral state without a router.
  */
 export function App() {
   const [tab, setTab] = useState<Tab>('schedule');
@@ -43,6 +44,8 @@ export function App() {
         ) : (
           <ScheduleView occurrences={schedule.occurrences} />
         ))}
+
+      {tab === 'map' && <MapView />}
 
       {tab === 'crew' && (
         <>

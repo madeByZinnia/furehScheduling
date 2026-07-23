@@ -1,0 +1,24 @@
+{
+  "_comment": "M4 building/floor metadata (hand-authored). Footprint GEOMETRY is NOT stored here — it is joined at load time from basemap.json by matching feature.id === building.id (the OSM way), so regenerating the basemap never desyncs this file. Floor order is the pill order in the selector. anchor='osm' floors fit directly to the OSM footprint bbox; anchor='control-points' floors (the underground/2nd levels) are deferred (bead aau.6) and carry an empty controlPoints array for now.",
+  "buildings": [
+    {
+      "id": "wyndham",
+      "name": "Wyndham",
+      "osmWay": 321836536,
+      "floors": [
+        { "id": "main", "label": "Main", "underground": false, "anchor": "osm" },
+        { "id": "parking1", "label": "Parking 1", "underground": true, "anchor": "control-points", "controlPoints": [] },
+        { "id": "parking2", "label": "Parking 2", "underground": true, "anchor": "control-points", "controlPoints": [] }
+      ]
+    },
+    {
+      "id": "delta",
+      "name": "Delta",
+      "osmWay": 321840654,
+      "floors": [
+        { "id": "main", "label": "Main", "underground": false, "anchor": "osm" },
+        { "id": "second", "label": "2nd Floor", "underground": false, "anchor": "control-points", "controlPoints": [] }
+      ]
+    }
+  ]
+}
