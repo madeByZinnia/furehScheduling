@@ -21,7 +21,7 @@
  * eval; that is pre-existing app behavior and out of scope here.)
  */
 
-import { createStore, type Store } from './store';
+import { createStore, useStore, type Store } from './store';
 import { getTelegramSession } from './telegram-session';
 import { CONS, getCon, DEFAULT_CON, type ConConfig, type ConId } from '../data/cons';
 
@@ -172,6 +172,14 @@ export const conStore: Store<ConId | null> = createStore<ConId | null>(resolved)
 /** The resolved con config, falling back to the default when none was inferred. */
 export function activeCon(): ConConfig {
   return getCon(resolved ?? DEFAULT_CON)!;
+}
+
+/**
+ * Reactive active con id (null when unresolved). Re-renders when `setActiveCon`
+ * fires — the App uses this to decide between the con picker and the app body.
+ */
+export function useConId(): ConId | null {
+  return useStore(conStore);
 }
 
 /**

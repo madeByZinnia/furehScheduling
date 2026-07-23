@@ -1,5 +1,4 @@
-import scheduleJson from '../data/schedule.json';
-import type { Schedule } from '../data/expand';
+import type { OccurrenceId } from '../data/ids';
 import type { Roster } from './crewSync';
 import type { EventView, EventInput, EventListResult, MutationResult } from './events';
 import { __setCrewLoader, refreshCrew } from './crew';
@@ -21,9 +20,19 @@ export function mockEnabled(): boolean {
   );
 }
 
-// Give a few crew members real occurrence ids so the schedule "also going" chips
-// light up on actual cards.
-const occIds = (scheduleJson as Schedule).occurrences.slice(0, 6).map((o) => o.id);
+// A tiny inline fixture of occurrence ids so the mock crew has plans to show.
+// (Previously sliced from the baked schedule.json; the SPA no longer depends on
+// that file. These synthetic ids won't line up with the runtime-loaded schedule,
+// so "also going" chips only light up if a real occurrence happens to share an
+// id — good enough for the dev-only crew/events UI this mock exists to exercise.)
+const occIds: OccurrenceId[] = [
+  'MOCK1@2026-07-16T10:00:00-06:00',
+  'MOCK2@2026-07-16T12:00:00-06:00',
+  'MOCK3@2026-07-17T10:00:00-06:00',
+  'MOCK4@2026-07-17T12:00:00-06:00',
+  'MOCK5@2026-07-18T10:00:00-06:00',
+  'MOCK6@2026-07-18T12:00:00-06:00',
+] as OccurrenceId[];
 const plansFor = (from: number, to: number) => occIds.slice(from, to).map((id) => ({ occurrenceId: id }));
 
 export const MOCK_ROSTER: Roster = [

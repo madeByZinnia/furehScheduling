@@ -1,6 +1,6 @@
 import './map.css';
 import { useMemo, useRef, useState } from 'preact/hooks';
-import scheduleJson from '../../data/schedule.json';
+import type { Occurrence } from '../../data/expand';
 import type { Point, Bounds } from '../../data/geo';
 import { useStars } from '../stars';
 import { usePanZoom, type ViewBox } from './usePanZoom';
@@ -31,11 +31,6 @@ function iconSize(poly: Point[]): number {
   const side = Math.min(Math.max(...xs) - Math.min(...xs), Math.max(...ys) - Math.min(...ys));
   return Math.max(3, Math.min(7, side * 0.9));
 }
-
-// Every occurrence carries its schedule room string; that's the whole bridge from
-// a local star to a place on the map (a star names the room → the room names the
-// floor). No backend needed — this is your OWN stars, client-side.
-const OCCURRENCES = (scheduleJson as { occurrences: { id: string; room: string | null }[] }).occurrences;
 
 // ── viewBox helpers ──────────────────────────────────────────────────────────
 
@@ -87,7 +82,7 @@ const vbStr = (v: ViewBox) => `${v.x} ${v.y} ${v.w} ${v.h}`;
 
 const BUILDINGS = buildings();
 
-export function MapView() {
+export function MapView({ occurrences }: { occurrences: Occurrence[] }) {
   const [buildingId, setBuildingId] = useState<string | null>(null);
   const [floorId, setFloorId] = useState<string | null>(null);
   const svgRef = useRef<SVGSVGElement>(null);
@@ -99,19 +94,22 @@ export function MapView() {
 
   // Your-stars overlay: which schedule rooms you've starred, and how many starred
   // sessions sit in each building (a building-level badge for floors not drawn).
+  // Every occurrence carries its schedule room string; that's the whole bridge
+  // from a local star to a place on the map (a star names the room → the room
+  // names the floor). No backend needed — this is your OWN stars, client-side.
   const stars = useStars();
   const starHits = useMemo(() => {
     const starIds = stars as unknown as Set<string>;
     const rooms = new Set<string>();
     const perBuilding = new Map<string, number>();
-    for (const o of OCCURRENCES) {
+    for (const o of occurrences) {
       if (!o.room || !starIds.has(o.id)) continue;
       rooms.add(o.room);
       const loc = locateScheduleRoom(o.room);
       if (loc) perBuilding.set(loc.building, (perBuilding.get(loc.building) ?? 0) + 1);
     }
     return { rooms, perBuilding };
-  }, [stars]);
+  }, [stars, occurrences]);
 
   // The target framing for the current selection: site → both hotels; building or
   // floor → that footprint. The view snaps to it when the selection changes.

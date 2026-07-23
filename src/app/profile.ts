@@ -1,3 +1,4 @@
+import { conKey } from './con';
 import { createStore, useStore } from './store';
 
 /**
@@ -10,7 +11,7 @@ import { createStore, useStore } from './store';
  * a non-React `subscribeDisplayName` for the crewSync orchestrator to observe.
  */
 
-const KEY = 'fureh.displayName.v1';
+const KEY = conKey('displayName.v1');
 
 function safeGet(key: string): string | null {
   try {

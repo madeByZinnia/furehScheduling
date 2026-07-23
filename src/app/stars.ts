@@ -1,4 +1,5 @@
 import type { OccurrenceId } from '../data/ids';
+import { conKey } from './con';
 import { createStore, useStore, useStoreSelector } from './store';
 
 /**
@@ -8,7 +9,9 @@ import { createStore, useStore, useStoreSelector } from './store';
  * pre-backend solo store; M2 syncs it to crew state.
  */
 
-const KEY = 'fureh.stars.v1';
+// Per-con: resolved at module eval against the boot-time active con (see con.ts).
+// `./con` must be imported before this module so the namespace is correct.
+const KEY = conKey('stars.v1');
 
 function load(): Set<OccurrenceId> {
   try {
