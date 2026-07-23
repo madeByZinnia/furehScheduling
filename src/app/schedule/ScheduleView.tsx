@@ -4,6 +4,7 @@ import { useEffect, useMemo, useRef, useState } from 'preact/hooks';
 import type { Occurrence } from '../../data/expand';
 import { conDay } from '../../data/expand';
 import { useNow } from '../useNow';
+import { activeCon } from '../con';
 import { formatTime, formatWeekdayShort, formatWeekdayLong, formatDayNum } from '../datetime';
 import { useIsStarred, toggleStar, useStars } from '../stars';
 import { Markdown } from '../markdown';
@@ -40,10 +41,13 @@ export function ScheduleView({ occurrences }: { occurrences: Occurrence[] }) {
   const selfId = getTelegramSession().user?.id ?? null;
   const { roster, pickerMembers, going } = useCrewFaves(whoseFaves, setWhoseFaves, selfId);
 
+  // Bucket "today"/default-day in the ACTIVE con's timezone, not the device's
+  // (and not the hardcoded Edmonton default of these helpers).
+  const conTz = activeCon().tz;
   const tabs = useMemo(() => dayTabs(occurrences), [occurrences]);
-  const [dayIndex, setDayIndex] = useState(() => defaultDayIndex(tabs, nowDate));
+  const [dayIndex, setDayIndex] = useState(() => defaultDayIndex(tabs, nowDate, conTz));
 
-  const today = conDay(nowDate.toISOString());
+  const today = conDay(nowDate.toISOString(), conTz);
 
   // Search and the whose-favourites filter compose and span all days; the day
   // tabs are a browse-only affordance that steps aside while either is active.

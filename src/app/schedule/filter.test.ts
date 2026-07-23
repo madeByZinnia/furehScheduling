@@ -83,6 +83,21 @@ describe('dayTabs + defaultDayIndex', () => {
     expect(defaultDayIndex(tabs, new Date('2026-07-10T00:00:00-06:00'))).toBe(0); // before
     expect(defaultDayIndex(tabs, new Date('2026-08-01T00:00:00-06:00'))).toBe(2); // after
   });
+
+  it('buckets "today" in the passed timezone, not the Edmonton default', () => {
+    // Two adjacent days; `now` = 2026-08-08T04:30Z sits on DIFFERENT calendar
+    // days across zones: Aug 8 in Toronto (-04) but still Aug 7 in Edmonton
+    // (-06). An impl that ignores `tz` (Edmonton default) returns index 0.
+    const twoDay = [
+      occ({ start: '2026-08-07T10:00:00-04:00', day: '2026-08-07' }),
+      occ({ start: '2026-08-08T10:00:00-04:00', day: '2026-08-08' }),
+    ];
+    const tabs = dayTabs(twoDay);
+    const now = new Date('2026-08-08T04:30:00Z');
+    expect(defaultDayIndex(tabs, now, 'America/Toronto')).toBe(1);
+    expect(defaultDayIndex(tabs, now, 'America/Edmonton')).toBe(0);
+    expect(defaultDayIndex(tabs, now)).toBe(0); // default is Edmonton
+  });
 });
 
 describe('starredOccurrences', () => {

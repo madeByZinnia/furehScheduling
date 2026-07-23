@@ -1,6 +1,13 @@
 import { describe, it, expect } from 'vitest';
 import fc from 'fast-check';
-import { expandOccurrences, normalizeString, conDay, uniqueCodes, type RawSlot } from './expand';
+import {
+  expandOccurrences,
+  normalizeString,
+  conDay,
+  uniqueCodes,
+  type RawSlot,
+  type RawTalk,
+} from './expand';
 
 // A slot arbitrary with UNIQUE (code, start) pairs — a pretalx submission has at
 // most one slot at any given instant, so distinct ids are guaranteed there.
@@ -140,5 +147,58 @@ describe('conDay — America/Edmonton bucketing', () => {
     // 00:30 UTC on the 17th is still the 16th in Edmonton (UTC-6).
     expect(conDay('2026-07-17T00:30:00Z')).toBe('2026-07-16');
     expect(conDay('2026-07-16T10:00:00-06:00')).toBe('2026-07-16');
+  });
+
+  it('defaults to America/Edmonton when no tz is passed', () => {
+    expect(conDay('2026-07-17T00:30:00Z')).toBe(conDay('2026-07-17T00:30:00Z', 'America/Edmonton'));
+  });
+
+  it('throws on an unparseable start (guard fires before the formatter)', () => {
+    expect(() => conDay('not-a-date')).toThrow(/invalid start/i);
+    expect(() => conDay('not-a-date', 'America/Toronto')).toThrow(/invalid start/i);
+  });
+});
+
+describe('conDay / expandOccurrences — timezone parameterization is real', () => {
+  // 00:30 Eastern on Aug 8 = 04:30 UTC. Toronto (UTC-4) is still Aug 8, but
+  // Edmonton (UTC-6) has rolled back to 22:30 on Aug 7. A hardcoded-Edmonton
+  // implementation cannot produce the Toronto date and thus fails this.
+  const start = '2026-08-08T00:30:00-04:00';
+
+  it('buckets the same instant to different calendar days by tz', () => {
+    expect(conDay(start, 'America/Toronto')).toBe('2026-08-08');
+    expect(conDay(start, 'America/Edmonton')).toBe('2026-08-07');
+    expect(conDay(start, 'America/Toronto')).not.toBe(conDay(start, 'America/Edmonton'));
+  });
+
+  it('expandOccurrences honours the tz argument for the day bucket', () => {
+    const slot: RawSlot = { code: 'CZKVLN', title: 'T', room: 'Main', start, end: start };
+    expect(expandOccurrences([slot], [], 'America/Toronto')[0]!.day).toBe('2026-08-08');
+    expect(expandOccurrences([slot], [], 'America/Edmonton')[0]!.day).toBe('2026-08-07');
+    // Default (no tz) preserves Edmonton behavior.
+    expect(expandOccurrences([slot])[0]!.day).toBe('2026-08-07');
+  });
+});
+
+describe('expandOccurrences — hosts round-trip', () => {
+  const slot: RawSlot = {
+    code: 'CZKVLN',
+    title: 'T',
+    room: 'Main',
+    start: '2026-07-17T10:00:00-06:00',
+    end: '2026-07-17T11:00:00-06:00',
+  };
+
+  it('carries hosts from the joined talk onto the occurrence', () => {
+    const talk: RawTalk = { code: 'CZKVLN', hosts: ['A', 'B'] };
+    const occ = expandOccurrences([slot], [talk]);
+    expect(occ[0]!.hosts).toEqual(['A', 'B']);
+  });
+
+  it('leaves hosts undefined when the talk supplies none (no `hosts` key emitted)', () => {
+    const talk: RawTalk = { code: 'CZKVLN' };
+    const occ = expandOccurrences([slot], [talk]);
+    expect(occ[0]!.hosts).toBeUndefined();
+    expect('hosts' in occ[0]!).toBe(false);
   });
 });

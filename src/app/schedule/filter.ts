@@ -58,9 +58,13 @@ export function dayTabs(occurrences: Occurrence[]): DayTab[] {
 }
 
 /** Index of the day tab containing `now` (else 0 before the con, last after). */
-export function defaultDayIndex(tabs: DayTab[], now: Date): number {
+export function defaultDayIndex(
+  tabs: DayTab[],
+  now: Date,
+  tz: string = 'America/Edmonton',
+): number {
   if (tabs.length === 0) return 0;
-  const today = conDay(now.toISOString());
+  const today = conDay(now.toISOString(), tz);
   const exact = tabs.findIndex((t) => t.day === today);
   if (exact !== -1) return exact;
   // Before the first day → 0; after the last → last.
