@@ -22,6 +22,7 @@ import {
   type TelegramUser,
 } from './telegram';
 import { effectiveNow } from './now';
+import { getCon } from '../data/cons';
 
 // The Durable Object class must be exported from the Worker's main module so the
 // `new_sqlite_classes` migration can bind it.
@@ -51,6 +52,50 @@ async function handleResolve(request: Request, env: Env): Promise<Response> {
   console.log(`resolve ${result.ok ? 'ok' : 'rejected'}`);
   if (!result.ok) return json({ error: 'invalid initData' }, 401);
   return json({ accessCode: crypto.randomUUID(), user: result.user });
+}
+
+// A schedule is served briefly-cacheable: max-age=60 lets a live KV edit
+// propagate within ~a minute while the edge still absorbs bursts.
+const SCHEDULE_CACHE_CONTROL = 'public, max-age=60';
+
+/** Wrap a raw schedule JSON string in the standard schedule response. */
+function scheduleResponse(bodyText: string): Response {
+  return new Response(bodyText, {
+    status: 200,
+    headers: {
+      'content-type': 'application/json',
+      'cache-control': SCHEDULE_CACHE_CONTROL,
+    },
+  });
+}
+
+/**
+ * GET /api/schedule?con=<id> — the runtime schedule feed for one con.
+ *
+ * KV WINS: SCHEDULES.get(con) is read first, so a live edit overrides the baked
+ * file with no redeploy. On a KV miss we fall back to the static asset
+ * (/data/<con>.json served by the ASSETS binding). Unknown con → 404; asset also
+ * missing → 404. Every hit carries `cache-control: public, max-age=60`.
+ */
+async function handleSchedule(request: Request, env: Env): Promise<Response> {
+  const con = getCon(new URL(request.url).searchParams.get('con') ?? '');
+  if (con === null) return json({ error: 'unknown con' }, 404);
+
+  // KV first — a live override wins over the baked asset. Key on the canonical
+  // con id (getCon already validated it), never the raw query string.
+  const fromKv = await env.SCHEDULES.get(con.id);
+  if (fromKv !== null) return scheduleResponse(fromKv);
+
+  // KV miss → the baked static asset. Re-wrap so WE own the cache header.
+  const assetRes = await env.ASSETS.fetch(new URL(`/data/${con.id}.json`, request.url));
+  // The prod assets binding uses not_found_handling:single-page-application, so a
+  // MISSING file resolves to index.html at HTTP 200. Guard on a JSON content-type
+  // so we never hand back the HTML shell as a "schedule".
+  const contentType = assetRes.headers.get('content-type') ?? '';
+  if (!assetRes.ok || !contentType.includes('json')) {
+    return json({ error: 'schedule not found' }, 404);
+  }
+  return scheduleResponse(await assetRes.text());
 }
 
 /** Human label for a verified user — NEVER a client-supplied name. */
@@ -528,6 +573,9 @@ export default {
     if (pathname === '/api/health') return json({ ok: true });
     if (pathname === '/telegram/resolve-check' && request.method === 'GET') {
       return handleResolveCheck();
+    }
+    if (pathname === '/api/schedule' && request.method === 'GET') {
+      return handleSchedule(request, env);
     }
     if (pathname === '/api/resolve' && post) return handleResolve(request, env);
     if (pathname === '/api/sync' && post) return handleSync(request, env);
