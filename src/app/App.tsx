@@ -15,6 +15,7 @@ import { EventsPanel } from './events/EventsPanel';
 import { LeaveCrew } from './LeaveCrew';
 import { ScheduleView } from './schedule/ScheduleView';
 import { MapView } from './map/MapView';
+import { RoomListView } from './map/RoomListView';
 import { BottomNav } from './nav/BottomNav';
 import type { Tab } from './nav/tabs';
 import { mockEnabled, mockEventsProps, mockLeaveProps } from './devMock';
@@ -79,7 +80,12 @@ export function App() {
           <ScheduleView occurrences={schedule.occurrences} />
         ))}
 
-      {tab === 'map' && <MapView occurrences={schedule.occurrences} />}
+      {tab === 'map' &&
+        (activeCon().mapMode === 'svg' ? (
+          <MapView occurrences={schedule.occurrences} />
+        ) : (
+          <RoomListView occurrences={schedule.occurrences} />
+        ))}
 
       {tab === 'crew' && (
         <>

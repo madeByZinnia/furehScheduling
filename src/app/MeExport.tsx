@@ -1,9 +1,8 @@
 import { useState } from 'preact/hooks';
 import type { Occurrence } from '../data/expand';
+import { activeCon } from './con';
 import { useStars } from './stars';
 import { buildStarredIcs, downloadIcs, selectStarredOccurrences } from './export';
-
-const FILENAME = 'fureh-2026.ics';
 
 /**
  * "My schedule" — a client-only .ics export of the user's starred sessions.
@@ -25,9 +24,14 @@ export function MeExport({ occurrences }: { occurrences: Occurrence[] }) {
   const empty = count === 0;
 
   const onDownload = () => {
-    // Build from the CURRENT stars + schedule at click time.
-    const ics = buildStarredIcs(stars, occurrences, remind ? { alarm: true } : {});
-    downloadIcs(FILENAME, ics);
+    // Build from the CURRENT stars + schedule at click time, branded per active con.
+    const { prodId, uidDomain, filename } = activeCon().ics;
+    const ics = buildStarredIcs(stars, occurrences, {
+      prodId,
+      uidDomain,
+      ...(remind ? { alarm: true } : {}),
+    });
+    downloadIcs(filename, ics);
   };
 
   return (

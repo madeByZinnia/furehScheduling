@@ -188,8 +188,15 @@ export const formatUtc = (iso: string): string => {
   );
 };
 
-/** Stable, globally-unique UID for one occurrence: `${id}@fureh-schedules`. */
-export const occurrenceUid = (id: OccurrenceId): string => `${id}@${UID_DOMAIN}`;
+/**
+ * Stable, globally-unique UID for one occurrence: `${id}@${domain}`. The domain
+ * defaults to {@link UID_DOMAIN} (Fureh) for back-compat; each con threads its
+ * own `ics.uidDomain` so a UID never claims to belong to a different con's feed.
+ */
+export const occurrenceUid = (
+  id: OccurrenceId,
+  domain: string = UID_DOMAIN,
+): string => `${id}@${domain}`;
 
 /** A single VEVENT's data. Times are ISO-8601 with offset (converted to UTC). */
 export interface IcsEvent {
@@ -208,6 +215,8 @@ export interface IcsOptions {
   dtstamp?: string;
   /** Product identifier for PRODID. */
   prodId?: string;
+  /** Domain suffix for each occurrence UID (default {@link UID_DOMAIN}). */
+  uidDomain?: string;
   /** Opt in to a VALARM on every event (default OFF). Uses 10 min unless overridden. */
   alarm?: boolean;
   /** Minutes-before-start for the VALARM; presence also enables the alarm. */
@@ -279,8 +288,11 @@ export const buildIcs = (events: IcsEvent[], opts: IcsOptions = {}): string => {
 
 /**
  * Map the app's {@link Occurrence} objects to a VCALENDAR. SUMMARY=title,
- * LOCATION=room, DESCRIPTION=abstract; UID is keyed on code+start so a repeating
- * session yields one distinct event per slot, never a single collapsed one.
+ * LOCATION=room; UID is keyed on code+start (via `opts.uidDomain`) so a repeating
+ * session yields one distinct event per slot, never a single collapsed one. The
+ * DESCRIPTION prepends a "Hosted by …" line when the occurrence carries `hosts`,
+ * then the abstract — either alone is fine, and an occurrence with neither emits
+ * no DESCRIPTION at all.
  */
 export const occurrencesToIcs = (
   occurrences: Occurrence[],
@@ -288,13 +300,16 @@ export const occurrencesToIcs = (
 ): string => {
   const events = occurrences.map((o): IcsEvent => {
     const ev: IcsEvent = {
-      uid: occurrenceUid(o.id),
+      uid: occurrenceUid(o.id, opts.uidDomain),
       start: o.start,
       end: o.end,
       summary: o.title,
     };
     if (o.room) ev.location = o.room;
-    if (o.abstract) ev.description = o.abstract;
+    const descParts: string[] = [];
+    if (o.hosts?.length) descParts.push(`Hosted by ${o.hosts.join(', ')}`);
+    if (o.abstract) descParts.push(o.abstract);
+    if (descParts.length) ev.description = descParts.join('\n\n');
     return ev;
   });
   return buildIcs(events, opts);

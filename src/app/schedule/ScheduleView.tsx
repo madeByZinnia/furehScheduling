@@ -447,6 +447,11 @@ function EventRow({ occ, going }: { occ: Occurrence; going: CrewMember[] | undef
     </span>
   ) : null;
 
+  // Host/presenter line (only cons whose feed carries hosts, e.g. ToS).
+  const hosts = occ.hosts?.length ? (
+    <span class="hosts">Hosted by {occ.hosts.join(', ')}</span>
+  ) : null;
+
   return (
     <div class={`event-row${open ? ' is-open' : ''}`}>
       <div class="body">
@@ -461,6 +466,7 @@ function EventRow({ occ, going }: { occ: Occurrence; going: CrewMember[] | undef
             <span class="disc-main">
               <span class="title">{occ.title}</span>
               {meta}
+              {hosts}
             </span>
             <svg class="chevron" viewBox="0 0 24 24" aria-hidden="true">
               <path
@@ -477,6 +483,7 @@ function EventRow({ occ, going }: { occ: Occurrence; going: CrewMember[] | undef
           <div class="disc-main static">
             <span class="title">{occ.title}</span>
             {meta}
+            {hosts}
           </div>
         )}
         {open && hasDesc && (

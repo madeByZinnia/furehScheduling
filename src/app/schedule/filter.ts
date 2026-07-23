@@ -7,8 +7,9 @@ import type { OccurrenceId } from '../../data/ids';
  * and where the "now" separator falls. No rendering, no I/O — hammered directly
  * by unit tests.
  *
- * Search covers title / abstract / track / room ONLY. There is no speaker data
- * in the feed (persons/speakers are empty), so we never pretend to search it.
+ * Search covers title / abstract / track / room / hosts. Fureh's frab feed has
+ * no host data, but the con-activities cons (ToS) do, so a host name is
+ * searchable when present.
  */
 
 /** Case-insensitive substring match over the searchable fields. */
@@ -19,7 +20,8 @@ export function matchesSearch(occ: Occurrence, query: string): boolean {
     occ.title.toLowerCase().includes(q) ||
     occ.abstract.toLowerCase().includes(q) ||
     (occ.track?.toLowerCase().includes(q) ?? false) ||
-    (occ.room?.toLowerCase().includes(q) ?? false)
+    (occ.room?.toLowerCase().includes(q) ?? false) ||
+    (occ.hosts?.join(' ').toLowerCase().includes(q) ?? false)
   );
 }
 

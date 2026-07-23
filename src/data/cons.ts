@@ -136,7 +136,9 @@ export const CONS: Record<ConId, ConConfig> = {
     favourites: {
       mode: 'cookie-paste',
       cookieName: 'HOWL_24',
-      snippetHint: 'On tailsofsummer.com run: document.cookie.match(/HOWL_24=([^;]*)/)?.[1]',
+      // DevTools `copy()` puts the value on the clipboard (plain match() only
+      // prints it). Run in the browser console on tailsofsummer.com.
+      snippetHint: "copy(document.cookie.match(/HOWL_24=([^;]*)/)?.[1] || 'not found')",
     },
     source: {
       kind: 'con-activities',

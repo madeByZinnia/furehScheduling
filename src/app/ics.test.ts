@@ -412,6 +412,65 @@ describe('buildIcs — full calendar structure', () => {
   });
 });
 
+describe('per-con branding — uidDomain / prodId (Tic 6)', () => {
+  const FIXED = '2026-07-01T12:00:00Z';
+
+  it('a custom uidDomain suffixes every occurrence UID', () => {
+    const slots: RawSlot[] = [
+      { code: '2', title: 'Fursuit Parade', room: 'Main', start: '2026-08-08T10:00:00-07:00', end: '2026-08-08T11:00:00-07:00' },
+    ];
+    const occ = expandOccurrences(slots, [], 'America/Vancouver');
+    const ics = occurrencesToIcs(occ, { dtstamp: FIXED, uidDomain: 'tailsofsummer.com' });
+    expect(ics).toContain('UID:2@2026-08-08T10:00:00-07:00@tailsofsummer.com\r\n');
+    // The default fureh domain must NOT leak in.
+    expect(ics).not.toContain('@fureh-schedules');
+  });
+
+  it('occurrenceUid honours an explicit domain and defaults to fureh', () => {
+    const id = occurrenceId(itemCode('2'), '2026-08-08T10:00:00-07:00');
+    expect(occurrenceUid(id, 'tailsofsummer.com')).toBe('2@2026-08-08T10:00:00-07:00@tailsofsummer.com');
+    expect(occurrenceUid(id)).toBe(`2@2026-08-08T10:00:00-07:00@${UID_DOMAIN}`);
+  });
+
+  it('a custom prodId appears in the calendar header', () => {
+    const ics = buildIcs(sampleEvents(), {
+      dtstamp: FIXED,
+      prodId: '-//fureh-schedules//Tails of Summer 2026 Schedule//EN',
+    });
+    expect(ics).toContain('PRODID:-//fureh-schedules//Tails of Summer 2026 Schedule//EN\r\n');
+  });
+});
+
+describe('hosts in DESCRIPTION (Tic 6)', () => {
+  const FIXED = '2026-07-01T12:00:00Z';
+
+  it('prepends "Hosted by A, B" and keeps the abstract below it', () => {
+    const slots: RawSlot[] = [
+      { code: '2', title: 'Fursuit Parade', room: 'Main', start: '2026-08-08T10:00:00-07:00', end: '2026-08-08T11:00:00-07:00' },
+    ];
+    const talks = [
+      { code: '2', abstract: 'Strut your stuff.', hosts: ['Alice', 'Bob'] },
+    ];
+    const occ = expandOccurrences(slots, talks, 'America/Vancouver');
+    const ics = occurrencesToIcs(occ, { dtstamp: FIXED });
+    // "Hosted by Alice, Bob" then the abstract, joined by an escaped blank line.
+    expect(ics).toContain('DESCRIPTION:Hosted by Alice\\, Bob\\n\\nStrut your stuff.\r\n');
+  });
+
+  it('emits hosts even with no abstract, and no DESCRIPTION when neither is present', () => {
+    const slots: RawSlot[] = [
+      { code: '2', title: 'Parade', room: 'Main', start: '2026-08-08T10:00:00-07:00', end: '2026-08-08T11:00:00-07:00' },
+      { code: '3', title: 'Plain', room: 'Hall', start: '2026-08-08T12:00:00-07:00', end: '2026-08-08T13:00:00-07:00' },
+    ];
+    const talks = [{ code: '2', hosts: ['Solo'] }];
+    const occ = expandOccurrences(slots, talks, 'America/Vancouver');
+    const ics = occurrencesToIcs(occ, { dtstamp: FIXED });
+    expect(ics).toContain('DESCRIPTION:Hosted by Solo\r\n');
+    // The hostless, abstractless "Plain" event has exactly one DESCRIPTION overall.
+    expect([...ics.matchAll(/^DESCRIPTION:/gm)]).toHaveLength(1);
+  });
+});
+
 describe('review round-2 hardening', () => {
   it('zero-pads a year below 1000 to four digits', () => {
     expect(formatUtc('0007-01-02T03:04:05Z')).toBe('00070102T030405Z');

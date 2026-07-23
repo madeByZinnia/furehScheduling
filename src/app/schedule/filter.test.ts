@@ -22,6 +22,7 @@ function occ(p: Partial<Occurrence> & { start: string; day: string }): Occurrenc
     start: p.start,
     end: p.end ?? p.start,
     day: p.day,
+    ...(p.hosts !== undefined ? { hosts: p.hosts } : {}),
   };
 }
 
@@ -49,6 +50,20 @@ describe('matchesSearch', () => {
 
   it('does not match absent fields', () => {
     expect(matchesSearch(o, 'nonexistent')).toBe(false);
+  });
+
+  it('matches a host name when the occurrence carries hosts', () => {
+    const withHosts = occ({
+      start: '2026-08-08T10:00:00-07:00',
+      day: '2026-08-08',
+      title: 'Fursuit Parade',
+      hosts: ['Rin Fox', 'Alex Wolf'],
+    });
+    expect(matchesSearch(withHosts, 'rin')).toBe(true);
+    expect(matchesSearch(withHosts, 'wolf')).toBe(true);
+    expect(matchesSearch(withHosts, 'nobody')).toBe(false);
+    // An occurrence with no hosts must not throw and simply doesn't match.
+    expect(matchesSearch(o, 'rin')).toBe(false);
   });
 });
 
