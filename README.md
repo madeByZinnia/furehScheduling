@@ -4,9 +4,9 @@ A shared schedule for the **Fur-Eh 2026** furry convention (Edmonton, July 16–
 shipping as a Telegram Mini App + plain web app. **Accessibility is a hard requirement** —
 the primary user is legally blind and browses at near-max magnification.
 
-Stack: **Vite + Preact + TypeScript (strict)**, plain CSS, no date library. Later backend on a
-single Cloudflare Worker. See `docs/plan-master.md` (architecture) and `docs/plan-revisions.md`
-(design revisions — where they disagree, revisions win).
+Stack: **Vite + Preact + TypeScript (strict)**, plain CSS, no date library, on a single Cloudflare
+Worker + Durable Objects backend. See **`docs/ARCHITECTURE.md`** for the architecture, interfaces,
+and data flow; run `bd list` / `bd show <id>` for the milestone plan and design rationale.
 
 ## Run it (manual testing)
 
@@ -15,8 +15,9 @@ npm install          # first time only
 npm run dev          # dev server with hot reload → http://localhost:5173
 ```
 
-Open the printed URL. That's the whole app right now (M1: browse the schedule + star locally,
-no backend). To test the production bundle instead:
+Open the printed URL. Browse the schedule, star locally, and explore the Map/Crew/Me tabs (crew
+sync + the bot digest require Telegram; see `docs/ARCHITECTURE.md`). To test the production bundle
+instead:
 
 ```bash
 npm run build        # typecheck + bundle into dist/
@@ -78,11 +79,12 @@ npm run test:workers # workerd-runtime tests (for the later DO/alarm backend)
 ## Layout
 
 ```
-src/app/      UI: App, ScheduleView, DisplaySettings, stars, settings, now (time-travel), a11y.css
-src/data/     schedule types + occurrence expansion (expand.ts), branded ids, baked schedule.json
-src/worker/   placeholder Cloudflare Worker (M2 backend not built yet)
+src/app/      UI: App (4-tab shell), schedule/, map/, events/, nav/, stores, crewSync, ics, a11y.css
+src/data/     schedule types + occurrence expansion (expand.ts), branded ids, baked schedule.json,
+              map geo.ts + basemap/buildings/rooms.json
+src/worker/   Worker entry (index.ts), Crew Durable Object (crew-do.ts), telegram, digest
 scripts/      fetch-schedule.ts (run via npm run schedule)
-test/workers/ workerd-pool tests
+test/workers/ workerd-pool tests (DO/alarm, digest, webhook, roster, custom events)
 ```
 
 Task tracking uses **bd (beads)**, not markdown TODOs — run `bd ready` for available work.

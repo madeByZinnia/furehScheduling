@@ -1,0 +1,1 @@
+- [Worktree per feature](worktree-per-feature.md) — do all feature work in a dedicated `.worktrees/<name>` on `feat/<name>`, never on main
