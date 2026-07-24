@@ -4,6 +4,7 @@ import { buildDigest, escapeHtml, type DigestOccurrence } from '../../src/worker
 
 const WINDOW = { start: '2026-07-18T13:00:00-06:00', end: '2026-07-18T14:00:00-06:00' };
 const NOON_MID = new Date('2026-07-18T13:30:00-06:00'); // inside WINDOW
+const TZ = 'America/Edmonton'; // Fureh's timezone — the coming-up times below are Edmonton-local
 
 describe('escapeHtml', () => {
   it('escapes the three Telegram-special characters', () => {
@@ -22,7 +23,7 @@ describe('buildDigest', () => {
         end: '2026-07-18T16:00:00-06:00',
       },
     ];
-    const out = buildDigest(occ, NOON_MID);
+    const out = buildDigest(occ, NOON_MID, TZ);
     expect(out).toContain('<b>Happening now</b>');
     expect(out).toContain('Opening');
     expect(out).toContain('<b>Coming up</b>');
@@ -32,7 +33,7 @@ describe('buildDigest', () => {
   });
 
   it('says nothing is on when the window is empty', () => {
-    const out = buildDigest([], NOON_MID);
+    const out = buildDigest([], NOON_MID, TZ);
     expect(out).toContain('Nothing scheduled right now.');
   });
 
@@ -45,7 +46,7 @@ describe('buildDigest', () => {
         end: '2026-07-18T11:00:00-06:00',
       },
     ];
-    const out = buildDigest(occ, NOON_MID);
+    const out = buildDigest(occ, NOON_MID, TZ);
     expect(out).not.toContain('Earlier');
   });
 
@@ -58,7 +59,7 @@ describe('buildDigest', () => {
     });
     fc.assert(
       fc.property(fc.array(arbOcc, { maxLength: 6 }), (occ) => {
-        const out = buildDigest(occ, NOON_MID);
+        const out = buildDigest(occ, NOON_MID, TZ);
         // Remove the only tags we intentionally emit, then no angle bracket may
         // remain — any survivor would be an unescaped injection.
         const stripped = out.replace(/<\/?(?:b|i)>/g, '');

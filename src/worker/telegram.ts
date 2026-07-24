@@ -109,6 +109,13 @@ export async function verifyInitData(
 export interface CrewRef {
   crewId: string;
   trusted: boolean;
+  /**
+   * A DISPLAY-ONLY con hint parsed from a `<conId>__<chatId>` start_param. It is
+   * NOT authoritative and NOT auth-grade — the Worker never trusts it for access
+   * decisions (the crew's real con lives in crew_config.con_id). Absent for a
+   * legacy bare `<chatId>` start_param or a signed `chat.id` launch.
+   */
+  conId?: string;
 }
 
 /**
@@ -145,10 +152,29 @@ export function resolveCrewRef(params: URLSearchParams): CrewRef | null {
     }
   }
   const sp = params.get('start_param');
-  if (sp !== null && sp !== '' && Number.isSafeInteger(Number(sp))) {
-    // Direct-link launch: user-chosen, so untrusted — the caller MUST verify
-    // membership (getChatMember) before acting on this crew.
-    return { crewId: sp, trusted: false };
+  if (sp !== null && sp !== '') {
+    // The deep link now carries `<conId>__<chatId>` (the SPA's con.ts convention):
+    // the con id is the LEADING token before the FIRST `__`, the chat id is
+    // EVERYTHING after it. A legacy BARE `<chatId>` (no `__`) still resolves. The
+    // chatId is extracted EXACTLY as before for the membership check — the con is
+    // only a display hint, never trusted for auth.
+    const sep = sp.indexOf('__');
+    const conId = sep >= 0 ? sp.slice(0, sep) : '';
+    const chatPart = sep >= 0 ? sp.slice(sep + 2) : sp;
+    // Require a CANONICAL decimal integer: an optional '-' then a nonzero leading
+    // digit. This rejects not just Number('1e3')/Number('0x10') but also
+    // leading-zero aliases (001, 00) and -0/0 — every form whose String(Number(x))
+    // would round-trip to a DIFFERENT DO name than the value membership-verified,
+    // so the verified chat and the bound DO name can never diverge. Negative group
+    // ids (e.g. -1001234567) stay valid.
+    if (/^-?[1-9]\d*$/.test(chatPart) && Number.isSafeInteger(Number(chatPart))) {
+      // Direct-link launch: user-chosen, so untrusted — the caller MUST verify
+      // membership (getChatMember) before acting on this crew. Attach the con hint
+      // only when the token actually carried one (never an empty string).
+      return conId === ''
+        ? { crewId: chatPart, trusted: false }
+        : { crewId: chatPart, trusted: false, conId };
+    }
   }
   return null;
 }
@@ -241,6 +267,16 @@ export function isActiveMember(m: { status: string; isMember: boolean }): boolea
     default:
       return false;
   }
+}
+
+/**
+ * True only for a chat ADMIN — the group creator or an administrator. Used to gate
+ * privileged group commands (e.g. `/setcon`) so an ordinary member cannot change
+ * crew configuration. Fails CLOSED: our getChatMember 'error' sentinel, and any
+ * plain 'member'/'restricted'/'left'/'kicked', all return false.
+ */
+export function isChatAdmin(m: { status: string }): boolean {
+  return m.status === 'creator' || m.status === 'administrator';
 }
 
 /**
@@ -338,7 +374,7 @@ export interface TelegramChat {
 
 export interface TelegramUpdate {
   update_id: number;
-  message?: { chat: TelegramChat };
+  message?: { chat: TelegramChat; text?: string; from?: { id: number } };
   my_chat_member?: { chat: TelegramChat; new_chat_member: { status: string } };
 }
 

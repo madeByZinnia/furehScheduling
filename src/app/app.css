@@ -256,6 +256,12 @@
 .event-row .track {
   color: var(--green);
 }
+.event-row .hosts {
+  display: block;
+  font-size: 0.8125rem;
+  color: var(--text-dim);
+  margin-top: 0.15rem;
+}
 
 /* "Also going" — crew (minus you) who starred this session. Sits BELOW the
    title/description as its own row with real spacing, so it can never collide
@@ -539,6 +545,19 @@
 }
 .me-import-text::placeholder {
   color: var(--text-dim);
+}
+.me-snippet {
+  width: 100%;
+  margin: 0;
+  padding: 0.5rem 0.65rem;
+  font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+  font-size: 0.8125rem;
+  color: var(--text);
+  background: var(--panel);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
 }
 .me-link {
   display: inline-flex;
@@ -1011,6 +1030,30 @@
   color: var(--text-dim);
   padding: 2rem 0;
   text-align: center;
+}
+
+/* ── Con picker (cold-start chooser) ──────────────────────────────────────────*/
+.con-picker-list {
+  list-style: none;
+  margin: 1rem 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+.con-picker-btn {
+  width: 100%;
+  padding: 1rem;
+  font-size: 1.1rem;
+  text-align: left;
+  color: var(--text);
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  cursor: pointer;
+}
+.con-picker-btn:hover {
+  border-color: var(--gold);
 }
 
 /* ── Jump-to-now FAB ─────────────────────────────────────────────────────────*/

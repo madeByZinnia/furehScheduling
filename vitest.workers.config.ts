@@ -16,6 +16,16 @@ export default defineWorkersConfig({
             WEBHOOK_SECRET: 'test-webhook-secret',
             SETUP_KEY: 'test-setup-key',
           },
+          // Real ASSETS binding for the schedule-route tests. The wrangler config
+          // points `assets.directory` at ./dist/ (a build artifact absent in the
+          // worktree); override it to ./public, which already holds the generated
+          // data/<con>.json feeds — so env.ASSETS.fetch('/data/tos.json') hits a
+          // REAL workerd assets worker over REAL files, not a mock. SCHEDULES (KV)
+          // is provisioned automatically from wrangler.jsonc's kv_namespaces.
+          assets: {
+            directory: './public',
+            binding: 'ASSETS',
+          },
         },
       },
     },

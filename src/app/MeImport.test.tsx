@@ -3,7 +3,9 @@ import { describe, it, expect, beforeEach, afterEach } from 'vitest';
 import { render } from 'preact';
 import { act } from 'preact/test-utils';
 import { expandOccurrences, type RawSlot } from '../data/expand';
-import { starCount, __resetStars } from './stars';
+import { isStarred, starCount, __resetStars } from './stars';
+import { setActiveCon } from './con';
+import { CONS } from '../data/cons';
 import { MeImport } from './MeImport';
 
 const slots: RawSlot[] = [
@@ -81,5 +83,72 @@ describe('MeImport — paste → match → confirm → import', () => {
     click(primaryButton()!); // Start over
     expect(textarea()).not.toBeNull();
     expect(starCount()).toBe(0);
+  });
+});
+
+describe('MeImport — con-aware favourites mode', () => {
+  const type = (value: string) => {
+    void act(() => {
+      const ta = textarea()!;
+      ta.value = value;
+      ta.dispatchEvent(new Event('input', { bubbles: true }));
+    });
+  };
+  const click = (el: HTMLButtonElement) => {
+    void act(() => el.click());
+  };
+
+  // Reset the shared con singleton so later tests/files see fureh again.
+  afterEach(() => setActiveCon('fureh'));
+
+  it("Canfurence (mode:'none') renders a note and NO paste box — never a broken importer", () => {
+    setActiveCon('canfurence');
+    render(<MeImport occurrences={occurrences} />, container);
+    // No dialect → no textarea, no Match button.
+    expect(textarea()).toBeNull();
+    expect(container.querySelector('button.me-download')).toBeNull();
+    // A short explanatory note is shown instead.
+    expect(container.querySelector('.me-note')!.textContent).toContain('no favourites to import');
+  });
+
+  it("ToS (mode:'cookie-paste') shows the console snippet hint + a paste box", () => {
+    setActiveCon('tos');
+    render(<MeImport occurrences={occurrences} />, container);
+    const snippet = container.querySelector('.me-snippet');
+    expect(snippet).not.toBeNull();
+    // The exact one-liner from the con registry is surfaced verbatim.
+    const tosFav = CONS.tos.favourites;
+    expect(tosFav.mode).toBe('cookie-paste');
+    if (tosFav.mode === 'cookie-paste') {
+      expect(snippet!.textContent).toBe(tosFav.snippetHint);
+    }
+    expect(textarea()).not.toBeNull();
+    // No pretalx "open favourites" link in cookie mode.
+    expect(container.querySelector('.me-link')).toBeNull();
+  });
+
+  it('ToS: pasting the cookie value (2,3,17) stars the matching numeric-code occurrences', () => {
+    setActiveCon('tos');
+    // ToS-shaped schedule: numeric string codes, one repeating across two days.
+    const tosSlots: RawSlot[] = [
+      { code: '2', title: 'Fursuit Parade', room: 'Main', start: '2026-08-08T10:00:00-07:00', end: '2026-08-08T11:00:00-07:00' },
+      { code: '2', title: 'Fursuit Parade', room: 'Main', start: '2026-08-09T10:00:00-07:00', end: '2026-08-09T11:00:00-07:00' },
+      { code: '3', title: 'Dealers Den', room: 'Hall', start: '2026-08-08T12:00:00-07:00', end: '2026-08-08T13:00:00-07:00' },
+      { code: '99', title: 'Not favourited', room: 'Main', start: '2026-08-08T14:00:00-07:00', end: '2026-08-08T15:00:00-07:00' },
+    ];
+    const tosOccs = expandOccurrences(tosSlots, [], 'America/Vancouver');
+    render(<MeImport occurrences={tosOccs} />, container);
+
+    type('2,3,17'); // 17 is unknown here; 2 (repeating) + 3 match
+    click(primaryButton()!); // Match
+    expect(container.querySelector('.me-count')!.textContent).toContain('2 matched');
+
+    click(primaryButton()!); // Import
+    // 2 slots for code "2" + 1 for code "3" = 3 occurrences starred.
+    expect(starCount()).toBe(3);
+    expect(isStarred(tosOccs[0]!.id)).toBe(true);
+    expect(isStarred(tosOccs[1]!.id)).toBe(true);
+    expect(isStarred(tosOccs[2]!.id)).toBe(true);
+    expect(isStarred(tosOccs[3]!.id)).toBe(false); // code 99 not in the paste
   });
 });

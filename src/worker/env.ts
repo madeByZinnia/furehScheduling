@@ -32,4 +32,17 @@ export interface Env {
    * launch. Optional: deploys without it simply omit the button.
    */
   MINIAPP_URL?: string;
+  /**
+   * Live per-con schedule store, keyed by ConId (`fureh` | `tos` | `canfurence`).
+   * GET /api/schedule reads this FIRST; a hit is served as-is, a miss falls back to
+   * the baked static asset. Writing a key lets a schedule change go live without a
+   * redeploy. Local dev/tests get a real miniflare-backed KV from the vitest pool.
+   */
+  SCHEDULES: KVNamespace;
+  /**
+   * Static-asset binding (the `assets` block in wrangler.jsonc). Lets the Worker
+   * `env.ASSETS.fetch(url)` the baked ./dist/data/<con>.json as the schedule
+   * fallback when SCHEDULES has no live override.
+   */
+  ASSETS: Fetcher;
 }

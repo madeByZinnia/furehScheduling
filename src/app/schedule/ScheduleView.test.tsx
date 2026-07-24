@@ -9,6 +9,7 @@ import type { Roster, RosterResult } from '../crewSync';
 import { configureNow } from '../now';
 import { __resetStars, toggleStar } from '../stars';
 import { __setCrewLoader, __resetCrew } from '../crew';
+import { setActiveCon } from '../con';
 import { ScheduleView } from './ScheduleView';
 
 // Mutable mocked session so a test can become "self" (default: plain web).
@@ -252,5 +253,34 @@ describe('ScheduleView — jump-to-now FAB', () => {
     expect(container.querySelector('.fab')).not.toBeNull();
     clickChip('You');
     expect(container.querySelector('.fab')).toBeNull();
+  });
+});
+
+describe('ScheduleView — default day tab uses the active con timezone', () => {
+  // Reset the shared con singleton so later tests in this file see fureh again.
+  afterEach(() => setActiveCon('fureh'));
+
+  const aug7 = occ({
+    code: 'C7',
+    start: '2026-08-07T14:00:00-04:00',
+    day: '2026-08-07',
+    title: 'SevenEvent',
+  });
+  const aug8 = occ({
+    code: 'C8',
+    start: '2026-08-08T14:00:00-04:00',
+    day: '2026-08-08',
+    title: 'EightEvent',
+  });
+
+  it('picks Aug 8 for a Toronto con at 04:30Z (an Edmonton default would pick Aug 7)', async () => {
+    // 2026-08-08T04:30Z = Aug 8 00:30 in Toronto (-04) but Aug 7 22:30 in
+    // Edmonton (-06). If ScheduleView dropped activeCon().tz and used the
+    // Edmonton default, the visible default day would be Aug 7.
+    configureNow('?now=2026-08-08T04:30:00Z');
+    setActiveCon('canfurence'); // America/Toronto
+    await mount([aug7, aug8]);
+    expect(titles()).toContain('EightEvent');
+    expect(titles()).not.toContain('SevenEvent');
   });
 });

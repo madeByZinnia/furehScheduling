@@ -34,6 +34,8 @@ export interface RawTalk {
   title?: LocalizedString;
   abstract?: LocalizedString;
   track?: LocalizedString;
+  /** Optional host/presenter names. Fureh's frab feed has none, so undefined there. */
+  hosts?: string[];
 }
 
 /** One expanded, normalized occurrence — one row on one day at one time. */
@@ -46,8 +48,10 @@ export interface Occurrence {
   room: string | null;
   start: string;
   end: string;
-  /** YYYY-MM-DD in America/Edmonton, regardless of device timezone. */
+  /** YYYY-MM-DD in the con's timezone, regardless of device timezone. */
   day: string;
+  /** Optional host/presenter names (only present when the feed supplies them). */
+  hosts?: string[];
 }
 
 export interface Schedule {
@@ -64,20 +68,32 @@ export function normalizeString(value: LocalizedString): string {
   return first ?? '';
 }
 
+/** Fureh's timezone — the default that preserves pre-multi-con behavior. */
 const CON_TZ = 'America/Edmonton';
-// en-CA formats as YYYY-MM-DD; América/Edmonton has no DST shift during the con.
-const dayFormatter = new Intl.DateTimeFormat('en-CA', {
-  timeZone: CON_TZ,
-  year: 'numeric',
-  month: '2-digit',
-  day: '2-digit',
-});
 
-/** Day bucket (YYYY-MM-DD) for a slot start, in con-local time. */
-export function conDay(startISO: string): string {
+// en-CA formats as YYYY-MM-DD. Constructing Intl.DateTimeFormat isn't free, so
+// cache one formatter per timezone (built lazily on first use).
+const dayFmtByTz = new Map<string, Intl.DateTimeFormat>();
+
+function dayFormatterFor(tz: string): Intl.DateTimeFormat {
+  let fmt = dayFmtByTz.get(tz);
+  if (!fmt) {
+    fmt = new Intl.DateTimeFormat('en-CA', {
+      timeZone: tz,
+      year: 'numeric',
+      month: '2-digit',
+      day: '2-digit',
+    });
+    dayFmtByTz.set(tz, fmt);
+  }
+  return fmt;
+}
+
+/** Day bucket (YYYY-MM-DD) for a slot start, in the given con-local timezone. */
+export function conDay(startISO: string, tz: string = CON_TZ): string {
   const d = new Date(startISO);
   if (Number.isNaN(d.getTime())) throw new Error(`invalid start: ${startISO}`);
-  return dayFormatter.format(d);
+  return dayFormatterFor(tz).format(d);
 }
 
 /**
@@ -88,7 +104,11 @@ export function conDay(startISO: string): string {
  * synthetic code derived from start AND room, so two code-less slots at the same
  * instant in different rooms stay distinct (and still stable across runs).
  */
-export function expandOccurrences(slots: RawSlot[], talks: RawTalk[] = []): Occurrence[] {
+export function expandOccurrences(
+  slots: RawSlot[],
+  talks: RawTalk[] = [],
+  tz: string = CON_TZ,
+): Occurrence[] {
   const byCode = new Map<string, RawTalk>();
   for (const t of talks) byCode.set(t.code, t);
 
@@ -114,7 +134,9 @@ export function expandOccurrences(slots: RawSlot[], talks: RawTalk[] = []): Occu
       room,
       start: slot.start,
       end: slot.end,
-      day: conDay(slot.start),
+      day: conDay(slot.start, tz),
+      // exactOptionalPropertyTypes: only include hosts when the feed supplied it.
+      ...(talk?.hosts !== undefined ? { hosts: talk.hosts } : {}),
     };
   });
 }

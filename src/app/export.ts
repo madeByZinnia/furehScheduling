@@ -18,6 +18,10 @@ export interface StarredIcsOptions {
   alarm?: boolean;
   /** DTSTAMP instant (ISO) — injectable for deterministic tests. */
   dtstamp?: string;
+  /** PRODID for the calendar (per-con branding). */
+  prodId?: string;
+  /** Domain suffix for each occurrence UID (per-con branding). */
+  uidDomain?: string;
 }
 
 /**
@@ -45,9 +49,16 @@ export function buildStarredIcs(
   opts: StarredIcsOptions = {},
 ): string {
   const selected = selectStarredOccurrences(stars, occurrences);
-  const icsOpts: { alarm?: boolean; dtstamp?: string } = {};
+  const icsOpts: {
+    alarm?: boolean;
+    dtstamp?: string;
+    prodId?: string;
+    uidDomain?: string;
+  } = {};
   if (opts.alarm) icsOpts.alarm = true;
   if (opts.dtstamp !== undefined) icsOpts.dtstamp = opts.dtstamp;
+  if (opts.prodId !== undefined) icsOpts.prodId = opts.prodId;
+  if (opts.uidDomain !== undefined) icsOpts.uidDomain = opts.uidDomain;
   return occurrencesToIcs(selected, icsOpts);
 }
 

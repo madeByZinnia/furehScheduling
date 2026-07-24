@@ -1,0 +1,1766 @@
+{
+  "generatedAt": "2026-07-23T18:30:25.023Z",
+  "occurrences": [
+    {
+      "id": "318@2026-08-08T08:00:00-04:00",
+      "code": "318",
+      "title": "Artist Lounge",
+      "abstract": "The art lounge is a cozy, social space designed for artists, creatives, and doodlers of all skill levels to relax, make art, and meet each other! Art Supplies are available to borrow and use in the Lounge. Come hang out, be creative and unwind from the con space!",
+      "track": "Con Event Rooms",
+      "room": "304",
+      "start": "2026-08-08T08:00:00-04:00",
+      "end": "2026-08-09T01:00:00-04:00",
+      "day": "2026-08-08"
+    },
+    {
+      "id": "256@2026-08-08T09:00:00-04:00",
+      "code": "256",
+      "title": "Fursuit Lounge",
+      "abstract": "",
+      "track": "Con Event Rooms",
+      "room": "106A",
+      "start": "2026-08-08T09:00:00-04:00",
+      "end": "2026-08-09T01:00:00-04:00",
+      "day": "2026-08-08"
+    },
+    {
+      "id": "260@2026-08-08T09:00:00-04:00",
+      "code": "260",
+      "title": "Medic/First Aid",
+      "abstract": "",
+      "track": "Con Event Rooms",
+      "room": "211",
+      "start": "2026-08-08T09:00:00-04:00",
+      "end": "2026-08-09T01:00:00-04:00",
+      "day": "2026-08-08"
+    },
+    {
+      "id": "266@2026-08-08T09:00:00-04:00",
+      "code": "266",
+      "title": "Registration",
+      "abstract": "For both at con Registration or Pre-Reg pick ups",
+      "track": "Con Event Rooms",
+      "room": "118B",
+      "start": "2026-08-08T09:00:00-04:00",
+      "end": "2026-08-08T22:00:00-04:00",
+      "day": "2026-08-08"
+    },
+    {
+      "id": "267@2026-08-08T09:00:00-04:00",
+      "code": "267",
+      "title": "Attendee Services",
+      "abstract": "",
+      "track": "Con Event Rooms",
+      "room": "118A",
+      "start": "2026-08-08T09:00:00-04:00",
+      "end": "2026-08-08T21:00:00-04:00",
+      "day": "2026-08-08"
+    },
+    {
+      "id": "273@2026-08-08T09:00:00-04:00",
+      "code": "273",
+      "title": "Sensory Room",
+      "abstract": "",
+      "track": "Con Event Rooms",
+      "room": "209",
+      "start": "2026-08-08T09:00:00-04:00",
+      "end": "2026-08-09T01:00:00-04:00",
+      "day": "2026-08-08"
+    },
+    {
+      "id": "226@2026-08-08T10:00:00-04:00",
+      "code": "226",
+      "title": "Anubis Tenebrous Music Live Concert",
+      "abstract": "Do you enjoy live music and performance? If the answer is yes, this panel is for you! Anubis Tenebrous Music, a GOH of CanFURence 8 (2025), will be back on the CanFURence stage for CanFURence 9: MarOwOned. The bad boy jackal character Thorn will once again travel through an interdimensional portal to tell his story, involving great battles, sailing the seas, and standing up to the tyrants who stole his world from his people. The show will be over an hour in length, including theatrical stage presence, smashing boxes, live guitar solos, and audience participation…all elements of a high energy show you won't want to miss!",
+      "track": "Music Track",
+      "room": "118C/D/E",
+      "start": "2026-08-08T10:00:00-04:00",
+      "end": "2026-08-08T11:30:00-04:00",
+      "day": "2026-08-08",
+      "hosts": [
+        "Anubis Tenebrous"
+      ]
+    },
+    {
+      "id": "246@2026-08-08T10:00:00-04:00",
+      "code": "246",
+      "title": "Food Service Furs Meet and Greet",
+      "abstract": "Do you work in food service? Is every day a nightmare, or is it oddly fulfilling, or somewhere in between? Come hang out and let us hear about it!",
+      "track": "Meet and Greets",
+      "room": "106B",
+      "start": "2026-08-08T10:00:00-04:00",
+      "end": "2026-08-08T11:00:00-04:00",
+      "day": "2026-08-08",
+      "hosts": [
+        "Raisin"
+      ]
+    },
+    {
+      "id": "287@2026-08-08T10:00:00-04:00",
+      "code": "287",
+      "title": "Charity Area",
+      "abstract": "",
+      "track": "Charity",
+      "room": "106D/E/F/G",
+      "start": "2026-08-08T10:00:00-04:00",
+      "end": "2026-08-08T13:00:00-04:00",
+      "day": "2026-08-08"
+    },
+    {
+      "id": "309@2026-08-08T10:00:00-04:00",
+      "code": "309",
+      "title": "Charity Silent Auction",
+      "abstract": "Come check out our Charity Team in the Dealer's Den for amazing and awesome things to gaze at and bid on in our Silent Auction. Bids will be accepted through Saturday at 5:30 p.m., and all the money goes to our charity, Holly's Haven Wildlife Rescue!",
+      "track": "Charity",
+      "room": "106D/E/F/G",
+      "start": "2026-08-08T10:00:00-04:00",
+      "end": "2026-08-08T13:00:00-04:00",
+      "day": "2026-08-08"
+    },
+    {
+      "id": "263@2026-08-08T10:00:00-04:00",
+      "code": "263",
+      "title": "Dealer's Den",
+      "abstract": "",
+      "track": "Con Event Rooms",
+      "room": "106D/E/F/G",
+      "start": "2026-08-08T10:00:00-04:00",
+      "end": "2026-08-08T13:00:00-04:00",
+      "day": "2026-08-08"
+    },
+    {
+      "id": "235@2026-08-08T10:15:00-04:00",
+      "code": "235",
+      "title": "The History of Formline Art",
+      "abstract": "For hundreds of years, the Indigenous people of the PNW have been carving, painting, and sewing within an art style that has become analogous with the regions they are found in, and for a while to Canadian tourism and global artistic identity itself. This panel focuses on the historical and cultural significance of Formline art, its relationship to the Indigenous people, its suppression and revitalization throughout the era of Canadian colonization, and its significance today.",
+      "track": "Guest Of Honour",
+      "room": "106C",
+      "start": "2026-08-08T10:15:00-04:00",
+      "end": "2026-08-08T11:45:00-04:00",
+      "day": "2026-08-08",
+      "hosts": [
+        "TeleKitnetic"
+      ]
+    },
+    {
+      "id": "241@2026-08-08T10:30:00-04:00",
+      "code": "241",
+      "title": "Literally Everything About Creative Writing",
+      "abstract": "A lecture-style panel that comprehensively explores creative writing, from themes and characters to style and font choice, using a map as a visual metaphor. This panel is for writers of all skill levels.",
+      "track": "Panel",
+      "room": "201",
+      "start": "2026-08-08T10:30:00-04:00",
+      "end": "2026-08-08T12:00:00-04:00",
+      "day": "2026-08-08",
+      "hosts": [
+        "Lazarus"
+      ]
+    },
+    {
+      "id": "308@2026-08-08T10:45:00-04:00",
+      "code": "308",
+      "title": "Breaking Into Game Development: From Passion",
+      "abstract": "This panel is a relaxed talk about building a sustainable career as a professional video game developer. I’ll share my 18-year journey as a professional game developer, starting with my first shipped title—Doritos Crash Course on Xbox Live Arcade—and leading to my current work on Cyberpunk 2 at CD PROJEKT RED. I’ll openly discuss the unexpected challenges and mistakes that taught me valuable lessons about the industry.\nThis talk is about providing perspective on what studios tend to look for in game developers, how to grow your career over time, and the small, early decisions you can make that have a big impact later on. My goal is to help attendees, whether they be artists, programmers, designers, or anyone curious about game development, feel more confident and informed as they work toward their own goals.",
+      "track": "Panel",
+      "room": "110",
+      "start": "2026-08-08T10:45:00-04:00",
+      "end": "2026-08-08T11:45:00-04:00",
+      "day": "2026-08-08",
+      "hosts": [
+        "Null_CTRL"
+      ]
+    },
+    {
+      "id": "247@2026-08-08T11:30:00-04:00",
+      "code": "247",
+      "title": "Railfurs Meet and Greet",
+      "abstract": "A place for railfurs and all railfans alike to chat and nerd out about everything rail! Come discuss trains with fellow train furs!",
+      "track": "Meet and Greets",
+      "room": "106B",
+      "start": "2026-08-08T11:30:00-04:00",
+      "end": "2026-08-08T12:30:00-04:00",
+      "day": "2026-08-08",
+      "hosts": [
+        "Linx Fox"
+      ]
+    },
+    {
+      "id": "229@2026-08-08T12:00:00-04:00",
+      "code": "229",
+      "title": "Fursuit Parade Muster",
+      "abstract": "Fursuit Parade Muster",
+      "track": "Con Promoted Event",
+      "room": "118C/D/E",
+      "start": "2026-08-08T12:00:00-04:00",
+      "end": "2026-08-08T12:30:00-04:00",
+      "day": "2026-08-08"
+    },
+    {
+      "id": "255@2026-08-08T12:00:00-04:00",
+      "code": "255",
+      "title": "Open Gaming",
+      "abstract": "",
+      "track": "Gaming",
+      "room": "106H",
+      "start": "2026-08-08T12:00:00-04:00",
+      "end": "2026-08-09T00:00:00-04:00",
+      "day": "2026-08-08"
+    },
+    {
+      "id": "228@2026-08-08T12:30:00-04:00",
+      "code": "228",
+      "title": "Fursuit Parade",
+      "abstract": "It’s time to get suited up and be in our annual parade! With our new location this year, we invite you to march with us around the convention center. There are plenty of opportunities for photos including a large group shot.",
+      "track": "Con Promoted Event",
+      "room": "118C/D/E",
+      "start": "2026-08-08T12:30:00-04:00",
+      "end": "2026-08-08T14:00:00-04:00",
+      "day": "2026-08-08"
+    },
+    {
+      "id": "252@2026-08-08T14:00:00-04:00",
+      "code": "252",
+      "title": "Mario Strikers Open Gaming",
+      "abstract": "Back again a second time. Relive the fun times of the early days of the Mario Strikers games as we have some fun together with Mario's most under-rated sports game series.",
+      "track": "Gaming",
+      "room": "106H",
+      "start": "2026-08-08T14:00:00-04:00",
+      "end": "2026-08-08T16:00:00-04:00",
+      "day": "2026-08-08",
+      "hosts": [
+        "Jonny Musemiš"
+      ]
+    },
+    {
+      "id": "287@2026-08-08T14:00:00-04:00",
+      "code": "287",
+      "title": "Charity Area",
+      "abstract": "",
+      "track": "Charity",
+      "room": "106D/E/F/G",
+      "start": "2026-08-08T14:00:00-04:00",
+      "end": "2026-08-08T18:00:00-04:00",
+      "day": "2026-08-08"
+    },
+    {
+      "id": "309@2026-08-08T14:00:00-04:00",
+      "code": "309",
+      "title": "Charity Silent Auction",
+      "abstract": "Come check out our Charity Team in the Dealer's Den for amazing and awesome things to gaze at and bid on in our Silent Auction. Bids will be accepted through Saturday at 5:30 p.m., and all the money goes to our charity, Holly's Haven Wildlife Rescue!",
+      "track": "Charity",
+      "room": "106D/E/F/G",
+      "start": "2026-08-08T14:00:00-04:00",
+      "end": "2026-08-08T17:30:00-04:00",
+      "day": "2026-08-08"
+    },
+    {
+      "id": "212@2026-08-08T14:00:00-04:00",
+      "code": "212",
+      "title": "Art Doll Meet & Greet",
+      "abstract": "Come mingle with fellow art doll enthusiasts and their critters! Grab a card while you're here and play art doll bingo with us, or use our photo sets & mini props to get some pics!",
+      "track": "Guest Of Honour",
+      "room": "110",
+      "start": "2026-08-08T14:00:00-04:00",
+      "end": "2026-08-08T15:00:00-04:00",
+      "day": "2026-08-08",
+      "hosts": [
+        "Worms",
+        "Bones"
+      ]
+    },
+    {
+      "id": "263@2026-08-08T14:00:00-04:00",
+      "code": "263",
+      "title": "Dealer's Den",
+      "abstract": "",
+      "track": "Con Event Rooms",
+      "room": "106D/E/F/G",
+      "start": "2026-08-08T14:00:00-04:00",
+      "end": "2026-08-08T18:00:00-04:00",
+      "day": "2026-08-08"
+    },
+    {
+      "id": "248@2026-08-08T14:15:00-04:00",
+      "code": "248",
+      "title": "Kemono Meet & Greet",
+      "abstract": "Are you a fan of kemono art and fursuits? Then this event might be for you! Hang out, chat, take some photos, and meet your fellow fans of all things kemono!",
+      "track": "Meet and Greets",
+      "room": "106B",
+      "start": "2026-08-08T14:15:00-04:00",
+      "end": "2026-08-08T15:15:00-04:00",
+      "day": "2026-08-08",
+      "hosts": [
+        "Vall"
+      ]
+    },
+    {
+      "id": "237@2026-08-08T14:30:00-04:00",
+      "code": "237",
+      "title": "Budget 101 Financing Your Furry Fascination",
+      "abstract": "Would you like to easily save 250$ for every furry convention you will ever attend? Would you like to never have to worry about your budget when buying furry stuff? Managing your money doesn't have to make you miserable, come on down for a presentation so easy that even a simple moose can understand it!",
+      "track": "Panel",
+      "room": "106C",
+      "start": "2026-08-08T14:30:00-04:00",
+      "end": "2026-08-08T16:30:00-04:00",
+      "day": "2026-08-08",
+      "hosts": [
+        "Null_CTRL",
+        "BCRE8TVE"
+      ]
+    },
+    {
+      "id": "315@2026-08-08T15:00:00-04:00",
+      "code": "315",
+      "title": "Harm Reduction Services",
+      "abstract": "Do you need any testing resources, safer sex or substance use supplies? Come check out our Harm Reduction table provided by Max Ottawa!",
+      "track": "Con Event Rooms",
+      "room": "Main Hallway",
+      "start": "2026-08-08T15:00:00-04:00",
+      "end": "2026-08-08T21:00:00-04:00",
+      "day": "2026-08-08",
+      "hosts": [
+        "Max Ottawa"
+      ]
+    },
+    {
+      "id": "242@2026-08-08T15:15:00-04:00",
+      "code": "242",
+      "title": "Self-Made Fursuit Meetup",
+      "abstract": "Come meet fellow furs who made their fursona come to life through their own sweat and tears! Partials, fullsuits, dinomasks, papersuits, WIPs, you'll get to take pictures with fellow DIYers of all experience levels and grab some stickers or badges proudly showing off that your suit was homebrewed!",
+      "track": "Meet and Greets",
+      "room": "201",
+      "start": "2026-08-08T15:15:00-04:00",
+      "end": "2026-08-08T16:15:00-04:00",
+      "day": "2026-08-08",
+      "hosts": [
+        "HOOFCRUSH"
+      ]
+    },
+    {
+      "id": "230@2026-08-08T15:30:00-04:00",
+      "code": "230",
+      "title": "Dance Competition",
+      "abstract": "Come watch some of our fandoms' top talent as they show off their moves in our spectacular Dance Competition!",
+      "track": "Con Promoted Event",
+      "room": "118C/D/E",
+      "start": "2026-08-08T15:30:00-04:00",
+      "end": "2026-08-08T17:30:00-04:00",
+      "day": "2026-08-08",
+      "hosts": [
+        "BT",
+        "Bemani"
+      ]
+    },
+    {
+      "id": "231@2026-08-08T16:00:00-04:00",
+      "code": "231",
+      "title": "Balloon Animal Basics",
+      "abstract": "Want to learn some balloon animal basics? Join me to go over some silly balloon twisting! (Furry pirates may or may not leave armed with balloon swords.)",
+      "track": "Panel",
+      "room": "110",
+      "start": "2026-08-08T16:00:00-04:00",
+      "end": "2026-08-08T17:00:00-04:00",
+      "day": "2026-08-08",
+      "hosts": [
+        "Frostbite"
+      ]
+    },
+    {
+      "id": "253@2026-08-08T17:00:00-04:00",
+      "code": "253",
+      "title": "Deltarune and Chill",
+      "abstract": "Let's play through some Deltarune together! Pass the controller around, have some laughs, exchange theories, and more!",
+      "track": "Gaming",
+      "room": "106H",
+      "start": "2026-08-08T17:00:00-04:00",
+      "end": "2026-08-08T18:00:00-04:00",
+      "day": "2026-08-08",
+      "hosts": [
+        "Raisin"
+      ]
+    },
+    {
+      "id": "238@2026-08-08T17:00:00-04:00",
+      "code": "238",
+      "title": "Grey Muzzle Meet and Greet",
+      "abstract": "Does the song of a modem still make your ears twitch? Can you still feel the shape of a VHS cassette in your paws? If so (or if you just have that greymuzzle energy), this meetup's for you!\n\nWhether you joined the fandom in the age of BBSes or the age of Bluesky, come hang out with other older furries, swap period stories and make dated references, shake your fist at the clouds, and see old old friends and meet new old friends.",
+      "track": "Meet and Greets",
+      "room": "106C",
+      "start": "2026-08-08T17:00:00-04:00",
+      "end": "2026-08-08T18:30:00-04:00",
+      "day": "2026-08-08",
+      "hosts": [
+        "Kaldar lion",
+        "Jake, a deer"
+      ]
+    },
+    {
+      "id": "243@2026-08-08T17:15:00-04:00",
+      "code": "243",
+      "title": "Fursuit drawing from life",
+      "abstract": "Practice drawing with fursuiters as models, or volunteer as fursuit models and get drawn by artists. Bring your sketchbooks, but if you forgot, pencil and paper will be provided.",
+      "track": "Panel",
+      "room": "201",
+      "start": "2026-08-08T17:15:00-04:00",
+      "end": "2026-08-08T18:45:00-04:00",
+      "day": "2026-08-08",
+      "hosts": [
+        "kakurady"
+      ]
+    },
+    {
+      "id": "328@2026-08-08T17:30:00-04:00",
+      "code": "328",
+      "title": "Silent Auction Pickup",
+      "abstract": "Come back to our Charity area in the Dealer's Den and see if your bid was a winner in our Silent Auction! Here are the times you can stop by: Saturday from 5:30 p.m. to 6 p.m., Sunday from 10 a.m. to 1 p.m. and Sunday from 2 p.m. to 3 p.m.",
+      "track": "Charity",
+      "room": "106D/E/F/G",
+      "start": "2026-08-08T17:30:00-04:00",
+      "end": "2026-08-08T18:00:00-04:00",
+      "day": "2026-08-08"
+    },
+    {
+      "id": "249@2026-08-08T17:30:00-04:00",
+      "code": "249",
+      "title": "Benefactor Meal",
+      "abstract": "Join us for yet another Epicurean extravaganza with this one-of-a-kind meal! (For Benefactor levels only)",
+      "track": "Meals",
+      "room": "106B",
+      "start": "2026-08-08T17:30:00-04:00",
+      "end": "2026-08-08T19:30:00-04:00",
+      "day": "2026-08-08",
+      "hosts": [
+        "The Board of Directors",
+        "FoxyMary",
+        "Tillwoofie"
+      ]
+    },
+    {
+      "id": "232@2026-08-08T18:00:00-04:00",
+      "code": "232",
+      "title": "Building Communities and Organizing Events",
+      "abstract": "Want to start a meetup, grow a local group, or run events that people genuinely enjoy attending? This panel dives into the fundamentals of community building and event organization within the furry fandom and beyond. From finding your audience and creating welcoming spaces to handling logistics, promotion, staffing, and avoiding burnout, we cover the real-world challenges and rewards of bringing people together.\nWhether you’re organizing small local meetups, online communities, game nights, charity events, or large scale gatherings, this panel is designed to help both new and experienced organizers build stronger, healthier, and more active communities.",
+      "track": "Panel",
+      "room": "110",
+      "start": "2026-08-08T18:00:00-04:00",
+      "end": "2026-08-08T19:30:00-04:00",
+      "day": "2026-08-08",
+      "hosts": [
+        "Loki",
+        "The Ottawa Furries"
+      ]
+    },
+    {
+      "id": "239@2026-08-08T19:00:00-04:00",
+      "code": "239",
+      "title": "Goo Furs and other Shapeshifters Meet-up",
+      "abstract": "Is your character made of liquid, rubber, latex, nanomachines, or just extremely TF prone? Time to ooze out of the vents and into a room where we can all chat about this niche interest, and how each of our characters handle it.",
+      "track": "Meet and Greets",
+      "room": "106C",
+      "start": "2026-08-08T19:00:00-04:00",
+      "end": "2026-08-08T20:00:00-04:00",
+      "day": "2026-08-08",
+      "hosts": [
+        "Aver the Dorbley"
+      ]
+    },
+    {
+      "id": "244@2026-08-08T19:15:00-04:00",
+      "code": "244",
+      "title": "Manokit meetup",
+      "abstract": "In line with this year's tropical theme, join our meetup for little mythical beach- and sea-dwelling creatures! At this meet we can all come together, take photos with pool props, socialize, and maybe play a little bit of Marco Polo on our dry deserted land. At the end we'll take a big group photo to commemorate the event.",
+      "track": "Meet and Greets",
+      "room": "201",
+      "start": "2026-08-08T19:15:00-04:00",
+      "end": "2026-08-08T20:45:00-04:00",
+      "day": "2026-08-08",
+      "hosts": [
+        "Mince"
+      ]
+    },
+    {
+      "id": "254@2026-08-08T20:00:00-04:00",
+      "code": "254",
+      "title": "Blood on the Peace Tower (Clocktower)",
+      "abstract": "Come play the hit social deduction board game Blood On The Clocktower at CANFurence! Beginners welcome!",
+      "track": "Gaming",
+      "room": "106H",
+      "start": "2026-08-08T20:00:00-04:00",
+      "end": "2026-08-08T23:30:00-04:00",
+      "day": "2026-08-08",
+      "hosts": [
+        "Nycto"
+      ]
+    },
+    {
+      "id": "233@2026-08-08T20:00:00-04:00",
+      "code": "233",
+      "title": "Whose Lion is it Anyway?",
+      "abstract": "Improv comedy! Games for all skill levels, performed by your fellow audience members! Come to watch, or to participate, or both!",
+      "track": "Panel",
+      "room": "110",
+      "start": "2026-08-08T20:00:00-04:00",
+      "end": "2026-08-08T21:30:00-04:00",
+      "day": "2026-08-08",
+      "hosts": [
+        "Dronon"
+      ]
+    },
+    {
+      "id": "240@2026-08-08T20:30:00-04:00",
+      "code": "240",
+      "title": "Shibari 101: Tying the Knot",
+      "abstract": "Come learn the basics of shibari and rope safety. If you're new, or wish for a refresher, this is the panel to come learn! I have an ever-expanding set of handouts for people to learn off of on certain ties. Follow along's may be available depending on available helpers/riggers assisting the host.",
+      "track": "18+ After Dark",
+      "room": "106C",
+      "start": "2026-08-08T20:30:00-04:00",
+      "end": "2026-08-08T23:00:00-04:00",
+      "day": "2026-08-08",
+      "hosts": [
+        "cyberjoel"
+      ]
+    },
+    {
+      "id": "288@2026-08-08T20:45:00-04:00",
+      "code": "288",
+      "title": "Saturday Night Dances -THEDAWGH0USE",
+      "abstract": "The night is young, and so are we! End every day of the convention by shaking your tail and waving your paws to the beats of our talented DJs, as they keep the music going all night long! The dances are for all ages, but please be aware that it is catered to adults and features a dark environment, loud music, bright strobing lighting, and fog/haze effects. Doors open at 8:30PM!",
+      "track": "Con Promoted Event",
+      "room": "118C/D/E",
+      "start": "2026-08-08T20:45:00-04:00",
+      "end": "2026-08-08T21:45:00-04:00",
+      "day": "2026-08-08",
+      "hosts": [
+        "THEDAWGH0USE"
+      ]
+    },
+    {
+      "id": "250@2026-08-08T20:45:00-04:00",
+      "code": "250",
+      "title": "Little furs meet up",
+      "abstract": "A casually social panel for ABDLs and Babyfurs to meet and greet",
+      "track": "18+ After Dark",
+      "room": "106B",
+      "start": "2026-08-08T20:45:00-04:00",
+      "end": "2026-08-08T22:15:00-04:00",
+      "day": "2026-08-08",
+      "hosts": [
+        "Kaldar lion",
+        "Leo Snow Paws"
+      ]
+    },
+    {
+      "id": "322@2026-08-08T21:00:00-04:00",
+      "code": "322",
+      "title": "VR Portal",
+      "abstract": "Can't make it to the con? Come see and interact with furries marooned in our virtual con space within VR Chat!",
+      "track": "Con Event Rooms",
+      "room": "Main Hallway",
+      "start": "2026-08-08T21:00:00-04:00",
+      "end": "2026-08-09T00:00:00-04:00",
+      "day": "2026-08-08"
+    },
+    {
+      "id": "289@2026-08-08T21:45:00-04:00",
+      "code": "289",
+      "title": "Saturday Night Dances -Jaya",
+      "abstract": "The night is young, and so are we! End every day of the convention by shaking your tail and waving your paws to the beats of our talented DJs, as they keep the music going all night long! The dances are for all ages, but please be aware that it is catered to adults and features a dark environment, loud music, bright strobing lighting, and fog/haze effects. Doors open at 8:30PM!",
+      "track": "Con Promoted Event",
+      "room": "118C/D/E",
+      "start": "2026-08-08T21:45:00-04:00",
+      "end": "2026-08-08T22:45:00-04:00",
+      "day": "2026-08-08",
+      "hosts": [
+        "Jaya"
+      ]
+    },
+    {
+      "id": "208@2026-08-08T21:45:00-04:00",
+      "code": "208",
+      "title": "Navigating the Escape from the Revenge of ...",
+      "abstract": "... the Dog of the Child of the Burning Down of the Con!\nEvery year, Dark Bunny Sauces hosts a panel where people come and donate money to the convention charity, both to participate and watch other attendees suffer. This year will be no different. Well... maybe a little different. Feli has a few things brewing (bubbling, at least) for this year's offerings. A whole bunch of new stuff in the bottle, and a little more... interaction.",
+      "track": "18+ After Dark",
+      "room": "201",
+      "start": "2026-08-08T21:45:00-04:00",
+      "end": "2026-08-09T00:45:00-04:00",
+      "day": "2026-08-08",
+      "hosts": [
+        "Feli"
+      ]
+    },
+    {
+      "id": "234@2026-08-08T22:00:00-04:00",
+      "code": "234",
+      "title": "Let's Roast your Fursona",
+      "abstract": "Your colours are terrible, your hair is stupid, and your tail looks like it gets crushed in doorways all the time! No more Mr. Nice fur. The professionalism is gone. Let's review some user submitted designs willing to go through the gauntlet of a brutal roast.",
+      "track": "Panel",
+      "room": "110",
+      "start": "2026-08-08T22:00:00-04:00",
+      "end": "2026-08-08T23:15:00-04:00",
+      "day": "2026-08-08",
+      "hosts": [
+        "Aver the Dorbley"
+      ]
+    },
+    {
+      "id": "290@2026-08-08T22:45:00-04:00",
+      "code": "290",
+      "title": "Saturday Night Dances -Dodge",
+      "abstract": "The night is young, and so are we! End every day of the convention by shaking your tail and waving your paws to the beats of our talented DJs, as they keep the music going all night long! The dances are for all ages, but please be aware that it is catered to adults and features a dark environment, loud music, bright strobing lighting, and fog/haze effects. Doors open at 8:30PM!",
+      "track": "Con Promoted Event",
+      "room": "118C/D/E",
+      "start": "2026-08-08T22:45:00-04:00",
+      "end": "2026-08-08T23:45:00-04:00",
+      "day": "2026-08-08",
+      "hosts": [
+        "Dodge"
+      ]
+    },
+    {
+      "id": "251@2026-08-08T22:45:00-04:00",
+      "code": "251",
+      "title": "Thiccer is Better",
+      "abstract": "Are you keen on a larger frame? Enjoy the idea of \"bwoomphing\" up or just adding some extra curves. Come on down and join us in a discussion of all forms of expansion (WG, Inflation, BE, Vore, Macro...) Come talk with others who enjoy this more broad field that encompasses many different criteria.",
+      "track": "18+ After Dark",
+      "room": "106B",
+      "start": "2026-08-08T22:45:00-04:00",
+      "end": "2026-08-09T00:45:00-04:00",
+      "day": "2026-08-08",
+      "hosts": [
+        "Xavier Gallow"
+      ]
+    },
+    {
+      "id": "291@2026-08-08T23:45:00-04:00",
+      "code": "291",
+      "title": "Saturday Night Dances -Billboard!",
+      "abstract": "The night is young, and so are we! End every day of the convention by shaking your tail and waving your paws to the beats of our talented DJs, as they keep the music going all night long! The dances are for all ages, but please be aware that it is catered to adults and features a dark environment, loud music, bright strobing lighting, and fog/haze effects. Doors open at 8:30PM!",
+      "track": "Con Promoted Event",
+      "room": "118C/D/E",
+      "start": "2026-08-08T23:45:00-04:00",
+      "end": "2026-08-09T00:45:00-04:00",
+      "day": "2026-08-08",
+      "hosts": [
+        "Billboard!"
+      ]
+    },
+    {
+      "id": "285@2026-08-07T08:00:00-04:00",
+      "code": "285",
+      "title": "Friday Morning Pre-Reg Pickup",
+      "abstract": "",
+      "track": "Con Event Rooms",
+      "room": "118B",
+      "start": "2026-08-07T08:00:00-04:00",
+      "end": "2026-08-07T09:00:00-04:00",
+      "day": "2026-08-07"
+    },
+    {
+      "id": "318@2026-08-07T08:00:00-04:00",
+      "code": "318",
+      "title": "Artist Lounge",
+      "abstract": "The art lounge is a cozy, social space designed for artists, creatives, and doodlers of all skill levels to relax, make art, and meet each other! Art Supplies are available to borrow and use in the Lounge. Come hang out, be creative and unwind from the con space!",
+      "track": "Con Event Rooms",
+      "room": "304",
+      "start": "2026-08-07T08:00:00-04:00",
+      "end": "2026-08-08T01:00:00-04:00",
+      "day": "2026-08-07"
+    },
+    {
+      "id": "256@2026-08-07T09:00:00-04:00",
+      "code": "256",
+      "title": "Fursuit Lounge",
+      "abstract": "",
+      "track": "Con Event Rooms",
+      "room": "106A",
+      "start": "2026-08-07T09:00:00-04:00",
+      "end": "2026-08-08T01:00:00-04:00",
+      "day": "2026-08-07"
+    },
+    {
+      "id": "260@2026-08-07T09:00:00-04:00",
+      "code": "260",
+      "title": "Medic/First Aid",
+      "abstract": "",
+      "track": "Con Event Rooms",
+      "room": "211",
+      "start": "2026-08-07T09:00:00-04:00",
+      "end": "2026-08-08T01:00:00-04:00",
+      "day": "2026-08-07"
+    },
+    {
+      "id": "266@2026-08-07T09:00:00-04:00",
+      "code": "266",
+      "title": "Registration",
+      "abstract": "For both at con Registration or Pre-Reg pick ups",
+      "track": "Con Event Rooms",
+      "room": "118B",
+      "start": "2026-08-07T09:00:00-04:00",
+      "end": "2026-08-07T22:00:00-04:00",
+      "day": "2026-08-07"
+    },
+    {
+      "id": "267@2026-08-07T09:00:00-04:00",
+      "code": "267",
+      "title": "Attendee Services",
+      "abstract": "",
+      "track": "Con Event Rooms",
+      "room": "118A",
+      "start": "2026-08-07T09:00:00-04:00",
+      "end": "2026-08-07T21:00:00-04:00",
+      "day": "2026-08-07"
+    },
+    {
+      "id": "273@2026-08-07T09:00:00-04:00",
+      "code": "273",
+      "title": "Sensory Room",
+      "abstract": "",
+      "track": "Con Event Rooms",
+      "room": "209",
+      "start": "2026-08-07T09:00:00-04:00",
+      "end": "2026-08-08T01:00:00-04:00",
+      "day": "2026-08-07"
+    },
+    {
+      "id": "206@2026-08-07T10:00:00-04:00",
+      "code": "206",
+      "title": "Opening Ceremonies",
+      "abstract": "Join Con Chairs Mary and Till, with some help from head of programming Rusty, as they welcome you to CanFURence 9 - MarOwOned! They will be previewing some of the events we have in store as we kick off the weekend!",
+      "track": "Con Promoted Event",
+      "room": "118C/D/E",
+      "start": "2026-08-07T10:00:00-04:00",
+      "end": "2026-08-07T11:00:00-04:00",
+      "day": "2026-08-07",
+      "hosts": [
+        "Tillwoofie",
+        "FoxyMary",
+        "Rusty Muck"
+      ]
+    },
+    {
+      "id": "309@2026-08-07T11:00:00-04:00",
+      "code": "309",
+      "title": "Charity Silent Auction",
+      "abstract": "Come check out our Charity Team in the Dealer's Den for amazing and awesome things to gaze at and bid on in our Silent Auction. Bids will be accepted through Saturday at 5:30 p.m., and all the money goes to our charity, Holly's Haven Wildlife Rescue!",
+      "track": "Charity",
+      "room": "106D/E/F/G",
+      "start": "2026-08-07T11:00:00-04:00",
+      "end": "2026-08-07T18:00:00-04:00",
+      "day": "2026-08-07"
+    },
+    {
+      "id": "287@2026-08-07T11:00:00-04:00",
+      "code": "287",
+      "title": "Charity Area",
+      "abstract": "",
+      "track": "Charity",
+      "room": "106D/E/F/G",
+      "start": "2026-08-07T11:00:00-04:00",
+      "end": "2026-08-07T18:00:00-04:00",
+      "day": "2026-08-07"
+    },
+    {
+      "id": "261@2026-08-07T11:00:00-04:00",
+      "code": "261",
+      "title": "Dealer's Den Super Sponsor Early Access",
+      "abstract": "Dealers Den early access for ticket tiers Super Sponsor and higher.",
+      "track": "Con Event Rooms",
+      "room": "106D/E/F/G",
+      "start": "2026-08-07T11:00:00-04:00",
+      "end": "2026-08-07T12:00:00-04:00",
+      "day": "2026-08-07"
+    },
+    {
+      "id": "284@2026-08-07T11:15:00-04:00",
+      "code": "284",
+      "title": "Your First Furry Con?",
+      "abstract": "Welcome to your first furry convention! If you're new and would like to know what exactly is going on and how to make the most of it, this is the panel for you! We'll have a few ice breakers, go over the basics of con rules, do's and don'ts, talk about what to expect, and how to have a blast!",
+      "track": "Con Promoted Event",
+      "room": "110",
+      "start": "2026-08-07T11:15:00-04:00",
+      "end": "2026-08-07T12:15:00-04:00",
+      "day": "2026-08-07",
+      "hosts": [
+        "BCRE8TVE",
+        "Taque"
+      ]
+    },
+    {
+      "id": "275@2026-08-07T11:30:00-04:00",
+      "code": "275",
+      "title": "Pokemon Meet, Greet And Trade",
+      "abstract": "A meet up for lovers of Pokémon and other trading card games (TCGs). Bring your cards to share your collections or trade with others.",
+      "track": "Meet and Greets",
+      "room": "201",
+      "start": "2026-08-07T11:30:00-04:00",
+      "end": "2026-08-07T12:30:00-04:00",
+      "day": "2026-08-07",
+      "hosts": [
+        "Hayashida"
+      ]
+    },
+    {
+      "id": "262@2026-08-07T11:30:00-04:00",
+      "code": "262",
+      "title": "Dealer's Den Sponsor Early Access",
+      "abstract": "Dealers Den early access for ticket tiers Sponsor and higher.",
+      "track": "Con Event Rooms",
+      "room": "106D/E/F/G",
+      "start": "2026-08-07T11:30:00-04:00",
+      "end": "2026-08-07T12:00:00-04:00",
+      "day": "2026-08-07"
+    },
+    {
+      "id": "221@2026-08-07T11:45:00-04:00",
+      "code": "221",
+      "title": "Dance Comp Rehearsal",
+      "abstract": "Step right up and shimmy into the spotlight! Our hosts Bemani and BT are calling YOU to show off your moves in our spectacular Dance Competition and literally dance your heart out! Whether you're a seasoned jitterbug or just love to boogie, this is your chance to shine. All contestants are required to attend this rehearsal.",
+      "track": "Con Promoted Event",
+      "room": "118C/D/E",
+      "start": "2026-08-07T11:45:00-04:00",
+      "end": "2026-08-07T13:45:00-04:00",
+      "day": "2026-08-07",
+      "hosts": [
+        "BT",
+        "Bemani"
+      ]
+    },
+    {
+      "id": "255@2026-08-07T12:00:00-04:00",
+      "code": "255",
+      "title": "Open Gaming",
+      "abstract": "",
+      "track": "Gaming",
+      "room": "106H",
+      "start": "2026-08-07T12:00:00-04:00",
+      "end": "2026-08-08T00:00:00-04:00",
+      "day": "2026-08-07"
+    },
+    {
+      "id": "298@2026-08-07T12:00:00-04:00",
+      "code": "298",
+      "title": "Sports and Jersey Fur's",
+      "abstract": "This meetup is for sporty furs of all kinds, whether you’re into hockey, football, baseball, soccer, esports, or just the jerseys! Show off your team colors and trade sports stories. Jerseys, varsity jackets and sports-themed accessories and memorabilia are all encouraged but not required. Casual discussion, photo ops, and plenty of spirit and rivalry banter are awaited!",
+      "track": "Meet and Greets",
+      "room": "106B",
+      "start": "2026-08-07T12:00:00-04:00",
+      "end": "2026-08-07T13:30:00-04:00",
+      "day": "2026-08-07",
+      "hosts": [
+        "Loki"
+      ]
+    },
+    {
+      "id": "263@2026-08-07T12:00:00-04:00",
+      "code": "263",
+      "title": "Dealer's Den",
+      "abstract": "",
+      "track": "Con Event Rooms",
+      "room": "106D/E/F/G",
+      "start": "2026-08-07T12:00:00-04:00",
+      "end": "2026-08-07T18:00:00-04:00",
+      "day": "2026-08-07"
+    },
+    {
+      "id": "283@2026-08-07T12:15:00-04:00",
+      "code": "283",
+      "title": "Furries Who Can't Draw Anonymous",
+      "abstract": "A support group! Do your paws look like blobs? Do you describe your art style as \"experimental\"? We understand, and we're all here for support. Come join our group (or bring a friend in need of intervention) while we all open up about our secret shame: we can't draw. We are not providing drawing lessons. This is a judgement-free zone to talk, draw and applaud failure together.",
+      "track": "Art Track",
+      "room": "106C",
+      "start": "2026-08-07T12:15:00-04:00",
+      "end": "2026-08-07T13:15:00-04:00",
+      "day": "2026-08-07",
+      "hosts": [
+        "Cheshie"
+      ]
+    },
+    {
+      "id": "269@2026-08-07T13:00:00-04:00",
+      "code": "269",
+      "title": "Statue Posing Silently for 30 Minutes",
+      "abstract": "Have you ever wanted to be a bunch of statues, posing silently in a group? Like a statue? With other people? NO TALKING ALLOWED! JUST BECOME STATUE! We'll be recording and timelapsing this panel via iPad for the memories!",
+      "track": "Art Track",
+      "room": "201",
+      "start": "2026-08-07T13:00:00-04:00",
+      "end": "2026-08-07T13:30:00-04:00",
+      "day": "2026-08-07",
+      "hosts": [
+        "Zee"
+      ]
+    },
+    {
+      "id": "316@2026-08-07T13:15:00-04:00",
+      "code": "316",
+      "title": "Make Your Own Environments!",
+      "abstract": "Backgrounds. The bane of many artists! Join the experienced fan animator and environment artist Minty Root as he explains how you can make your own 2D and 3D backgrounds with tools such as Blender and Photoshop.",
+      "track": "Panel",
+      "room": "110",
+      "start": "2026-08-07T13:15:00-04:00",
+      "end": "2026-08-07T14:45:00-04:00",
+      "day": "2026-08-07",
+      "hosts": [
+        "Minty Root"
+      ]
+    },
+    {
+      "id": "224@2026-08-07T13:45:00-04:00",
+      "code": "224",
+      "title": "Car Furs Anonymous",
+      "abstract": "Do you have a need for speed? Do you crave the open road and lower gas prices? Do you enjoy spending your weekends wrenching on a broken car that others told you not to buy? Come meet like-minded furry motoring enthusiasts as we discuss all things high octane!",
+      "track": "Meet and Greets",
+      "room": "106B",
+      "start": "2026-08-07T13:45:00-04:00",
+      "end": "2026-08-07T15:15:00-04:00",
+      "day": "2026-08-07",
+      "hosts": [
+        "Xero"
+      ]
+    },
+    {
+      "id": "297@2026-08-07T14:00:00-04:00",
+      "code": "297",
+      "title": "LET'S DANCE (Just Dance + Zumba)",
+      "abstract": "Just Dance/Zumba panel made for fellow attendees to dance to popular Just Dance songs and Zumba choreography!",
+      "track": "Panel",
+      "room": "106C",
+      "start": "2026-08-07T14:00:00-04:00",
+      "end": "2026-08-07T15:00:00-04:00",
+      "day": "2026-08-07",
+      "hosts": [
+        "Luzbean",
+        "Juju"
+      ]
+    },
+    {
+      "id": "268@2026-08-07T15:00:00-04:00",
+      "code": "268",
+      "title": "Impossible Fursuit Charades",
+      "abstract": "It's a game of fursuit charades, but we've ramped up the difficulty! Teams of fursuiters will compete for the glory of being crowned Charade Champions. Audience members who try their hand at guessing will have a chance to win prizes, and fursuiters who would like to play are welcome to walk in! (Please show up 10 minutes early if you are competing in fursuit.)",
+      "track": "Panel",
+      "room": "201",
+      "start": "2026-08-07T15:00:00-04:00",
+      "end": "2026-08-07T16:00:00-04:00",
+      "day": "2026-08-07",
+      "hosts": [
+        "Prof"
+      ]
+    },
+    {
+      "id": "225@2026-08-07T15:15:00-04:00",
+      "code": "225",
+      "title": "Feline Meet and Greet",
+      "abstract": "This meet will gather feline fursonas for a chit chat, individual photos, and fun with props, such as boxes to sit in and empty cups to knock over. Join us for an all-kitty group photo at the end.",
+      "track": "Meet and Greets",
+      "room": "110",
+      "start": "2026-08-07T15:15:00-04:00",
+      "end": "2026-08-07T16:15:00-04:00",
+      "day": "2026-08-07",
+      "hosts": [
+        "Maximillian"
+      ]
+    },
+    {
+      "id": "217@2026-08-07T15:45:00-04:00",
+      "code": "217",
+      "title": "Meet the Charity",
+      "abstract": "Get to know more about our charity for this year, Holly’s Haven Wildlife Rescue!",
+      "track": "Con Promoted Event",
+      "room": "106C",
+      "start": "2026-08-07T15:45:00-04:00",
+      "end": "2026-08-07T16:45:00-04:00",
+      "day": "2026-08-07",
+      "hosts": [
+        "Twitchy",
+        "Rusty Muck"
+      ]
+    },
+    {
+      "id": "299@2026-08-07T16:00:00-04:00",
+      "code": "299",
+      "title": "Starfox Assault Multiplayer Open Gaming",
+      "abstract": "Back again a second time with this retro Gamecube classic! Join us for fast-paced, strategic dogfights and ground combat where seasoned pilots and newcomers alike compete in epic battles. Get ready for thrilling gameplay and unforgettable nostalgia!",
+      "track": "Gaming",
+      "room": "106H",
+      "start": "2026-08-07T16:00:00-04:00",
+      "end": "2026-08-07T18:00:00-04:00",
+      "day": "2026-08-07",
+      "hosts": [
+        "Jonny Musemiš"
+      ]
+    },
+    {
+      "id": "314@2026-08-07T16:00:00-04:00",
+      "code": "314",
+      "title": "Harm Reduction Services",
+      "abstract": "Do you need any testing resources, safer sex or substance use supplies? Come check out our Harm Reduction table provided by Max Ottawa!",
+      "track": "Con Event Rooms",
+      "room": "Main Hallway",
+      "start": "2026-08-07T16:00:00-04:00",
+      "end": "2026-08-07T20:00:00-04:00",
+      "day": "2026-08-07",
+      "hosts": [
+        "Max Ottawa"
+      ]
+    },
+    {
+      "id": "259@2026-08-07T16:30:00-04:00",
+      "code": "259",
+      "title": "Patron Meal",
+      "abstract": "Fellow Patrons, come enjoy your fine meal with your fellow furs!",
+      "track": "Meals",
+      "room": "106B",
+      "start": "2026-08-07T16:30:00-04:00",
+      "end": "2026-08-07T18:30:00-04:00",
+      "day": "2026-08-07",
+      "hosts": [
+        "The Board of Directors",
+        "FoxyMary",
+        "Tillwoofie"
+      ]
+    },
+    {
+      "id": "295@2026-08-07T16:45:00-04:00",
+      "code": "295",
+      "title": "Sketchbook Swap",
+      "abstract": "Always wanted drawings of your sona? What if I tell you that you can get that for FREE!?! Well, that's what this panel is for! Come sketch and mingle at the sketchbook exchange!",
+      "track": "Panel",
+      "room": "110",
+      "start": "2026-08-07T16:45:00-04:00",
+      "end": "2026-08-07T18:45:00-04:00",
+      "day": "2026-08-07",
+      "hosts": [
+        "Lexie Fox",
+        "Apocalypticat"
+      ]
+    },
+    {
+      "id": "274@2026-08-07T17:00:00-04:00",
+      "code": "274",
+      "title": "Inflatable Meet 'n Puff",
+      "abstract": "A social panel where people who like inflatables or pool toys can get together and show them off.",
+      "track": "Meet and Greets",
+      "room": "118C/D/E",
+      "start": "2026-08-07T17:00:00-04:00",
+      "end": "2026-08-07T19:00:00-04:00",
+      "day": "2026-08-07",
+      "hosts": [
+        "Rioku Liru",
+        "Zaephyr"
+      ]
+    },
+    {
+      "id": "296@2026-08-07T17:15:00-04:00",
+      "code": "296",
+      "title": "Protogen Meet and Beep",
+      "abstract": "Protogens, synths, and any other cybernetic fluffs of all sorts are welcome! Meet other toasters and join together for a group photo in the end!",
+      "track": "Meet and Greets",
+      "room": "106C",
+      "start": "2026-08-07T17:15:00-04:00",
+      "end": "2026-08-07T18:15:00-04:00",
+      "day": "2026-08-07",
+      "hosts": [
+        "Blake~"
+      ]
+    },
+    {
+      "id": "220@2026-08-07T17:30:00-04:00",
+      "code": "220",
+      "title": "Sea Shanty Singalong!",
+      "abstract": "Come sing along to classic songs of the sea! No experience necessary. Lyrics are provided!",
+      "track": "Music Track",
+      "room": "201",
+      "start": "2026-08-07T17:30:00-04:00",
+      "end": "2026-08-07T19:00:00-04:00",
+      "day": "2026-08-07",
+      "hosts": [
+        "Whisky Tango"
+      ]
+    },
+    {
+      "id": "216@2026-08-07T18:45:00-04:00",
+      "code": "216",
+      "title": "Meet the Guests of Honour",
+      "abstract": "Join Rusty as he and you will learn more about our guests of honour for this year's CanFURence, TeleKitnetic Art and Worms and Bones!",
+      "track": "Guest Of Honour",
+      "room": "106C",
+      "start": "2026-08-07T18:45:00-04:00",
+      "end": "2026-08-07T19:45:00-04:00",
+      "day": "2026-08-07",
+      "hosts": [
+        "Rusty Muck",
+        "TeleKitnetic",
+        "Worms",
+        "Bones"
+      ]
+    },
+    {
+      "id": "276@2026-08-07T19:15:00-04:00",
+      "code": "276",
+      "title": "Hand Sewing for Beginners",
+      "abstract": "Want to learn five essential handsewing techniques for fursuit making, maintenance and repair? We'll provide a live demonstration and supplies so you can practice alongside us.",
+      "track": "Art Track",
+      "room": "110",
+      "start": "2026-08-07T19:15:00-04:00",
+      "end": "2026-08-07T20:15:00-04:00",
+      "day": "2026-08-07",
+      "hosts": [
+        "Spark"
+      ]
+    },
+    {
+      "id": "214@2026-08-07T20:00:00-04:00",
+      "code": "214",
+      "title": "Blood on the Clocktower Game Night",
+      "abstract": "Come play this social deduction game: Blood on the clocktower. A unique game where even the dead players can still play, talk and vote. New players are welcomed!",
+      "track": "Gaming",
+      "room": "106H",
+      "start": "2026-08-07T20:00:00-04:00",
+      "end": "2026-08-07T23:00:00-04:00",
+      "day": "2026-08-07",
+      "hosts": [
+        "cyberjoel"
+      ]
+    },
+    {
+      "id": "223@2026-08-07T20:00:00-04:00",
+      "code": "223",
+      "title": "CanFURence Vore Meet",
+      "abstract": "Year 4 of the CanFURence Vore Meet and still going strong! Newcomers and repeated participants alike, come and learn about this uncommon (Or is it?) kink of our community with a presentation, media examples, live audience surveys, and prize-giving games!",
+      "track": "18+ After Dark",
+      "room": "106B",
+      "start": "2026-08-07T20:00:00-04:00",
+      "end": "2026-08-07T21:30:00-04:00",
+      "day": "2026-08-07",
+      "hosts": [
+        "Trouty"
+      ]
+    },
+    {
+      "id": "322@2026-08-07T20:00:00-04:00",
+      "code": "322",
+      "title": "VR Portal",
+      "abstract": "Can't make it to the con? Come see and interact with furries marooned in our virtual con space within VR Chat!",
+      "track": "Con Event Rooms",
+      "room": "Main Hallway",
+      "start": "2026-08-07T20:00:00-04:00",
+      "end": "2026-08-07T23:00:00-04:00",
+      "day": "2026-08-07"
+    },
+    {
+      "id": "211@2026-08-07T20:15:00-04:00",
+      "code": "211",
+      "title": "Adult Silicone Toy Making 101",
+      "abstract": "The owner of Stream's Toys will present you an overview of all different steps and techniques used in making adult fantasy silicone toys. We will cover different sculpting mediums and different mold techniques used by various toy makers out there.",
+      "track": "18+ After Dark",
+      "room": "201",
+      "start": "2026-08-07T20:15:00-04:00",
+      "end": "2026-08-07T22:15:00-04:00",
+      "day": "2026-08-07",
+      "hosts": [
+        "Stream ArcaDad"
+      ]
+    },
+    {
+      "id": "218@2026-08-07T20:30:00-04:00",
+      "code": "218",
+      "title": "Making the Worst Fursona Ever!",
+      "abstract": "Using random user-created prompts on a group of artists to simulate having THE WORST client ever with terrible, senseless tastes in fursona design. Can our artists handle the pressure and perhaps even design something appealing, or is just torture the whole way through?",
+      "track": "18+ After Dark",
+      "room": "106C",
+      "start": "2026-08-07T20:30:00-04:00",
+      "end": "2026-08-07T22:00:00-04:00",
+      "day": "2026-08-07",
+      "hosts": [
+        "Aver the Dorbley"
+      ]
+    },
+    {
+      "id": "279@2026-08-07T20:45:00-04:00",
+      "code": "279",
+      "title": "Friday Night Dances -DJ Amyotte",
+      "abstract": "The night is young, and so are we! End every day of the convention by shaking your tail and waving your paws to the beats of our talented DJs, as they keep the music going all night long! The dances are for all ages, but please be aware that it is catered to adults and features a dark environment, loud music, bright strobing lighting, and fog/haze effects. Doors open at 8:30PM!",
+      "track": "Con Promoted Event",
+      "room": "118C/D/E",
+      "start": "2026-08-07T20:45:00-04:00",
+      "end": "2026-08-07T21:45:00-04:00",
+      "day": "2026-08-07",
+      "hosts": [
+        "DJ Amyotte"
+      ]
+    },
+    {
+      "id": "278@2026-08-07T20:45:00-04:00",
+      "code": "278",
+      "title": "World of Warcraft Furries",
+      "abstract": "CanFURence's World of Warcraft meet and greet. Connect with new friends and share thoughts on the latest and previous expansions. All are welcome, even if you are new to the game! Hosted by Power Word Furry - Moon Guard.",
+      "track": "Meet and Greets",
+      "room": "110",
+      "start": "2026-08-07T20:45:00-04:00",
+      "end": "2026-08-07T21:45:00-04:00",
+      "day": "2026-08-07",
+      "hosts": [
+        "Fyrinlight",
+        "Yksteldus"
+      ]
+    },
+    {
+      "id": "280@2026-08-07T21:45:00-04:00",
+      "code": "280",
+      "title": "Friday Night Dances -Weathergirl",
+      "abstract": "The night is young, and so are we! End every day of the convention by shaking your tail and waving your paws to the beats of our talented DJs, as they keep the music going all night long! The dances are for all ages, but please be aware that it is catered to adults and features a dark environment, loud music, bright strobing lighting, and fog/haze effects. Doors open at 8:30PM!",
+      "track": "Con Promoted Event",
+      "room": "118C/D/E",
+      "start": "2026-08-07T21:45:00-04:00",
+      "end": "2026-08-07T22:45:00-04:00",
+      "day": "2026-08-07",
+      "hosts": [
+        "Weathergirl"
+      ]
+    },
+    {
+      "id": "277@2026-08-07T21:45:00-04:00",
+      "code": "277",
+      "title": "MilFURS",
+      "abstract": "Open floor meet-up for military furs, past and present. Veterans, Public Service, Emergency Services, and everyone else is welcome.",
+      "track": "18+ After Dark",
+      "room": "106B",
+      "start": "2026-08-07T21:45:00-04:00",
+      "end": "2026-08-07T22:45:00-04:00",
+      "day": "2026-08-07",
+      "hosts": [
+        "Relic"
+      ]
+    },
+    {
+      "id": "281@2026-08-07T22:45:00-04:00",
+      "code": "281",
+      "title": "Friday Night Dances -Nox",
+      "abstract": "The night is young, and so are we! End every day of the convention by shaking your tail and waving your paws to the beats of our talented DJs, as they keep the music going all night long! The dances are for all ages, but please be aware that it is catered to adults and features a dark environment, loud music, bright strobing lighting, and fog/haze effects. Doors open at 8:30PM!",
+      "track": "Con Promoted Event",
+      "room": "118C/D/E",
+      "start": "2026-08-07T22:45:00-04:00",
+      "end": "2026-08-07T23:45:00-04:00",
+      "day": "2026-08-07",
+      "hosts": [
+        "Nox"
+      ]
+    },
+    {
+      "id": "222@2026-08-07T22:45:00-04:00",
+      "code": "222",
+      "title": "Dogmedic Power Hour: Seven Bedrooms",
+      "abstract": "Dogmedic has stories if you have coin. Come hear the insane ramblings of CanFURence's medic and friends...for charity! Why do people have badges that say \"SEVEN BEDROOM\"? Come find out.",
+      "track": "18+ After Dark",
+      "room": "201",
+      "start": "2026-08-07T22:45:00-04:00",
+      "end": "2026-08-08T00:15:00-04:00",
+      "day": "2026-08-07",
+      "hosts": [
+        "Dogmedic",
+        "Eevachu",
+        "Star EverGreen"
+      ]
+    },
+    {
+      "id": "245@2026-08-07T23:00:00-04:00",
+      "code": "245",
+      "title": "\"Let's be real....\"",
+      "abstract": "18+ event. No drama. Come as you are, for we accept all: pup, kink gear, ABDL, spandex, latex, and everything else. Make new friends, share adult experiences, and break down the walls of stereotypical thinking. Disclaimer: Avert your eyes, children. If you can't accept it, don't attend. Just be real!",
+      "track": "18+ After Dark",
+      "room": "106B",
+      "start": "2026-08-07T23:00:00-04:00",
+      "end": "2026-08-08T00:45:00-04:00",
+      "day": "2026-08-07",
+      "hosts": [
+        "Wolfery",
+        "Moose"
+      ]
+    },
+    {
+      "id": "282@2026-08-07T23:45:00-04:00",
+      "code": "282",
+      "title": "Friday Night Dances -Nevi",
+      "abstract": "The night is young, and so are we! End every day of the convention by shaking your tail and waving your paws to the beats of our talented DJs, as they keep the music going all night long! The dances are for all ages, but please be aware that it is catered to adults and features a dark environment, loud music, bright strobing lighting, and fog/haze effects. Doors open at 8:30PM!",
+      "track": "Con Promoted Event",
+      "room": "118C/D/E",
+      "start": "2026-08-07T23:45:00-04:00",
+      "end": "2026-08-08T00:45:00-04:00",
+      "day": "2026-08-07",
+      "hosts": [
+        "Nevi"
+      ]
+    },
+    {
+      "id": "264@2026-08-06T18:00:00-04:00",
+      "code": "264",
+      "title": "Pre-Registration Pickup",
+      "abstract": "",
+      "track": "Con Event Rooms",
+      "room": "118B",
+      "start": "2026-08-06T18:00:00-04:00",
+      "end": "2026-08-06T22:00:00-04:00",
+      "day": "2026-08-06"
+    },
+    {
+      "id": "294@2026-08-06T20:30:00-04:00",
+      "code": "294",
+      "title": "Thursday Night Open Deck",
+      "abstract": "Kick off the weekend with the Thursday Night open deck event, where DJs show off their music, experiment, and just have fun behind the decks. You never know what might end up happening, so come hang out, enjoy the music, and get into the groove before the convention officially starts!",
+      "track": "Con Promoted Event",
+      "room": "106C",
+      "start": "2026-08-06T20:30:00-04:00",
+      "end": "2026-08-07T00:30:00-04:00",
+      "day": "2026-08-06"
+    },
+    {
+      "id": "319@2026-08-09T08:00:00-04:00",
+      "code": "319",
+      "title": "Artist Lounge",
+      "abstract": "The art lounge is a cozy, social space designed for artists, creatives, and doodlers of all skill levels to relax, make art, and meet each other! Art Supplies are available to borrow and use in the Lounge. Come hang out, be creative and unwind from the con space!",
+      "track": "Con Event Rooms",
+      "room": "304",
+      "start": "2026-08-09T08:00:00-04:00",
+      "end": "2026-08-09T18:00:00-04:00",
+      "day": "2026-08-09"
+    },
+    {
+      "id": "256@2026-08-09T09:00:00-04:00",
+      "code": "256",
+      "title": "Fursuit Lounge",
+      "abstract": "",
+      "track": "Con Event Rooms",
+      "room": "106A",
+      "start": "2026-08-09T09:00:00-04:00",
+      "end": "2026-08-09T23:00:00-04:00",
+      "day": "2026-08-09"
+    },
+    {
+      "id": "260@2026-08-09T09:00:00-04:00",
+      "code": "260",
+      "title": "Medic/First Aid",
+      "abstract": "",
+      "track": "Con Event Rooms",
+      "room": "211",
+      "start": "2026-08-09T09:00:00-04:00",
+      "end": "2026-08-09T23:00:00-04:00",
+      "day": "2026-08-09"
+    },
+    {
+      "id": "266@2026-08-09T09:00:00-04:00",
+      "code": "266",
+      "title": "Registration",
+      "abstract": "For both at con Registration or Pre-Reg pick ups",
+      "track": "Con Event Rooms",
+      "room": "118B",
+      "start": "2026-08-09T09:00:00-04:00",
+      "end": "2026-08-09T13:00:00-04:00",
+      "day": "2026-08-09"
+    },
+    {
+      "id": "273@2026-08-09T09:00:00-04:00",
+      "code": "273",
+      "title": "Sensory Room",
+      "abstract": "",
+      "track": "Con Event Rooms",
+      "room": "209",
+      "start": "2026-08-09T09:00:00-04:00",
+      "end": "2026-08-09T23:00:00-04:00",
+      "day": "2026-08-09"
+    },
+    {
+      "id": "313@2026-08-09T09:00:00-04:00",
+      "code": "313",
+      "title": "Attendee Services",
+      "abstract": "",
+      "track": "Con Event Rooms",
+      "room": "118A",
+      "start": "2026-08-09T09:00:00-04:00",
+      "end": "2026-08-09T20:00:00-04:00",
+      "day": "2026-08-09"
+    },
+    {
+      "id": "207@2026-08-09T10:00:00-04:00",
+      "code": "207",
+      "title": "Fursuit Games",
+      "abstract": "What a lovely day! The suiters will battle for the title in the fluff dome. Witness their tests of skill, agility and speed. Be prepared for the fur to fly and one clan will triumph. I fursuit, I die. I FURSUIT AGAIN!",
+      "track": "Con Promoted Event",
+      "room": "118C/D/E",
+      "start": "2026-08-09T10:00:00-04:00",
+      "end": "2026-08-09T12:00:00-04:00",
+      "day": "2026-08-09",
+      "hosts": [
+        "Rusty Muck"
+      ]
+    },
+    {
+      "id": "287@2026-08-09T10:00:00-04:00",
+      "code": "287",
+      "title": "Charity Area",
+      "abstract": "",
+      "track": "Charity",
+      "room": "106D/E/F/G",
+      "start": "2026-08-09T10:00:00-04:00",
+      "end": "2026-08-09T13:00:00-04:00",
+      "day": "2026-08-09"
+    },
+    {
+      "id": "328@2026-08-09T10:00:00-04:00",
+      "code": "328",
+      "title": "Silent Auction Pickup",
+      "abstract": "Come back to our Charity area in the Dealer's Den and see if your bid was a winner in our Silent Auction! Here are the times you can stop by: Saturday from 5:30 p.m. to 6 p.m., Sunday from 10 a.m. to 1 p.m. and Sunday from 2 p.m. to 3 p.m.",
+      "track": "Charity",
+      "room": "106D/E/F/G",
+      "start": "2026-08-09T10:00:00-04:00",
+      "end": "2026-08-09T13:00:00-04:00",
+      "day": "2026-08-09"
+    },
+    {
+      "id": "263@2026-08-09T10:00:00-04:00",
+      "code": "263",
+      "title": "Dealer's Den",
+      "abstract": "",
+      "track": "Con Event Rooms",
+      "room": "106D/E/F/G",
+      "start": "2026-08-09T10:00:00-04:00",
+      "end": "2026-08-09T13:00:00-04:00",
+      "day": "2026-08-09"
+    },
+    {
+      "id": "301@2026-08-09T10:15:00-04:00",
+      "code": "301",
+      "title": "Pokemon Go Meetup",
+      "abstract": "A spot for all Pokémon Go trainers to exchange trainer codes, show off shinies, and hang out!",
+      "track": "Meet and Greets",
+      "room": "106C",
+      "start": "2026-08-09T10:15:00-04:00",
+      "end": "2026-08-09T11:15:00-04:00",
+      "day": "2026-08-09",
+      "hosts": [
+        "Raisin"
+      ]
+    },
+    {
+      "id": "304@2026-08-09T11:00:00-04:00",
+      "code": "304",
+      "title": "Birb Meet!",
+      "abstract": "Are you a bird? A birb? A borb? Do you like birds and birbs? Come meet your fellow birbs",
+      "track": "Meet and Greets",
+      "room": "201",
+      "start": "2026-08-09T11:00:00-04:00",
+      "end": "2026-08-09T12:00:00-04:00",
+      "day": "2026-08-09",
+      "hosts": [
+        "Midnight"
+      ]
+    },
+    {
+      "id": "219@2026-08-09T11:30:00-04:00",
+      "code": "219",
+      "title": "Live Art Fight: Cats vs Dogs",
+      "abstract": "Join our live Art Fight panel: Cats vs Dogs! Two teams will compete in a fast-paced drawing battle, creating art in real time based on prompts. Come draw with us or cheer for your team. Whether you’re Team Cat or Team Dog, we’d love to have you there!",
+      "track": "Art Track",
+      "room": "110",
+      "start": "2026-08-09T11:30:00-04:00",
+      "end": "2026-08-09T13:00:00-04:00",
+      "day": "2026-08-09",
+      "hosts": [
+        "Juju",
+        "Luzbean"
+      ]
+    },
+    {
+      "id": "302@2026-08-09T11:45:00-04:00",
+      "code": "302",
+      "title": "International Furs Meetup",
+      "abstract": "Furry is an international fandom, and this fact ought to be celebrated. Did you take a plane or cross a border to attend Canfurence? Or were you the international fur traveling abroad to visit another country's conventions? Come chat and make friends with furries from all over the world! Share your best memories!",
+      "track": "Meet and Greets",
+      "room": "106C",
+      "start": "2026-08-09T11:45:00-04:00",
+      "end": "2026-08-09T12:45:00-04:00",
+      "day": "2026-08-09",
+      "hosts": [
+        "Nicolas"
+      ]
+    },
+    {
+      "id": "255@2026-08-09T12:00:00-04:00",
+      "code": "255",
+      "title": "Open Gaming",
+      "abstract": "",
+      "track": "Gaming",
+      "room": "106H",
+      "start": "2026-08-09T12:00:00-04:00",
+      "end": "2026-08-09T17:00:00-04:00",
+      "day": "2026-08-09"
+    },
+    {
+      "id": "272@2026-08-09T12:00:00-04:00",
+      "code": "272",
+      "title": "Super Sponsor Lunch",
+      "abstract": "Sponsors and above, come enjoy a luncheon and mingle with your fellow furs.",
+      "track": "Meals",
+      "room": "106B",
+      "start": "2026-08-09T12:00:00-04:00",
+      "end": "2026-08-09T14:00:00-04:00",
+      "day": "2026-08-09",
+      "hosts": [
+        "The Board of Directors",
+        "FoxyMary",
+        "Tillwoofie"
+      ]
+    },
+    {
+      "id": "305@2026-08-09T12:45:00-04:00",
+      "code": "305",
+      "title": "Drawing Furries From Memory",
+      "abstract": "Come test your memory skills! We'll name a popular furry character and then do our very best to draw them from memory.",
+      "track": "Panel",
+      "room": "201",
+      "start": "2026-08-09T12:45:00-04:00",
+      "end": "2026-08-09T13:45:00-04:00",
+      "day": "2026-08-09",
+      "hosts": [
+        "Zee"
+      ]
+    },
+    {
+      "id": "209@2026-08-09T13:00:00-04:00",
+      "code": "209",
+      "title": "Behind the Scenes",
+      "abstract": "Interested in learning the history of CanFURence? Want an inside look into the behind the scenes of our convention? Come join two of our directors, HF and BT, to get exclusive information on the inner workings of the con.",
+      "track": "Con Promoted Event",
+      "room": "118C/D/E",
+      "start": "2026-08-09T13:00:00-04:00",
+      "end": "2026-08-09T14:00:00-04:00",
+      "day": "2026-08-09",
+      "hosts": [
+        "BT",
+        "HF"
+      ]
+    },
+    {
+      "id": "303@2026-08-09T13:15:00-04:00",
+      "code": "303",
+      "title": "All You Need To Know To Make Your Own Fursuit",
+      "abstract": "This is an educational panel where I will share my knowledge of fursuit making. I'll show you where to get materials, what tools to use, and provide in-depth instructions, followed by a Q&A.",
+      "track": "Panel",
+      "room": "106C",
+      "start": "2026-08-09T13:15:00-04:00",
+      "end": "2026-08-09T14:15:00-04:00",
+      "day": "2026-08-09",
+      "hosts": [
+        "Pidgeon_Fluff"
+      ]
+    },
+    {
+      "id": "286@2026-08-09T13:45:00-04:00",
+      "code": "286",
+      "title": "Musicians & Music Producers Meet & Greet",
+      "abstract": "Get to know fellow musicians and music producers in the furry community by coming to this meet and greet. Whether you're a newbie just getting started or a seasoned pro with wisdom to share, everyone is welcome.",
+      "track": "Meet and Greets",
+      "room": "110",
+      "start": "2026-08-09T13:45:00-04:00",
+      "end": "2026-08-09T14:45:00-04:00",
+      "day": "2026-08-09",
+      "hosts": [
+        "Jonny Musemiš"
+      ]
+    },
+    {
+      "id": "287@2026-08-09T14:00:00-04:00",
+      "code": "287",
+      "title": "Charity Area",
+      "abstract": "",
+      "track": "Charity",
+      "room": "106D/E/F/G",
+      "start": "2026-08-09T14:00:00-04:00",
+      "end": "2026-08-09T16:00:00-04:00",
+      "day": "2026-08-09"
+    },
+    {
+      "id": "328@2026-08-09T14:00:00-04:00",
+      "code": "328",
+      "title": "Silent Auction Pickup",
+      "abstract": "Come back to our Charity area in the Dealer's Den and see if your bid was a winner in our Silent Auction! Here are the times you can stop by: Saturday from 5:30 p.m. to 6 p.m., Sunday from 10 a.m. to 1 p.m. and Sunday from 2 p.m. to 3 p.m.",
+      "track": "Charity",
+      "room": "106D/E/F/G",
+      "start": "2026-08-09T14:00:00-04:00",
+      "end": "2026-08-09T15:00:00-04:00",
+      "day": "2026-08-09"
+    },
+    {
+      "id": "263@2026-08-09T14:00:00-04:00",
+      "code": "263",
+      "title": "Dealer's Den",
+      "abstract": "",
+      "track": "Con Event Rooms",
+      "room": "106D/E/F/G",
+      "start": "2026-08-09T14:00:00-04:00",
+      "end": "2026-08-09T18:00:00-04:00",
+      "day": "2026-08-09"
+    },
+    {
+      "id": "271@2026-08-09T14:30:00-04:00",
+      "code": "271",
+      "title": "The World's Greatest Fur Trading Post",
+      "abstract": "We’re giving you the opportunity to peddle your wares before CanFURence ends! Join us for trading of every type! Whether it's furry merch, fursuit parts and materials, vintage and modern collectables and whatever other knickknacks you feel deserve a new home. Place them here to be taken free-of-charge by convention folk! Just make sure the items and scraps you donate are clean",
+      "track": "Con Promoted Event",
+      "room": "106B",
+      "start": "2026-08-09T14:30:00-04:00",
+      "end": "2026-08-09T16:00:00-04:00",
+      "day": "2026-08-09",
+      "hosts": [
+        "Maximillian",
+        "Thunderring",
+        "Zee"
+      ]
+    },
+    {
+      "id": "210@2026-08-09T14:30:00-04:00",
+      "code": "210",
+      "title": "Formline in the Fandom",
+      "abstract": "Formline artwork has been a cultural staple of Indigenous culture and identity for hundreds of years, and as technology and artwork advances, it's easy to think of the art form as something ancient and immutable. This is in tangent with the previous perception of Indigenous people as a subject from the past era, a perception encouraged by colonization.\nHowever, just like the nations that practice it, formline art is a living and adapting subject- and this panel will highlight the creativity and artwork of modern Indigenous artists who bring their work to the forefront in fandom, geek, and other modern culture. From mural artists and tattoo designers to IDW and marvel comic artists, this panel will showcase how formline art exists in tangent with modern subjects, not outside of it.",
+      "track": "Guest Of Honour",
+      "room": "118C/D/E",
+      "start": "2026-08-09T14:30:00-04:00",
+      "end": "2026-08-09T15:30:00-04:00",
+      "day": "2026-08-09",
+      "hosts": [
+        "TeleKitnetic Art"
+      ]
+    },
+    {
+      "id": "311@2026-08-09T14:45:00-04:00",
+      "code": "311",
+      "title": "Furries and Culture",
+      "abstract": "How do different cultures and peoples around the world interact with the furry fandom? This panel is for educational purposes.",
+      "track": "Panel",
+      "room": "106C",
+      "start": "2026-08-09T14:45:00-04:00",
+      "end": "2026-08-09T15:45:00-04:00",
+      "day": "2026-08-09",
+      "hosts": [
+        "Pariah"
+      ]
+    },
+    {
+      "id": "265@2026-08-09T15:00:00-04:00",
+      "code": "265",
+      "title": "L'Ostie de J'eu",
+      "abstract": "L'Ostie de jeu est un jeu Quebecois Français ou la meilleur et plus drole des réponses gagne, le prix du jeu, rire s'amuser, bienvenue à tous!\n\nL'Ostie de jeu is a French Quebeckers game where the best answer wins and the price of the game is laughter and fun! Everyone is welcome!",
+      "track": "Gaming",
+      "room": "106H",
+      "start": "2026-08-09T15:00:00-04:00",
+      "end": "2026-08-09T16:30:00-04:00",
+      "day": "2026-08-09",
+      "hosts": [
+        "Bleis Lupine"
+      ]
+    },
+    {
+      "id": "306@2026-08-09T15:15:00-04:00",
+      "code": "306",
+      "title": "Leo's Meowchelin Star Food Guide",
+      "abstract": "Come together and talk about the best noms places and award them Meowchelin Stars",
+      "track": "Panel",
+      "room": "201",
+      "start": "2026-08-09T15:15:00-04:00",
+      "end": "2026-08-09T16:15:00-04:00",
+      "day": "2026-08-09",
+      "hosts": [
+        "Leo Snow Paws",
+        "Kale"
+      ]
+    },
+    {
+      "id": "213@2026-08-09T16:00:00-04:00",
+      "code": "213",
+      "title": "Charity Auction",
+      "abstract": "Take a chance on a bid, to try and win some unique and amazing items in the charity auction. Remember it's all for the cute animals.",
+      "track": "Charity",
+      "room": "118C/D/E",
+      "start": "2026-08-09T16:00:00-04:00",
+      "end": "2026-08-09T18:00:00-04:00",
+      "day": "2026-08-09",
+      "hosts": [
+        "Twitchy"
+      ]
+    },
+    {
+      "id": "270@2026-08-09T16:45:00-04:00",
+      "code": "270",
+      "title": "Scalie, Dragons and Reptiles Meet and Greet",
+      "abstract": "Hosting a space for all the dragon and scalie friends attending CanFURence to co-mingle and discuss reptilian topics such as heat lamps, skin shed fashion, and gold hoards! Do you have a favourite dragon character or story, or remember when you first heard about them? Or do you have a special affinity for your fellow reptiles, crocs or gators? Come whether you’re scaled or fluffy, big or long, intimidating or cute!",
+      "track": "Meet and Greets",
+      "room": "106B",
+      "start": "2026-08-09T16:45:00-04:00",
+      "end": "2026-08-09T18:15:00-04:00",
+      "day": "2026-08-09",
+      "hosts": [
+        "Rusty G8R",
+        "Ruby",
+        "Soap",
+        "Bazooka"
+      ]
+    },
+    {
+      "id": "300@2026-08-09T17:30:00-04:00",
+      "code": "300",
+      "title": "Furry Writers UNITE!!!",
+      "abstract": "Are you a furry writer? Do you like writing or reading furry stories? Want to meet other writers in the community? Come to this meet and greet for furry writers! Whether you write fiction, nonfiction, poetry, short stories, articles, novels, or anything in between, we want you to share your work! :3",
+      "track": "Panel",
+      "room": "110",
+      "start": "2026-08-09T17:30:00-04:00",
+      "end": "2026-08-09T18:30:00-04:00",
+      "day": "2026-08-09",
+      "hosts": [
+        "Lou le Loup"
+      ]
+    },
+    {
+      "id": "307@2026-08-09T17:45:00-04:00",
+      "code": "307",
+      "title": "Go Green or Go Home! - Meet and Green(t)",
+      "abstract": "Are you, perhaps, green? Do you believe that green is the most superior color (which it is of course)? Yes? Well, whether you are lime, emerald, forest, or any shade of green in between, you are invited! Come hang out, trade stickers, and yap about the best color around! We'll all strike a pose at the end for a big beautiful and very green group photo!",
+      "track": "Meet and Greets",
+      "room": "201",
+      "start": "2026-08-09T17:45:00-04:00",
+      "end": "2026-08-09T18:45:00-04:00",
+      "day": "2026-08-09",
+      "hosts": [
+        "Radioactive_Idiot"
+      ]
+    },
+    {
+      "id": "215@2026-08-09T19:00:00-04:00",
+      "code": "215",
+      "title": "Closing Ceremony",
+      "abstract": "Grab a seat while Mary, Till and Rusty get the final numbers on how many people joined us this year, how many critters suited up, and how much money was donated to our charity. You might even have one last chance to give any loose change remaining in your pockets! We’ll also reveal what next year’s theme will be.",
+      "track": "Con Promoted Event",
+      "room": "118C/D/E",
+      "start": "2026-08-09T19:00:00-04:00",
+      "end": "2026-08-09T20:00:00-04:00",
+      "day": "2026-08-09",
+      "hosts": [
+        "FoxyMary",
+        "Tillwoofie",
+        "Rusty Muck"
+      ]
+    },
+    {
+      "id": "292@2026-08-09T20:00:00-04:00",
+      "code": "292",
+      "title": "Dead Bunny",
+      "abstract": "The convention might be over, but the music and dancing keeps going! It’s the Dead Do-, err, Dead Bunny! Feli is here with all the fun until the music literally runs out.",
+      "track": "Con Promoted Event",
+      "room": "106C",
+      "start": "2026-08-09T20:00:00-04:00",
+      "end": "2026-08-09T23:15:00-04:00",
+      "day": "2026-08-09",
+      "hosts": [
+        "Feli"
+      ]
+    }
+  ]
+}

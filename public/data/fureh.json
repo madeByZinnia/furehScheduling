@@ -1,5 +1,5 @@
 {
-  "generatedAt": "2026-07-17T02:35:39.524Z",
+  "generatedAt": "2026-07-23T17:55:43.214Z",
   "occurrences": [
     {
       "id": "GGATRR@2026-07-16T17:00:00-06:00",
@@ -27,7 +27,7 @@
       "id": "RUPMLX@2026-07-16T22:00:00-06:00",
       "code": "RUPMLX",
       "title": "Dance - Thursday",
-      "abstract": "A fun way to end the night dancing until late with a variety of DJs and genres! \r\n10 - Alien Dawg (Bass Funk, Bass Hop, Funkstep)\r\n11 - Fortenox (Bass House, Dubstep)\r\n12 - Runner (Tech House, Techno, Bass House, Trap, and a little DnB & Dubstep)\r\n1 - T1M3K33P3R (Heavy Bass)\r\nWatch the live stream on [Twitch](https://www.twitch.tv/furehconvention) or [YouTube](https://www.youtube.com/@furehconvention).",
+      "abstract": "A fun way to end the night dancing until late with a variety of DJs and genres! \r\n10 - Alien Dawg (Bass Funk, Bass Hop, Funkstep)\r\n11 - Fortenox (Bass House, Dubstep)\r\n12 - Runner (Tech House, Techno, Bass House, Trap, and a little DnB & Dubstep)\r\n1 - T1M3K33P3R (Heavy Bass)\r\nWatch the live stream on [Twitch](https://www.twitch.tv/furehconvention).",
       "track": "Convention Event",
       "room": "Wyndham - Main Stage",
       "start": "2026-07-16T22:00:00-06:00",
@@ -500,7 +500,7 @@
       "id": "8W8XKV@2026-07-17T22:00:00-06:00",
       "code": "8W8XKV",
       "title": "Dance - Friday",
-      "abstract": "A fun way to end the night dancing until late with a variety of DJs and genres! \r\n10 - MorphyMike (Bass House, Tech House, House)\r\n11 - Dual Channel (Multi-Genre. White Girl Pop, EDM)\r\n12 - SVCCVBVS (House/Funk or Drum & Bass)\r\n1 - DJ_Huwls (Techno Mainstage)\r\nWatch the live stream on [Twitch](https://www.twitch.tv/furehconvention) or [YouTube](https://www.youtube.com/@furehconvention).",
+      "abstract": "A fun way to end the night dancing until late with a variety of DJs and genres! \r\n_Edited to add:_ **Due to the hotel's liquor license, minors may only attend accompanied by an adult guardian.** Bag checks will be performed at the doors.\r\n10 - MorphyMike (Bass House, Tech House, House)\r\n11 - Dual Channel (Multi-Genre. White Girl Pop, EDM)\r\n12 - SVCCVBVS (House/Funk or Drum & Bass)\r\n1 - DJ_Huwls (Techno Mainstage)\r\nWatch the live stream on [Twitch](https://www.twitch.tv/furehconvention).",
       "track": "Convention Event",
       "room": "Wyndham - Main Stage",
       "start": "2026-07-17T22:00:00-06:00",
@@ -648,6 +648,17 @@
       "room": "Wyndham - Terrace 5",
       "start": "2026-07-17T20:00:00-06:00",
       "end": "2026-07-18T06:00:00.000Z",
+      "day": "2026-07-17"
+    },
+    {
+      "id": "XKL3VL@2026-07-17T21:00:00-06:00",
+      "code": "XKL3VL",
+      "title": "Karaoke",
+      "abstract": "Karaoke will be set up in the area outside of the Games Room (Terrace 5) from 9 PM to 1 AM, run by RebelDaFoxx on behalf of Fur-Eh!. Sing your furry hearts out!",
+      "track": "Fursuiting & Performance",
+      "room": "Wyndham - Terrace 5",
+      "start": "2026-07-17T21:00:00-06:00",
+      "end": "2026-07-18T07:00:00.000Z",
       "day": "2026-07-17"
     },
     {
@@ -1204,7 +1215,7 @@
       "id": "7TMVXU@2026-07-18T22:00:00-06:00",
       "code": "7TMVXU",
       "title": "Dance - Saturday",
-      "abstract": "A fun way to end the night dancing until late with a variety of DJs and genres! \r\n10 - Adam Ott (House, Top 40, Dance)\r\n11 - Fleabagz (Dubstep, Riddim Dubstep)\r\n12 - DOGMATIK (Gabber, Hardcore, Hardstyle, Happy Hardcore, Uptempo)\r\n1 - EiRR0R (Hard Dance, Techno, and a little DnB & Psytrance)\r\nWatch the live stream on [Twitch](https://www.twitch.tv/furehconvention) or [YouTube](https://www.youtube.com/@furehconvention).",
+      "abstract": "A fun way to end the night dancing until late with a variety of DJs and genres! \r\n_Edited to add:_ **Due to the hotel's liquor license, minors may only attend accompanied by an adult guardian.** Bag checks will be performed at the doors.\r\n10 - Adam Ott (House, Top 40, Dance)\r\n11 - Fleabagz (Dubstep, Riddim Dubstep)\r\n12 - DOGMATIK (Gabber, Hardcore, Hardstyle, Happy Hardcore, Uptempo)\r\n1 - EiRR0R (Hard Dance, Techno, and a little DnB & Psytrance)\r\nWatch the live stream on [Twitch](https://www.twitch.tv/furehconvention).",
       "track": "Convention Event",
       "room": "Wyndham - Main Stage",
       "start": "2026-07-18T22:00:00-06:00",
@@ -1215,7 +1226,7 @@
       "id": "YNV9LA@2026-07-18T13:00:00-06:00",
       "code": "YNV9LA",
       "title": "Fursuit Maid Café",
-      "abstract": "_Hosted by Misaki and Flecko the Fennec_\r\nFounded in 2017 in Vancouver, BC, [Mirai Wonder Café](https://linktr.ee/miraiwondercafe) is bringing together Fur-Eh!'s very first fursuit maid café! Join us for 1.5hrs of kawaii energy and entertainment, complete with yummy snacks and drinks.",
+      "abstract": "_Hosted by Misaki and Flecko the Fennec_\r\nFounded in 2017 in Vancouver, BC, [Mirai Wonder Café](https://linktr.ee/miraiwondercafe) is bringing together Fur-Eh!'s very first fursuit maid café! Join us for 1.5hrs of kawaii energy and entertainment, complete with yummy snacks and drinks.\r\nTickets are linked to your convention registration. Show your con badge at the door and they will verify that there is a ticket associated with your badge number. There are no physical tickets.",
       "track": "Convention Event",
       "room": "Wyndham - Imperial",
       "start": "2026-07-18T13:00:00-06:00",
@@ -1333,6 +1344,17 @@
       "day": "2026-07-18"
     },
     {
+      "id": "XKL3VL@2026-07-18T21:00:00-06:00",
+      "code": "XKL3VL",
+      "title": "Karaoke",
+      "abstract": "Karaoke will be set up in the area outside of the Games Room (Terrace 5) from 9 PM to 1 AM, run by RebelDaFoxx on behalf of Fur-Eh!. Sing your furry hearts out!",
+      "track": "Fursuiting & Performance",
+      "room": "Wyndham - Terrace 5",
+      "start": "2026-07-18T21:00:00-06:00",
+      "end": "2026-07-19T07:00:00.000Z",
+      "day": "2026-07-18"
+    },
+    {
       "id": "CZKVLN@2026-07-18T10:00:00-06:00",
       "code": "CZKVLN",
       "title": "Wyndham - Headless Lounge",
@@ -1355,17 +1377,6 @@
       "day": "2026-07-18"
     },
     {
-      "id": "83BYSD@2026-07-18T10:00:00-06:00",
-      "code": "83BYSD",
-      "title": "Brasil FurFest Portal",
-      "abstract": "Gaze into the Mirror of Pawladriel and see what's happening at one of the other conventions happening this weekend... [Brasil FurFest](https://brasilfurfest.com.br/?lang=en)!",
-      "track": "Meetups & Socials",
-      "room": "Wyndham - Atrium",
-      "start": "2026-07-18T10:00:00-06:00",
-      "end": "2026-07-19T00:00:00.000Z",
-      "day": "2026-07-18"
-    },
-    {
       "id": "7V37XS@2026-07-18T10:00:00-06:00",
       "code": "7V37XS",
       "title": "Fursuit Photo",
@@ -1374,6 +1385,17 @@
       "room": "Wyndham - Atrium",
       "start": "2026-07-18T10:00:00-06:00",
       "end": "2026-07-18T16:30:00.000Z",
+      "day": "2026-07-18"
+    },
+    {
+      "id": "83BYSD@2026-07-18T10:00:00-06:00",
+      "code": "83BYSD",
+      "title": "Brasil FurFest Portal",
+      "abstract": "Gaze into the Mirror of Pawladriel and see what's happening at one of the other conventions happening this weekend... [Brasil FurFest](https://brasilfurfest.com.br/?lang=en)!",
+      "track": "Meetups & Socials",
+      "room": "Wyndham - Atrium",
+      "start": "2026-07-18T10:00:00-06:00",
+      "end": "2026-07-19T00:00:00.000Z",
       "day": "2026-07-18"
     },
     {
@@ -1443,17 +1465,6 @@
       "day": "2026-07-18"
     },
     {
-      "id": "J8A9RZ@2026-07-18T13:45:00-06:00",
-      "code": "J8A9RZ",
-      "title": "Fursona Lore and Storytelling: Year Two",
-      "abstract": "_Hosted by The Lunar Crew_\r\nAfter the grand slam success of last years how to on fursona lore I want to expand even further on more topics and bring more of my crew in to help explain the details. Prepare to learn everything that I can teach about lore writing, world building, and exploration.",
-      "track": "Writing & Storytelling",
-      "room": "Delta - Fort McMurray Room",
-      "start": "2026-07-18T13:45:00-06:00",
-      "end": "2026-07-18T20:45:00.000Z",
-      "day": "2026-07-18"
-    },
-    {
       "id": "FPTQ9V@2026-07-18T15:45:00-06:00",
       "code": "FPTQ9V",
       "title": "Paw Pains",
@@ -1517,17 +1528,6 @@
       "room": "Delta - Red Deer Room",
       "start": "2026-07-18T20:30:00-06:00",
       "end": "2026-07-19T03:30:00.000Z",
-      "day": "2026-07-18"
-    },
-    {
-      "id": "CQZ9ZB@2026-07-18T21:45:00-06:00",
-      "code": "CQZ9ZB",
-      "title": "PokémonFKR: The Game",
-      "abstract": "_Hosted by Mana_\r\nWould you consider yourself a first-class Pokémon pervert? Well if so, come take part in a panel where we will be enjoying some good ol’ fashion Pokémon pornography, while also playing a game I like to call ‘which Pokémon does THAT belong to?’. Because if you really are a hardcore Pokémon pervert, shouldn’t you be able to figure out which Pokémon it is by their bits and bobs alone? So come on down and test your weird knowledge of pokemon perversion, you coward. Please bring your phone too! You’ll need it to play.",
-      "track": "Gaming",
-      "room": "Delta - Red Deer Room",
-      "start": "2026-07-18T21:45:00-06:00",
-      "end": "2026-07-19T05:15:00.000Z",
       "day": "2026-07-18"
     },
     {
@@ -1853,7 +1853,7 @@
       "id": "SSV9MD@2026-07-18T12:00:00-06:00",
       "code": "SSV9MD",
       "title": "Motorama, presented by Fenix",
-      "abstract": "_Hosted by Fenix_\r\nCome join us at the Delta Parkade to experience the furry side of the car community! See artistic expression on display on 4 wheels, whether you're an enthusiast or not, this event is approachable to everyone! Not only is this a car show this is a congregation space for everything on wheels, including entertainment, games, and will be ending it off with a best-in-show award chosen by you!",
+      "abstract": "_Hosted by Fenix_\r\n\r\n_Update: Setup will begin immediately after the parade. Participants are asked to bring their vehicles to the Delta parkade and then vacate until the event begins._\r\n\r\nCome join us at the Delta Parkade to experience the furry side of the car community! See artistic expression on display on 4 wheels, whether you're an enthusiast or not, this event is approachable to everyone! Not only is this a car show this is a congregation space for everything on wheels, including entertainment, games, and will be ending it off with a best-in-show award chosen by you!",
       "track": "Meetups & Socials",
       "room": "Delta - Parking Garage",
       "start": "2026-07-18T12:00:00-06:00",
@@ -1908,7 +1908,7 @@
       "id": "VJZGAY@2026-07-19T19:00:00-06:00",
       "code": "VJZGAY",
       "title": "Sunday Night After Party",
-      "abstract": "We go now into the West beyond the closing ceremony to frolic and be merry one last time this year.\r\n7 - TekTonic (Funky House)\r\n8 - rave cat (Electro-Swing)\r\n9 - LoneWo1fy (Electronic, EuroDance, Happy-hardcore, Bootleg, Bounce)\r\n10 - XaiuFox (Bass House, ElectroBreaks)\r\n11 - DJ GiR (Happy Hardcore)",
+      "abstract": "_Edited to add:_ **Due to the hotel's liquor license, minors may only attend accompanied by an adult guardian.** Bag checks will be performed at the doors.\r\n\r\nWe go now into the West beyond the closing ceremony to frolic and be merry one last time this year.\r\n7 - TekTonic (Funky House)\r\n8 - rave cat (Electro-Swing)\r\n9 - LoneWo1fy (Electronic, EuroDance, Happy-hardcore, Bootleg, Bounce)\r\n10 - XaiuFox (Bass House, ElectroBreaks)\r\n11 - DJ GiR (Happy Hardcore)",
       "track": "Music & Performance Arts",
       "room": "Wyndham - Imperial",
       "start": "2026-07-19T19:00:00-06:00",
@@ -1934,7 +1934,7 @@
       "track": "Art",
       "room": "Wyndham - Terrace 2",
       "start": "2026-07-19T10:00:00-06:00",
-      "end": "2026-07-19T21:00:00.000Z",
+      "end": "2026-07-19T19:30:00.000Z",
       "day": "2026-07-19"
     },
     {
@@ -1982,17 +1982,6 @@
       "day": "2026-07-19"
     },
     {
-      "id": "G8GMLS@2026-07-19T19:00:00-06:00",
-      "code": "G8GMLS",
-      "title": "Staff/Volunteer Meal",
-      "abstract": "All staff and volunteers are welcome to join us for this thank you dinner.",
-      "track": "Convention Event",
-      "room": "Wyndham - Terrace 5",
-      "start": "2026-07-19T19:00:00-06:00",
-      "end": "2026-07-20T02:00:00.000Z",
-      "day": "2026-07-19"
-    },
-    {
       "id": "CZKVLN@2026-07-19T10:00:00-06:00",
       "code": "CZKVLN",
       "title": "Wyndham - Headless Lounge",
@@ -2001,6 +1990,17 @@
       "room": "Wyndham - Gallery 1",
       "start": "2026-07-19T10:00:00-06:00",
       "end": "2026-07-19T23:00:00.000Z",
+      "day": "2026-07-19"
+    },
+    {
+      "id": "G8GMLS@2026-07-19T19:30:00-06:00",
+      "code": "G8GMLS",
+      "title": "Staff/Volunteer Meal",
+      "abstract": "All staff and volunteers are welcome to join us for this thank you dinner.",
+      "track": "Convention Event",
+      "room": "Wyndham - Gallery 1",
+      "start": "2026-07-19T19:30:00-06:00",
+      "end": "2026-07-20T02:00:00.000Z",
       "day": "2026-07-19"
     },
     {
@@ -2144,17 +2144,6 @@
       "room": "Delta - Medicine Hat Room",
       "start": "2026-07-19T13:15:00-06:00",
       "end": "2026-07-19T20:15:00.000Z",
-      "day": "2026-07-19"
-    },
-    {
-      "id": "GGZXGG@2026-07-19T14:45:00-06:00",
-      "code": "GGZXGG",
-      "title": "Fly, You Fools! An Exploration of Insect Wings",
-      "abstract": "_Hosted by Berith_\r\nA lighthearted deep dive into the many forms and functions of insect wings. Discover how wings evolved, hidden, lost, and used for flight, defense, and display—because in the insect world, not all who wander fly the same.",
-      "track": "Art",
-      "room": "Delta - Medicine Hat Room",
-      "start": "2026-07-19T14:45:00-06:00",
-      "end": "2026-07-19T21:45:00.000Z",
       "day": "2026-07-19"
     },
     {

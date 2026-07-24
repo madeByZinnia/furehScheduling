@@ -1,8 +1,10 @@
 import { env, runInDurableObject, SELF } from 'cloudflare:test';
 import { describe, it, expect, vi, afterEach } from 'vitest';
 
-// Real, baked occurrence ids (see src/data/schedule.json) so a non-ghost
-// member's plans resolve to title/start/room. z is a third distinct id.
+// Real occurrence ids from the Fureh feed (public/data/fureh.json) so a non-ghost
+// member's plans resolve to title/start/room. A crew defaults to con_id='fureh',
+// and getRoster now loads that con's schedule at runtime (KV→asset). z is a third
+// distinct id.
 const X = 'GGATRR@2026-07-16T17:00:00-06:00';
 const Y = 'AKESSA@2026-07-16T19:30:00-06:00';
 const Z = 'RUPMLX@2026-07-16T22:00:00-06:00';

@@ -10,6 +10,10 @@
   "vars": { "MINIAPP_URL": "https://t.me/fureh_schedule_bot/schedule" },
   "assets": {
     "directory": "./dist/",
+    // Bound so the Worker/DO can `env.ASSETS.fetch(...)` a file directly — used by
+    // GET /api/schedule to fall back to the baked ./dist/data/<con>.json when KV
+    // has no live override for that con.
+    "binding": "ASSETS",
     "not_found_handling": "single-page-application",
     // Without this the SPA fallback returns index.html for every unmatched path
     // and SWALLOWS the API routes. /telegram/* is not under /api/*, so list it
@@ -23,6 +27,15 @@
   "durable_objects": {
     "bindings": [{ "name": "CREW", "class_name": "Crew" }],
   },
+  // Live per-con schedule overrides. GET /api/schedule reads SCHEDULES.get(<conId>)
+  // first and only falls back to the baked asset on a miss, so a KV write lets a
+  // schedule update propagate WITHOUT a redeploy. LOCAL-ONLY this tic: the id below
+  // is a fake placeholder. Create the real namespace at deploy time with
+  //   wrangler kv namespace create SCHEDULES
+  // and paste the returned id here (the vitest pool provisions its own local KV).
+  "kv_namespaces": [
+    { "binding": "SCHEDULES", "id": "PLACEHOLDER_SCHEDULES_KV_ID_REPLACE_AT_DEPLOY" },
+  ],
   // MUST be new_sqlite_classes, NOT new_classes: new_classes makes KV-backed DOs
   // that fail on new accounts and cannot be converted to SQLite once deployed.
   "migrations": [{ "tag": "v1", "new_sqlite_classes": ["Crew"] }],
