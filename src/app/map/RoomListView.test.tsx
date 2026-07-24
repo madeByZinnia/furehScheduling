@@ -74,7 +74,7 @@ describe('RoomListView', () => {
   it('reflects useStars: starring an occurrence shows its room badge with the count as TEXT', () => {
     mount();
     // Star both Alpha sessions; Zebra stays unstarred.
-    act(() => {
+    void act(() => {
       toggleStar(A1.id);
       toggleStar(A2.id);
     });
@@ -94,7 +94,7 @@ describe('RoomListView', () => {
 
   it('only counts stars that belong to the room (a star elsewhere does not leak)', () => {
     mount();
-    act(() => toggleStar(Z1.id));
+    void act(() => toggleStar(Z1.id));
     expect(itemByName('Zebra').querySelector('.room-stars')!.textContent).toContain('1');
     expect(itemByName('Alpha').querySelector('.room-stars')).toBeNull();
   });
